@@ -24,6 +24,12 @@ To build slua on Linux, just adjust, then execute the build_slua.sh script at th
 
 There is no installation. The slua binary can be placed and executed anywhere. 
 
+The default Lua paths ('package.path' and 'package.cpath') have been modified. The default Lua path points only to the current directory, and the (unused) Lua cpath is empty.
+* `package.path:  "./?.lua;./?/init.lua" `
+* `package.cpath: "" `
+
+slua still respects the environment variables LUA_PATH and LUA_CPATH.
+		
 Binary versions of slua are provided here for convenience.
 
 

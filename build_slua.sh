@@ -26,7 +26,7 @@ fi
 # exit on error
 set -e
 
-echo "building slua ..."
+echo "building slua for linux..."
 LUAINCL=lua/src
 # don't use LUA_USE_LINUX (don't want readline, dynlib support)
 DEFS="-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
@@ -44,9 +44,10 @@ $CC -static -o slua -Os -I$LUAINCL $DEFS -DLUASOCKET_API="" \
 
 rm -f lua/src/*.o luafilesystem/src/*.o lpeg/*.o luasocket/src/*.o
 strip slua
-mv slua bin/
+md5sum slua > slua.md5
+
+mv slua slua.md5 bin/
 
 # smoke test
 bin/slua -e' print "slua: done." '
 exit
-

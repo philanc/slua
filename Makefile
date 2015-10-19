@@ -1,7 +1,7 @@
 
 CC= /mu/bin/musl-gcc
 AR= ar
-CFLAGS= -Os -Isrc/lua/src -DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
+CFLAGS= -Os -Isrc/lua/ -DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
          -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG
 LDFLAGS= 
 
@@ -40,8 +40,8 @@ slua.a:  lua.a src/*.c src/*.h
 	$(AR) rcu slua.a $(SLUA_O)
 	rm -f *.o
 
-lua.a:  src/lua/src/*.c src/lua/src/*.h
-	$(CC) -c $(CFLAGS) src/lua/src/*.c
+lua.a:  src/lua/*.c src/lua/*.h
+	$(CC) -c $(CFLAGS) src/lua/*.c
 	$(AR) rcu lua.a $(LUA_O)
 	rm -f *.o
 

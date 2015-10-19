@@ -6,6 +6,7 @@ local function keys(t)
 	return st
 end
 
+print("\nslua - a static build of Lua 5.3 with some preloaded libraries:")
 for i, lib in ipairs(keys(package.preload)) do
 	kl = keys(require(lib))
 	print(string.format("%-15s %3d functions and constants", lib, #kl))

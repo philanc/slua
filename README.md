@@ -59,7 +59,7 @@ The Windows32 version has been build with MinGW (not available yet)
 
 Although its objective is different, Slua has been inspired by other projects:
 - MurgaLua, by John Murga - http://www.murga-projects.com/murgaLua.html
-- BonaLua, by Christophe Delord - http://www.cdsoft.fr/bl/bonaluna.html
+- BonaLuna, by Christophe Delord - http://www.cdsoft.fr/bl/bonaluna.html
 
 ### License
 

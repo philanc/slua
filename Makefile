@@ -1,4 +1,16 @@
 
+# Build a completely static 'slua' on Linux with the Musl C library 
+# (with the 'musl-gcc' wrapper provided with Musl C)
+#
+# Except the Musl C library , this build should require no additional
+# library or dependencies
+#
+# Building statically with Glibc:  TL;DR: Don't.  :-)
+# The luasocket library requires functions that cannot be linked 
+# statically (getaddrinfo, gethostbyaddr, gesthostbyname). 
+# In addition, the executable would be _much_ larger with Glibc. 
+# ----------------------------------------------------------------------
+
 CC= /mu/bin/musl-gcc
 AR= ar
 CFLAGS= -Os -Isrc/lua/ -DLUA_USE_POSIX -DLUA_USE_STRTODHEX \

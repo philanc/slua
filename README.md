@@ -7,8 +7,10 @@ Additional libraries are *pre-loaded*. They must be require()'d before use (see 
 
 slua preloaded libraries:
 - lfs (from LuaFileSystem)
-- lpeg
+- lpeg (from LPeg 1.0.0)
 - socket.core and mime.core (from LuaSocket)
+- luazen (a small library with basic crypto functions)
+- nacl (the NaCl crypto library, from Dan Bernstein et al. This small Lua wrapper is based on the *tweet nacl* implementation which is also included)
 
 slua is linked completely statically. It uses no dynamic library, not even libc.  
 
@@ -20,7 +22,7 @@ On the other end, obviously, slua cannot load dynamic C libraries. It is *not* i
 
 ### Installation
 
-To build slua on Linux, just adjust, then execute the build_slua.sh script at the root of the source tree. 
+To build slua on Linux, just adjust the 'Makefile', run 'make' at the root of the source tree. 
 
 There is no installation. The slua binary can be placed and executed anywhere. 
 
@@ -51,11 +53,19 @@ Linenoise fits in one source file which has been placed in the Lua source direct
 
 The Linux binary version of  slua has been built on a x86 (32-bit) platform with the Musl C library (version 1.1.10)
 
-The Windows32 version has benn build with MinGW.
+The Windows32 version has been build with MinGW (not available yet)
+
+### Related projects
+
+Although its objective is different, Slua has been inspired by other projects:
+- MurgaLua, by John Murga - http://www.murga-projects.com/murgaLua.html
+- BonaLua, by Christophe Delord - http://www.cdsoft.fr/bl/bonaluna.html
 
 ### License
 
 Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent). See LICENSE files in directories lua, luafilesystem, luasocket, and the file lpeg.html in directory lpeg.
+
+Luazen and the tweetnacl Lua wrapper are distributed under the MIT License. The "tweet" NaCl core implementation is public domain, by Daniel Bernstein et al.
 
 Copyright (c) 2015  Phil Leblanc 
 

@@ -27,6 +27,9 @@ fi
 set -e
 
 echo "building slua for linux..."
+
+cd src
+
 LUAINCL=lua/src
 # don't use LUA_USE_LINUX (don't want readline, dynlib support)
 DEFS="-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
@@ -34,20 +37,27 @@ DEFS="-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
 
 # compile everything
 $CC -static -o slua -Os -I$LUAINCL $DEFS -DLUASOCKET_API="" \
+	*.c	\
 	lua/src/*.c	\
-	luafilesystem/src/lfs.c \
+	lfs/lfs.c \
 	lpeg/*.c  \
 	luasocket/src/{luasocket.c,timeout.c,buffer.c,io.c,auxiliar.c} \
 	luasocket/src/{compat.c,options.c,inet.c,except.c,select.c} \
-	luasocket/src/{tcp.c,udp.c,usocket.c,mime.c}
+	luasocket/src/{tcp.c,udp.c,usocket.c,mime.c}  \
+	luazen/*.c \
+	tweetnacl/*.c  \
+	termbox/*.c
 
 
 rm -f lua/src/*.o luafilesystem/src/*.o lpeg/*.o luasocket/src/*.o
 strip slua
 md5sum slua > slua.md5
 
-mv slua slua.md5 bin/
+mv slua slua.md5 ../bin/
+
+cd ..
 
 # smoke test
-bin/slua -e' print "slua: done." '
+bin/slua -e' print "slua: built." '
+bin/slua  test/t.lua
 exit

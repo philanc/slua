@@ -85,6 +85,7 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
 
   PRELOAD(lfs)
   PRELOAD(lpeg)
+  PRELOAD(luanet)
   PRELOAD2(socket.core, socket_core)
   PRELOAD2(mime.core, mime_core)
   PRELOAD(luazen)

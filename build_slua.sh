@@ -41,6 +41,7 @@ $CC -static -o slua -Os -I$LUAINCL $DEFS -DLUASOCKET_API="" \
 	lua/src/*.c	\
 	lfs/lfs.c \
 	lpeg/*.c  \
+	luanet/*.c  \
 	luasocket/src/{luasocket.c,timeout.c,buffer.c,io.c,auxiliar.c} \
 	luasocket/src/{compat.c,options.c,inet.c,except.c,select.c} \
 	luasocket/src/{tcp.c,udp.c,usocket.c,mime.c}  \

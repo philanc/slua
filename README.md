@@ -11,6 +11,7 @@ slua preloaded libraries:
 - socket.core and mime.core (from LuaSocket)
 - luazen (a small library with basic crypto functions)
 - nacl (the NaCl crypto library, from Dan Bernstein et al. This small Lua wrapper is based on the *tweet nacl* implementation which is also included)
+- mtcp (a minimal socket library for tcp connections)
 
 slua is linked completely statically. It uses no dynamic library, not even libc.  
 

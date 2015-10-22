@@ -46,7 +46,8 @@ string.unpack:  eg. for a IPv4 address:
 int mtcp_bind(lua_State *L) {
 	// create a server socket, bind, then listen 
 	// Lua args: host, service (as strings)
-	// returns server socket file descriptor (as integer) or nil, errmsg
+	// returns server socket file descriptor (as integer) and
+	// the raw host address as a string,  or nil, errmsg
 	const char *host, *service;
 	struct addrinfo hints;
 	struct addrinfo *result, *rp;	
@@ -271,7 +272,9 @@ int mtcp_close(lua_State *L) {
 } //mtcp_close
 
 int mtcp_getpeername(lua_State *L) {
-	
+	// get the address the peer a socket is connected to
+	// Lua args: socket file descriptor (as integer)
+	// returns the raw client address as a string,  or nil, errmsg	
 	int fd;
 	int n;
 	struct sockaddr addr;
@@ -290,6 +293,96 @@ int mtcp_getpeername(lua_State *L) {
 	return 1;
 } //mtcp_getpeername
 
+int mtcp_getsockname(lua_State *L) {
+	// get the address a socket is bound to
+	// Lua args: socket file descriptor (as integer)
+	// returns the raw client address as a string,  or nil, errmsg
+	int fd;
+	int n;
+	struct sockaddr addr;
+	socklen_t len = sizeof(addr); //enough for ip4&6 addr
+	
+	fd = luaL_checkinteger(L, 1); // get socket fd
+
+	n = getsockname(fd, &addr, &len);
+	if (n == -1) {
+		lua_pushnil (L);
+		lua_pushfstring (L, "close error: %d", errno);
+		return 2;
+	}
+	//success, return socket addr
+	lua_pushlstring (L, (const char *)&addr, len);
+	return 1;
+} //mtcp_getsockname
+
+int mtcp_getaddrinfo(lua_State *L) {
+
+	const char *host, *service;
+	struct addrinfo hints;
+	struct addrinfo *result, *rp;	
+	int sfd;
+	int n;
+	
+	host = luaL_checkstring(L, 1);
+	service = luaL_optstring(L, 2, "0");
+
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;	 /* Allow IPv4 or IPv6 */
+	hints.ai_socktype = SOCK_STREAM; 
+	n = getaddrinfo(host, service, &hints, &result);
+	if (n) {
+		lua_pushnil (L);
+		lua_pushfstring (L, "getaddrinfo: %d %s", n, gai_strerror(n));
+		return 2;
+	}
+	// build the table of the returned addresses
+	lua_newtable(L);
+	n = 1;
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+		lua_pushinteger (L, n);
+		lua_pushlstring(L, (const char *)rp->ai_addr, rp->ai_addrlen);
+		lua_settable(L, -3);
+		n += 1;
+	}	
+	// return the addresses table
+	return 1;
+} //mtcp_getaddrinfo
+
+#define HOSTLEN 512
+#define SERVLEN 128
+
+int mtcp_getnameinfo(lua_State *L) {
+	// inverse of getaddrinfo(). converts a raw address into a host and port
+	// port is always returned as an integer
+	//Lua args:
+	//   addr - a raw address (sockaddr) as returned by bind, 
+	//          connect, getaddrinfo
+	//   numerichost - an optional flag. set it to 1 to return 
+	//          host numeric address or leave it empty for a host name
+	//          
+	char hostname[HOSTLEN];
+	char servname[SERVLEN];
+	const char *addr;
+	int addrlen;
+	int numerichost;
+	int n;
+	addr = luaL_checklstring(L, 1, &addrlen); // raw addr (sockaddr)
+	numerichost = luaL_optinteger(L, 2, 0);
+	numerichost = numerichost ? NI_NUMERICHOST : 0;
+	n = getnameinfo((const struct sockaddr *)addr, addrlen, 
+			hostname, HOSTLEN, servname, SERVLEN, 
+			(NI_NUMERICSERV | numerichost));
+	if (n) {
+		lua_pushnil (L);
+		lua_pushfstring (L, "getnameinfo: %d %s", n, gai_strerror(n));
+		return 2;
+	}
+	//success, return hostame and servname
+	lua_pushstring(L, hostname);
+	lua_pushinteger(L, atoi(servname));
+	return 2;	
+} //mtcp_getnameinfo
+
 
 static const struct luaL_Reg mtcplib[] = {
 	{"bind", mtcp_bind},
@@ -298,7 +391,10 @@ static const struct luaL_Reg mtcplib[] = {
 	{"write", mtcp_write},
 	{"read", mtcp_read},
 	{"close", mtcp_close},
+	{"getsockname", mtcp_getsockname},
 	{"getpeername", mtcp_getpeername},
+	{"getaddrinfo", mtcp_getaddrinfo},
+	{"getnameinfo", mtcp_getnameinfo},
 	
 	{NULL, NULL},
 };

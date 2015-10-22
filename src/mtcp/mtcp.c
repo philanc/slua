@@ -11,9 +11,13 @@ functions:
   write
   read       -- with a timeout
   close
+  getpeername
 
-
-
+the sockaddr structure, returned as a string by getpeername, 
+accept and connect (second return value), can easily be parsed with
+string.unpack:  eg. for a IPv4 address:
+  family, port, ip1, ip2, ip3, ip4 = string.unpack("<H>HBBBB", addr)
+  ipaddr = table.concat({ip1, ip2, ip3, ip4}, '.')
 
 */
 
@@ -78,13 +82,15 @@ int mtcp_bind(lua_State *L) {
 	}
 	// success, return server socket fd
 	lua_pushinteger (L, sfd);
-	return 1;
+	lua_pushlstring(L, (const char *)rp->ai_addr, rp->ai_addrlen);
+	return 2;
 } //mtcp_bind
 
 int mtcp_accept(lua_State *L) {
 	// accept incoming connections on a server socket 
 	// Lua args: server socket file descriptor (as integer)
-	// returns client socket file descriptor (as integer) or nil, errmsg
+	// returns client socket file descriptor (as integer) and
+	// the raw client address as a string,  or nil, errmsg
 	int cfd, sfd;
 	struct sockaddr_storage addr;
 	socklen_t len = sizeof(addr); //enough for ip4&6 addr
@@ -99,14 +105,16 @@ int mtcp_accept(lua_State *L) {
 	}
 	//success, return client socket fd
 	lua_pushinteger (L, cfd);
-	return 1;
+	lua_pushlstring(L, (const char *)&addr, len);
+	return 2;
 } //mtcp_accept
 
 
 int mtcp_connect(lua_State *L) {
 	// connect to a host
 	// Lua args: host, service or port (as strings)
-	// returns connection socket fd (as integer) or nil, errmsg
+	// returns connection socket fd (as integer) and host raw address 
+	// as a string, or nil, errmsg
 	const char *host, *service;
 	struct addrinfo hints;
 	struct addrinfo *result, *rp;	
@@ -138,7 +146,8 @@ int mtcp_connect(lua_State *L) {
 	}
 	//success, return connection socket fd
 	lua_pushinteger (L, cfd);
-	return 1;
+	lua_pushlstring(L, (const char *)rp->ai_addr, rp->ai_addrlen);
+	return 2;
 } //mtcp_connect
 
 int mtcp_write(lua_State *L) {
@@ -248,7 +257,7 @@ int mtcp_close(lua_State *L) {
 	int fd;
 	int n;
 
-	fd = luaL_checkinteger(L, 1); // get server socket fd
+	fd = luaL_checkinteger(L, 1); // get socket fd
 
 	n = close(fd);
 	if (n == -1) {
@@ -256,11 +265,30 @@ int mtcp_close(lua_State *L) {
 		lua_pushfstring (L, "close error: %d", errno);
 		return 2;
 	}
-	//success, return client socket fd
+	//success, return true
 	lua_pushboolean (L, 1);
 	return 1;
 } //mtcp_close
 
+int mtcp_getpeername(lua_State *L) {
+	
+	int fd;
+	int n;
+	struct sockaddr addr;
+	socklen_t len = sizeof(addr); //enough for ip4&6 addr
+	
+	fd = luaL_checkinteger(L, 1); // get socket fd
+
+	n = getpeername(fd, &addr, &len);
+	if (n == -1) {
+		lua_pushnil (L);
+		lua_pushfstring (L, "close error: %d", errno);
+		return 2;
+	}
+	//success, return peer socket addr
+	lua_pushlstring (L, (const char *)&addr, len);
+	return 1;
+} //mtcp_getpeername
 
 
 static const struct luaL_Reg mtcplib[] = {
@@ -270,6 +298,7 @@ static const struct luaL_Reg mtcplib[] = {
 	{"write", mtcp_write},
 	{"read", mtcp_read},
 	{"close", mtcp_close},
+	{"getpeername", mtcp_getpeername},
 	
 	{NULL, NULL},
 };

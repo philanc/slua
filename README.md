@@ -9,7 +9,7 @@ slua preloaded libraries:
 - lfs (from LuaFileSystem)
 - lpeg (from LPeg 1.0.0)
 - socket.core and mime.core (from LuaSocket)
-- luazen (a small library with basic crypto functions)
+- luazen (a small library with basic crypto and compression functions)
 - nacl (the NaCl crypto library, from Dan Bernstein et al. This small Lua wrapper is based on the *tweet nacl* implementation which is also included)
 - mtcp (a minimal socket library for tcp connections)
 
@@ -58,9 +58,9 @@ The Windows32 version has been build with MinGW (not available yet)
 
 ### Related projects
 
-Although its objective is different, Slua has been inspired by other projects:
+Although their objectives are different, slua has been inspired by other projects:
 - MurgaLua, by John Murga - http://www.murga-projects.com/murgaLua.html
-- BonaLua, by Christophe Delord - http://www.cdsoft.fr/bl/bonaluna.html
+- BonaLuna, by Christophe Delord - http://www.cdsoft.fr/bl/bonaluna.html
 
 ### License
 

@@ -64,7 +64,7 @@ static const luaL_Reg loadedlibs[] = {
 	lua_pushcfunction(L, luaopen_##libname);	\
     lua_setfield(L, -2, #libname);	
 
-// PRELOAD2 is used for special cases, eg. mime.core:
+// PRELOAD2 is used for special cases, eg. for mime.core:
 // PRELOAD2(mime.core, mime_core)
 #define PRELOAD2(libname, libfuncname)  \
 	int luaopen_##libfuncname (lua_State *L); \

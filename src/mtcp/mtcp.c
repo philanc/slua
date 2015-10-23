@@ -4,23 +4,28 @@
 
 mtcp - A minimal Lua socket library for tcp connections
 
-functions:
-  bind       -- include listen
-  accept
-  connect
-  write
-  read       -- with a timeout
-  close
-  getpeername
+Functions:
+  bind         create a socket; bind it to a host address and port; listen
+  accept       accept incoming connections
+  connect      create a socket; connect to a (host, port)
+  write        write to an open connection
+  read         read from an open connection (with a timeout)
+  close        close a socket
+  getpeername  get the address of the peer a socket is connected to
+  getsockname  get the address a socket is bound to
+  getaddrinfo  get a list of addresses corresponding to a hostname and port
+  getnameinfo  get the hostname and port for a socket
 
-the sockaddr structure, returned as a string by getpeername, 
-accept and connect (second return value), can easily be parsed with
-string.unpack:  eg. for a IPv4 address:
+The sockaddr structure, returned as a string by getpeername, getsockname,
+bind, accept and connect (second return value), is the raw, binary value.
+It can be parsed by getnameinfo.
+
+It can also easily be parsed with string.unpack:  eg. for a IPv4 address:
   family, port, ip1, ip2, ip3, ip4 = string.unpack("<H>HBBBB", addr)
   ipaddr = table.concat({ip1, ip2, ip3, ip4}, '.')
 
 */
-
+// ---------------------------------------------------------------------
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,7 +40,8 @@ string.unpack:  eg. for a IPv4 address:
 #include "lauxlib.h"
 #include "lualib.h"
 
-#define MTCP_VERSION "0.1"
+// ---------------------------------------------------------------------
+#define MTCP_VERSION "0.2"
 #define BUFSIZE 1024
 #define BACKLOG 32
 
@@ -199,8 +205,7 @@ int mtcp_read(lua_State *L) {
 	int fd;
 	int n;
 	luaL_Buffer b;
-	char *buf;
-	int bufln;
+	char buf[BUFSIZE];
 	struct pollfd pfd;
 	int timeout;
 	int nbytes, rbytes;
@@ -209,8 +214,6 @@ int mtcp_read(lua_State *L) {
 	nbytes = luaL_optinteger(L, 2, BUFSIZE); 
 	timeout = luaL_optinteger(L, 3, DEFAULT_TIMEOUT); 
 
-	bufln = BUFSIZE;
-	buf = malloc(bufln);
 	luaL_buffinit(L,&b);
 	pfd.fd = fd;
 	pfd.events = POLLIN;
@@ -219,13 +222,11 @@ int mtcp_read(lua_State *L) {
 	while(1) {
 		n = poll(&pfd, (nfds_t) 1, timeout);
 		if (n < 0) {  // poll error
-			free(buf);
 			lua_pushnil (L);
 			lua_pushfstring (L, "poll error: %d  %d", n, errno);
 			return 2;      
 		}
 		if (n == 0) { // poll timeout
-			free(buf);
 			lua_pushnil (L);
 			lua_pushfstring (L, "poll timeout");
 			return 2;      
@@ -235,7 +236,6 @@ int mtcp_read(lua_State *L) {
 			break;
 		}
 		if (n < 0) {  // read error
-			free(buf);
 			lua_pushnil (L);
 			lua_pushfstring (L, "read error: %d  %d", n, errno);
 			return 2;      
@@ -245,8 +245,7 @@ int mtcp_read(lua_State *L) {
 		if (n < BUFSIZE) break;
 		if (rbytes >= nbytes) break;
 	}
-	//success, return bytes read
-	free(buf);
+	//success, return read bytes
 	luaL_pushresult(&b);
 	return 1;
 } //mtcp_read
@@ -316,7 +315,7 @@ int mtcp_getsockname(lua_State *L) {
 } //mtcp_getsockname
 
 int mtcp_getaddrinfo(lua_State *L) {
-
+	// get a list of addresses corresponding to a hostname and port
 	const char *host, *service;
 	struct addrinfo hints;
 	struct addrinfo *result, *rp;	
@@ -344,7 +343,7 @@ int mtcp_getaddrinfo(lua_State *L) {
 		lua_settable(L, -3);
 		n += 1;
 	}	
-	// return the addresses table
+	// return the address table
 	return 1;
 } //mtcp_getaddrinfo
 
@@ -354,12 +353,12 @@ int mtcp_getaddrinfo(lua_State *L) {
 int mtcp_getnameinfo(lua_State *L) {
 	// inverse of getaddrinfo(). converts a raw address into a host and port
 	// port is always returned as an integer
-	//Lua args:
+	// Lua args:
 	//   addr - a raw address (sockaddr) as returned by bind, 
 	//          connect, getaddrinfo
-	//   numerichost - an optional flag. set it to 1 to return 
+	//   numerichost - an optional flag. set it to any true value to return
 	//          host numeric address or leave it empty for a host name
-	//          
+	//   
 	char hostname[HOSTLEN];
 	char servname[SERVLEN];
 	const char *addr;
@@ -367,7 +366,7 @@ int mtcp_getnameinfo(lua_State *L) {
 	int numerichost;
 	int n;
 	addr = luaL_checklstring(L, 1, &addrlen); // raw addr (sockaddr)
-	numerichost = luaL_optinteger(L, 2, 0);
+	numerichost = lua_toboolean(L, 2);
 	numerichost = numerichost ? NI_NUMERICHOST : 0;
 	n = getnameinfo((const struct sockaddr *)addr, addrlen, 
 			hostname, HOSTLEN, servname, SERVLEN, 
@@ -383,6 +382,9 @@ int mtcp_getnameinfo(lua_State *L) {
 	return 2;	
 } //mtcp_getnameinfo
 
+
+// ---------------------------------------------------------------------
+// Lua library function
 
 static const struct luaL_Reg mtcplib[] = {
 	{"bind", mtcp_bind},
@@ -405,6 +407,9 @@ int luaopen_mtcp (lua_State *L) {
     // 
     lua_pushliteral (L, "_VERSION");
 	lua_pushliteral (L, MTCP_VERSION); 
+	lua_settable (L, -3);
+    lua_pushliteral (L, "BUFSIZE");
+	lua_pushinteger (L, BUFSIZE); 
 	lua_settable (L, -3);
 	return 1;
 }

@@ -1116,7 +1116,7 @@ static int l_linenoise(lua_State *L) {
 	char *line = linenoise(prompt);
 	if (line == NULL) {
 		lua_pushnil (L);
-		lua_pushfstring (L, "linoise failed");
+		lua_pushfstring (L, "linenoise failed");
 		return 2;
 	}
 	//success, return read line

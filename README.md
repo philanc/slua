@@ -72,7 +72,7 @@ Although their objectives are different, slua has been inspired by other project
 
 Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent). See LICENSE files in directories lua, luafilesystem, luasocket, and the file lpeg.html in directory lpeg.
 
-Luazen and the tweetnacl Lua wrapper are distributed under the MIT License. The "tweet" NaCl core implementation is public domain, by Daniel Bernstein et al.
+Mtcp, luazen and the tweetnacl Lua wrapper are distributed under the MIT License. The "tweet" NaCl core implementation is public domain, by Daniel Bernstein et al.
 
 Copyright (c) 2015  Phil Leblanc 
 

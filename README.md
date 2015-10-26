@@ -8,10 +8,13 @@ Additional libraries are *pre-loaded*. They must be require()'d before use (see 
 slua preloaded libraries:
 - lfs (from LuaFileSystem)
 - lpeg (from LPeg 1.0.0)
-- socket.core and mime.core (from LuaSocket)
 - luazen (a small library with basic crypto and compression functions)
 - nacl (the NaCl crypto library, from Dan Bernstein et al. This small Lua wrapper is based on the *tweet nacl* implementation which is also included)
 - mtcp (a minimal socket library for tcp connections)
+- luaproc (multi-threading library)
+- linenoise (slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications)
+- lua-termbox - a small library to write text-based user interfaces
+- socket.core and mime.core (from LuaSocket ). These are not preloaded in the default build (see src/linit.c).
 
 slua is linked completely statically. It uses no dynamic library, not even libc.  
 
@@ -46,9 +49,12 @@ LuaFileSystem 1.6.3  - commit 6d039ff385 - https://github.com/keplerproject/luaf
 	
 LPeg - http://www.inf.puc-rio.br/~roberto/lpeg/lpeg-1.0.0.tar.gz
 
-On Linux, the full 'readline' library is not used. It is replaced by the much smaller 'linenoise' library.
+Luaproc 1.0.4 - commit 990ecf6 - https://github.com/askyrme/luaproc
 
-Linenoise fits in one source file which has been placed in the Lua source directory (lua/src).
+Lua-termbox - The Lua binding comes from https://github.com/robem/lua-termbox and the termbox C library comes from https://github.com/nsf/termbox.
+
+On Linux, the full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
+
 
 ### Pre-built binaries
 

@@ -83,14 +83,16 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
   ///slua 151018 - add preloaded libraries
   luaL_getsubtable(L, LUA_REGISTRYINDEX, "_PRELOAD");
 
+  PRELOAD(linenoise)
   PRELOAD(lfs)
   PRELOAD(lpeg)
   PRELOAD(mtcp)
-  PRELOAD2(socket.core, socket_core)
-  PRELOAD2(mime.core, mime_core)
+  //~ PRELOAD2(socket.core, socket_core)
+  //~ PRELOAD2(mime.core, mime_core)
   PRELOAD(luazen)
   PRELOAD(tweetnacl)
   PRELOAD(termbox)
+  PRELOAD(luaproc)
 
   lua_pop(L, 1);  /* remove _PRELOAD table */
   ///-------------------------------------------------------

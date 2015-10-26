@@ -18,25 +18,27 @@ CFLAGS= -Os -Isrc/lua/ -DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
 LDFLAGS= 
 
 
-# list of additional libraries (lua and slua are not included here)
-SLUALIBS= lfs.a lpeg.a luazen.a tweetnacl.a termbox.a  \
-	luasocket.a mtcp.a
+# list of additional libraries 
+# (lua, linenoise and slua are not included here)
+SLUALIBS= lfs.a lpeg.a luazen.a tweetnacl.a mtcp.a    \
+	luasocket.a termbox.a luaproc.a
 
 
-
-SLUA_O=      slua.o linit.o linenoise.o
+SLUA_O=      slua.o linit.o 
 LUA_O=       \
 	lapi.o lcode.o ldebug.o lgc.o lmem.o loslib.o lstrlib.o lundump.o  \
 	lauxlib.o lcorolib.o ldo.o liolib.o loadlib.o lparser.o ltable.o   \
 	lutf8lib.o lbaselib.o lctype.o ldump.o llex.o lobject.o lstate.o   \
 	ltablib.o lvm.o lbitlib.o ldblib.o lfunc.o lmathlib.o lopcodes.o   \
 	lstring.o ltm.o lzio.o
+LINENOISE_O= linenoise.o 
 LFS_O=       lfs.o
 LPEG_O=      lpcap.o lpcode.o lpprint.o lptree.o lpvm.o
 LUAZEN_O=    hmac.o luazen.o lzf_c.o lzf_d.o md5.o rc4.o sha1.o
 TWEETNACL_O= luatweetnacl.o randombytes.o tweetnacl.o
 TERMBOX_O=   lua-termbox.o termbox.o utf8.o
-MTCP_O=    mtcp.o
+MTCP_O=      mtcp.o
+LUAPROC_O=   luaproc.o lpsched.o
 LUASOCKET_O= \
 	luasocket.o timeout.o buffer.o io.o auxiliar.o compat.o \
 	options.o inet.o except.o select.o tcp.o udp.o usocket.o mime.o
@@ -44,18 +46,23 @@ LUASOCKET_O= \
 smoketest:  slua
 	./slua  test/t.lua
 
-slua:  slua.a lua.a $(SLUALIBS)
-	$(CC) -static -o slua $(LDFLAGS) slua.a $(SLUALIBS) lua.a
+slua:  slua.a lua.a linenoise.a $(SLUALIBS)
+	$(CC) -static -o slua $(LDFLAGS) slua.a linenoise.a $(SLUALIBS) lua.a
 	strip slua
 
-slua.a:  lua.a src/*.c src/*.h
-	$(CC) -c $(CFLAGS) src/*.c
+slua.a:  lua.a linenoise.a src/slua.c src/linit.c 
+	$(CC) -c $(CFLAGS) -Isrc/linenoise/ src/*.c
 	$(AR) rcu slua.a $(SLUA_O)
 	rm -f *.o
 
 lua.a:  src/lua/*.c src/lua/*.h
 	$(CC) -c $(CFLAGS) src/lua/*.c
 	$(AR) rcu lua.a $(LUA_O)
+	rm -f *.o
+
+linenoise.a:  lua.a src/linenoise/*.c src/linenoise/*.h
+	$(CC) -c $(CFLAGS) src/linenoise/*.c
+	$(AR) rcu linenoise.a $(LINENOISE_O)
 	rm -f *.o
 
 lfs.a:  lua.a src/lfs/*.c src/lfs/*.h
@@ -86,6 +93,11 @@ termbox.a:  lua.a src/termbox/*.c src/termbox/*.h src/termbox/*.inl
 mtcp.a:  lua.a src/mtcp/*.c
 	$(CC) -c $(CFLAGS) src/mtcp/*.c
 	$(AR) rcu mtcp.a $(MTCP_O)
+	rm -f *.o
+
+luaproc.a:  lua.a src/luaproc/*.c src/luaproc/*.h
+	$(CC) -c $(CFLAGS) src/luaproc/*.c
+	$(AR) rcu luaproc.a $(LUAPROC_O)
 	rm -f *.o
 
 luasocket.a:  lua.a src/luasocket/*.c src/luasocket/*.h

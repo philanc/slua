@@ -15,6 +15,7 @@ Functions:
   getsockname  get the address a socket is bound to
   getaddrinfo  get a list of addresses corresponding to a hostname and port
   getnameinfo  get the hostname and port for a socket
+  msleep       sleep for some time in milliseconds
 
 The sockaddr structure, returned as a string by getpeername, getsockname,
 bind, accept and connect (second return value), is the raw, binary value.
@@ -35,6 +36,9 @@ It can also easily be parsed with string.unpack:  eg. for a IPv4 address:
 #include <netdb.h>
 #include <poll.h>
 #include <errno.h>
+
+// for mtcp_msleep()
+#include <time.h>
 
 #include "lua.h"
 #include "lauxlib.h"
@@ -382,6 +386,27 @@ int mtcp_getnameinfo(lua_State *L) {
 	return 2;	
 } //mtcp_getnameinfo
 
+int mtcp_msleep(lua_State *L) {
+	// suspend the execution of the calling thread for some time 
+	// Lua args: the sleep time in milliseconds as an integer
+	// return value: true on success, or nil, errmsg
+	//   
+	int n;
+	long ms = luaL_checkinteger(L, 1); // sleep time in milliseconds
+	struct timespec req;
+	req.tv_sec = ms / 1000;
+	req.tv_nsec = (ms % 1000) * 1000000;
+	n = nanosleep(&req, NULL);
+	if (n == -1) {
+		lua_pushnil (L);
+		lua_pushfstring (L, "nanosleep error: %d", errno);
+		return 2;
+	}
+	//success, return socket addr
+	lua_pushboolean (L, 1);
+	return 1;
+} //mtcp_msleep
+
 
 // ---------------------------------------------------------------------
 // Lua library function
@@ -397,6 +422,7 @@ static const struct luaL_Reg mtcplib[] = {
 	{"getpeername", mtcp_getpeername},
 	{"getaddrinfo", mtcp_getaddrinfo},
 	{"getnameinfo", mtcp_getnameinfo},
+	{"msleep", mtcp_msleep},
 	
 	{NULL, NULL},
 };
@@ -405,7 +431,7 @@ static const struct luaL_Reg mtcplib[] = {
 int luaopen_mtcp (lua_State *L) {
 	luaL_newlib (L, mtcplib);
     // 
-    lua_pushliteral (L, "_VERSION");
+    lua_pushliteral (L, "VERSION");
 	lua_pushliteral (L, MTCP_VERSION); 
 	lua_settable (L, -3);
     lua_pushliteral (L, "BUFSIZE");

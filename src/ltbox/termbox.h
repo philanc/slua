@@ -294,6 +294,7 @@ SO_IMPORT int tb_poll_event(struct tb_event *event);
 
 /* Utility utf8 functions. */
 #define TB_EOF -1
+
 SO_IMPORT int tb_utf8_char_length(char c);
 SO_IMPORT int tb_utf8_char_to_unicode(uint32_t *out, const char *c);
 SO_IMPORT int tb_utf8_unicode_to_char(char *out, uint32_t c);

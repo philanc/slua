@@ -21,7 +21,7 @@ LDFLAGS=
 # list of additional libraries 
 # (lua, linenoise and slua are not included here)
 SLUALIBS= lfs.a lpeg.a luazen.a tweetnacl.a mtcp.a    \
-	luasocket.a termbox.a luaproc.a
+	luasocket.a ltbox.a luaproc.a
 
 
 SLUA_O=      slua.o linit.o 
@@ -36,7 +36,7 @@ LFS_O=       lfs.o
 LPEG_O=      lpcap.o lpcode.o lpprint.o lptree.o lpvm.o
 LUAZEN_O=    hmac.o luazen.o lzf_c.o lzf_d.o md5.o rc4.o sha1.o
 TWEETNACL_O= luatweetnacl.o randombytes.o tweetnacl.o
-TERMBOX_O=   lua-termbox.o termbox.o utf8.o
+LTBOX_O=     ltbox.o termbox.o utf8.o
 MTCP_O=      mtcp.o
 LUAPROC_O=   luaproc.o lpsched.o
 LUASOCKET_O= \
@@ -85,9 +85,9 @@ tweetnacl.a:  lua.a src/tweetnacl/*.c src/tweetnacl/*.h
 	$(AR) rcu tweetnacl.a $(TWEETNACL_O)
 	rm -f *.o
 
-termbox.a:  lua.a src/termbox/*.c src/termbox/*.h src/termbox/*.inl
-	$(CC) -c $(CFLAGS) src/termbox/*.c
-	$(AR) rcu termbox.a $(TERMBOX_O)
+ltbox.a:  lua.a src/ltbox/*.c src/ltbox/*.h src/ltbox/*.inl
+	$(CC) -c $(CFLAGS) src/ltbox/*.c
+	$(AR) rcu ltbox.a $(LTBOX_O)
 	rm -f *.o
 
 mtcp.a:  lua.a src/mtcp/*.c

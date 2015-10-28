@@ -13,7 +13,7 @@ slua preloaded libraries:
 - mtcp (a minimal socket library for tcp connections)
 - luaproc (multi-threading library)
 - linenoise (slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications)
-- lua-termbox - a small library to write text-based user interfaces
+- ltbox - a small library to write text-based user interfaces based on the termbox library
 - socket.core and mime.core (from LuaSocket ). These are not preloaded in the default build (see src/linit.c).
 
 slua is linked completely statically. It uses no dynamic library, not even libc.  
@@ -51,7 +51,7 @@ LPeg - http://www.inf.puc-rio.br/~roberto/lpeg/lpeg-1.0.0.tar.gz
 
 Luaproc 1.0.4 - commit 990ecf6 - https://github.com/askyrme/luaproc
 
-Lua-termbox - The Lua binding comes from https://github.com/robem/lua-termbox and the termbox C library comes from https://github.com/nsf/termbox.
+ltbox - the termbox C library comes from https://github.com/nsf/termbox.
 
 On Linux, the full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
 

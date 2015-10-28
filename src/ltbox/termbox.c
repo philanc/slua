@@ -42,6 +42,10 @@ static int termh = -1;
 static int inputmode = TB_INPUT_ESC;
 static int outputmode = TB_OUTPUT_NORMAL;
 
+/// slua/ltbox - default to no encoding (ok for ascii, latin1,...)
+///              set to 1 for utf8 encoding
+int tb_utf8encoding = 0;  
+
 static int inout;
 static int winch_fds[2];
 
@@ -550,7 +554,13 @@ static void send_attr(uint16_t fg, uint16_t bg)
 static void send_char(int x, int y, uint32_t c)
 {
 	char buf[7];
-	int bw = tb_utf8_unicode_to_char(buf, c);
+	int bw;
+	if (tb_utf8encoding) { /// added for slua / ltbox
+		bw = tb_utf8_unicode_to_char(buf, c);
+	} else {
+		bw = 1;
+		buf[0] = (char)(c & 0xff);
+	}
 	buf[bw] = '\0';
 	if (x-1 != lastx || y != lasty)
 		write_cursor(x, y);
@@ -677,3 +687,4 @@ static int wait_fill_event(struct tb_event *event, struct timeval *timeout)
 		}
 	}
 }
+

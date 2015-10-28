@@ -91,7 +91,7 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
   //~ PRELOAD2(mime.core, mime_core)
   PRELOAD(luazen)
   PRELOAD(tweetnacl)
-  PRELOAD(termbox)
+  PRELOAD(ltbox)
   PRELOAD(luaproc)
 
   lua_pop(L, 1);  /* remove _PRELOAD table */

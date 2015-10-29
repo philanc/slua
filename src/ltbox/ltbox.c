@@ -48,8 +48,13 @@ static int ltb_screen_wh(lua_State *L) {
 }
 
 static int ltb_clear(lua_State *L) {
-	uint16_t fg = (int) luaL_optinteger(L, 1, 0);
-	uint16_t bg = (int) luaL_optinteger(L, 2, 0);
+	// clear screen and set colors if optional argument is provided
+	// Lua args: colors: integer = (fg << 32) | (bg << 48)
+	// (this color representation can be directly or'ed to a 
+	// character code for putcell)
+	int64_t colors = luaL_optinteger(L, 1, 0);
+	uint16_t fg = (colors >> 32) & 0xffff;
+	uint16_t bg = (colors >> 48) & 0xffff;
 	tb_set_clear_attributes(fg, bg);
 	tb_clear();
 	return 0;
@@ -63,13 +68,15 @@ static int ltb_present(lua_State *L) {
 static int ltb_setcursor(lua_State *L) {
 	int cx = luaL_optinteger(L, 1, -1);
 	int cy = luaL_optinteger(L, 2, -1);
-	tb_set_cursor(cx, cy);
+	// on the Lua side, top left is (1,1) vs. (0,0) for termbox
+	tb_set_cursor(cx-1, cy-1);
 	return 0;
 }
 
 static int ltb_putcell(lua_State *L) {
-	int cx = luaL_checkinteger(L, 1);
-	int cy = luaL_checkinteger(L, 2);
+	//
+	int cx = luaL_checkinteger(L, 1) - 1; // termbox origin is 0,0
+ 	int cy = luaL_checkinteger(L, 2) - 1; // id.
 	int64_t ch = luaL_checkinteger(L, 3);
 	struct tb_cell cell;
 	cell.ch = ch & 0xffffffff;
@@ -143,9 +150,9 @@ static int ltb_pollevent(lua_State *L) {
 		lua_pushinteger(L, ev.h);
 		lua_setfield(L, 1, "h");
 	} else if (evt == TB_EVENT_MOUSE) {
-		lua_pushinteger(L, ev.x);
+		lua_pushinteger(L, ev.x + 1); // termbox origin is 0,0
 		lua_setfield(L, 1, "x");
-		lua_pushinteger(L, ev.y);
+		lua_pushinteger(L, ev.y + 1); // termbox origin is 0,0
 		lua_setfield(L, 1, "y");		
 	}
 	lua_pop(L, 1); // pop the table

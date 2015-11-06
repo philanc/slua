@@ -170,6 +170,7 @@ static const struct luaL_Reg ltboxlib[] = {
 	{"screen_wh", ltb_screen_wh},
 	{"clear", ltb_clear},
 	{"present", ltb_present},
+	{"setcursor", ltb_setcursor},
 	{"putcell", ltb_putcell},
 	{"inputmode", ltb_inputmode},
 	{"outputmode", ltb_outputmode},

@@ -24,7 +24,7 @@ SLUALIBS= lfs.a lpeg.a luazen.a tweetnacl.a mtcp.a    \
 	luasocket.a ltbox.a luaproc.a
 
 
-SLUA_O=      slua.o linit.o 
+SLUA_O=      slua.o linit.o sluacode.o
 LUA_O=       \
 	lapi.o lcode.o ldebug.o lgc.o lmem.o loslib.o lstrlib.o lundump.o  \
 	lauxlib.o lcorolib.o ldo.o liolib.o loadlib.o lparser.o ltable.o   \
@@ -50,7 +50,7 @@ slua:  slua.a lua.a linenoise.a $(SLUALIBS)
 	$(CC) -static -o slua $(LDFLAGS) slua.a linenoise.a $(SLUALIBS) lua.a
 	strip slua
 
-slua.a:  lua.a linenoise.a src/slua.c src/linit.c 
+slua.a:  lua.a linenoise.a src/slua.c src/linit.c src/sluacode.c 
 	$(CC) -c $(CFLAGS) -Isrc/linenoise/ src/*.c
 	$(AR) rcu slua.a $(SLUA_O)
 	rm -f *.o
@@ -109,8 +109,8 @@ clean:
 	rm -f slua *.o *.a 
 
 setbin:
-	md5sum slua >slua.md5	
-	cp slua slua.md5 bin/
+	md5sum slua >bin/slua.md5	
+	cp slua bin/
 	
 .PHONY: clean setbin smoketest
 

@@ -267,6 +267,20 @@ static int dostring (lua_State *L, const char *s, const char *name) {
   return dochunk(L, luaL_loadbuffer(L, s, strlen(s), name));
 }
 
+/// --------------------------------------------------------
+/// slua embedded Lua code buffer
+extern char *slua_embedded_buffer;
+
+static int do_slua_embedded_code(lua_State *L) {
+	char *ecode = slua_embedded_buffer + 8;
+	//~ char *ecode = "print'hello test1!' ";
+	if ( *((long long *)ecode) != 0x2020202020202020 ) {
+		return dochunk(L, luaL_loadstring(L, ecode));
+	}
+	/// if the embedded code buffer looks empty, just ignore it
+	return LUA_OK;
+}
+/// ------------------------------------------------------
 
 /*
 ** Calls 'require(name)' and stores the result in a global variable
@@ -588,7 +602,14 @@ static int pmain (lua_State *L) {
     lua_setfield(L, LUA_REGISTRYINDEX, "LUA_NOENV");
   }
   luaL_openlibs(L);  /* open standard libraries */
+  
   createargtable(L, argv, argc, script);  /* create table 'arg' */
+  
+  ///slua - run embedded code if any  (run after createargtable() 
+  ///       so that arg[0] is available for the embedded code)
+  if (do_slua_embedded_code(L) != LUA_OK)
+	  return 0; ///error running slua embedded code
+  
   if (!(args & has_E)) {  /* no option '-E'? */
     if (handle_luainit(L) != LUA_OK)  /* run LUA_INIT */
       return 0;  /* error running LUA_INIT */

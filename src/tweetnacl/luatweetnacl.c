@@ -212,7 +212,7 @@ static int tw_stream(lua_State *L) {
 	const char *n = luaL_checklstring(L,2,&nln);	
 	const char *k = luaL_checklstring(L,3,&kln);	
 	// dont know if the zerobyte limit applies for stream()...?!?
-	if (mln <= crypto_box_ZEROBYTES) LERR("msg length <= ZEROBYTES");
+	//if (mln <= crypto_box_ZEROBYTES) LERR("msg length <= ZEROBYTES");
 	if (nln != crypto_box_NONCEBYTES) LERR("bad nonce size");
 	if (kln != crypto_secretbox_KEYBYTES) LERR("bad key size");
 	unsigned char * buf = malloc(mln);
@@ -270,9 +270,10 @@ static int tw_sha512(lua_State *L) {
 
 static int tw_sign_keypair(lua_State *L) {
 	// generate and return a random key pair (pk, sk)
+	// (the last 32 bytes of sk are pk)
 	unsigned char pk[32];
 	unsigned char sk[64];
-	int r = crypto_box_keypair(pk, sk);
+	int r = crypto_sign_keypair(pk, sk);
 	lua_pushlstring (L, pk, 32); 
 	lua_pushlstring (L, sk, 64); 
 	return 2;
@@ -285,9 +286,16 @@ static int tw_sign(lua_State *L) {
 	const char *m = luaL_checklstring(L,1,&mln);   // text to sign
 	const char *sk = luaL_checklstring(L,2,&skln); // secret key
 	if (skln != 64) LERR("bad signature sk size");
-	u64 usmln = mln + 64;
+	//~ u64 usmln = mln + 64;
+	u64 usmln = mln + 128;
 	unsigned char * buf = malloc(usmln);
 	r = crypto_sign(buf, &usmln, m, mln, sk);
+	if (r != 0) { 
+		free(buf); 
+		lua_pushnil (L);
+		lua_pushfstring(L, "sign error %d", r);
+		return 2;         
+	} 
 	lua_pushlstring(L, buf, usmln); 
 	free(buf);
 	return 1;   
@@ -301,7 +309,13 @@ static int tw_sign_open(lua_State *L) {
 	if (pkln != 32) LERR("bad signature pk size");
 	unsigned char * buf = malloc(smln);
 	u64 umln;
-	r = crypto_sign(buf, &umln, sm, smln, pk);
+	r = crypto_sign_open(buf, &umln, sm, smln, pk);
+	if (r != 0) { 
+		free(buf); 
+		lua_pushnil (L);
+		lua_pushfstring(L, "sign_open error %d", r);
+		return 2;         
+	} 
 	lua_pushlstring(L, buf, umln); 
 	free(buf);
 	return 1;   
@@ -326,6 +340,8 @@ static const struct luaL_Reg tweetnacllib[] = {
 	{"box_open_afternm", tw_secretbox_open},
 	{"box_beforenm", tw_box_beforenm},
 	{"box_stream_key", tw_box_beforenm}, // an alias for box_beforenm()
+	{"stream", tw_stream},
+	{"stream_xor", tw_stream_xor},
 	{"onetimeauth", tw_onetimeauth},
 	{"poly1305", tw_onetimeauth}, 
 	{"hash", tw_sha512},

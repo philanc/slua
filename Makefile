@@ -44,7 +44,7 @@ LUASOCKET_O= \
 	options.o inet.o except.o select.o tcp.o udp.o usocket.o mime.o
 
 smoketest:  slua
-	./slua  test/t.lua
+	./slua  test/smoketest.lua
 
 slua:  slua.a lua.a linenoise.a $(SLUALIBS)
 	$(CC) -static -o slua $(LDFLAGS) slua.a linenoise.a $(SLUALIBS) lua.a

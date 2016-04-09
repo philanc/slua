@@ -3,24 +3,31 @@
 /* tweetnacl
 
 A binding to the wonderful NaCl crypto library by Dan Bernstein,
-Tanja Lange et al.
+Tanja Lange et al. -- http://nacl.cr.yp.to/
 
 The version included here is the "Tweet" version ("NaCl in 100 tweets")
-by Dan Bernstein
+by Dan Bernstein et al. --  http://tweetnacl.cr.yp.to/index.html
 
 160408 
-	removed the ill-designed, "easier" functions - stick with the original
+- removed the ill-designed, "easier" functions - stick with the original api
 
 150721
-	split luazen and tweetnacl.  
-	nacl lua interface is in this file (luatweetnacl.c)
+- split luazen and tweetnacl.  
+- nacl lua interface is in this file (luatweetnacl.c)
 
 TweetNaCl version 20140427 - loaded on 150630 from
 http://tweetnacl.cr.yp.to/index.html
 includes: tweetnacl.c, tweetnacl.h
 
-randombytes()  not included in tweetnacl. Taken from
-https://hyperelliptic.org/nacl/nacl-20110221.tar.bz2
+150630
+- addition of the tweetnacl binding to luazen
+  based on tweetnacl version 20140427 - loaded on 150630 from
+  http://tweetnacl.cr.yp.to/index.html
+  includes: tweetnacl.c, tweetnacl.h
+
+  randombytes()  not included in tweetnacl. Got it from
+  https://hyperelliptic.org/nacl/nacl-20110221.tar.bz2
+  (Tanja Lange site)
 
 NaCl specs: http://nacl.cr.yp.to/
 

@@ -2,18 +2,31 @@
 // ---------------------------------------------------------------------
 /* tweetnacl
 
-A binding to the wonderful NaCl crypto library by Dan Bernstein et al.
+A binding to the wonderful NaCl crypto library by Dan Bernstein,
+Tanja Lange et al.
+
 The version included here is the "Tweet" version ("NaCl in 100 tweets")
 by Dan Bernstein
 
+160408 
+	removed the ill-designed, "easier" functions - stick with the original
 
 150721
 	split luazen and tweetnacl.  
 	nacl lua interface is in this file (luatweetnacl.c)
 
+TweetNaCl version 20140427 - loaded on 150630 from
+http://tweetnacl.cr.yp.to/index.html
+includes: tweetnacl.c, tweetnacl.h
+
+randombytes()  not included in tweetnacl. Taken from
+https://hyperelliptic.org/nacl/nacl-20110221.tar.bz2
+
+NaCl specs: http://nacl.cr.yp.to/
+
 */
 
-#define TWEETNACL_VERSION "tweetnacl-0.1"
+#define TWEETNACL_VERSION "tweetnacl-0.2"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -48,6 +61,11 @@ by Dan Bernstein
 #endif
 //=========================================================
 
+# define LERR(msg) return luaL_error(L, msg)
+
+typedef unsigned char u8;
+typedef unsigned long u32;
+typedef unsigned long long u64;
 
 //------------------------------------------------------------
 // nacl functions (the "tweetnacl version")
@@ -55,8 +73,7 @@ by Dan Bernstein
 extern void randombytes(unsigned char *x,unsigned long long xlen); 
 
 
-static int luazen_randombytes(lua_State *L)
-{
+static int tw_randombytes(lua_State *L) {
 	
     size_t bufln; 
 	lua_Integer li = luaL_checkinteger(L, 1);  // 1st arg
@@ -66,82 +83,171 @@ static int luazen_randombytes(lua_State *L)
     lua_pushlstring (L, buf, bufln); 
     free(buf);
 	return 1;
-}
+}//randombytes()
 
-static int luazen_box_keypair(lua_State *L)
-{
+static int tw_box_keypair(lua_State *L) {
+	// generate and return a random key pair (pk, sk)
 	unsigned char pk[crypto_box_PUBLICKEYBYTES];
 	unsigned char sk[crypto_box_SECRETKEYBYTES];
 	int r = crypto_box_keypair(pk, sk);
 	lua_pushlstring (L, pk, crypto_box_PUBLICKEYBYTES); 
 	lua_pushlstring (L, sk, crypto_box_SECRETKEYBYTES); 
 	return 2;
-}
+}//box_keypair()
 
-static int luazen_box(lua_State *L)
-{
-	int r = 0;
-	size_t mln;
-	const char *m=luaL_checklstring(L,1,&mln);	
-	size_t nln;
-	const char *n=luaL_checklstring(L,2,&nln);	
-	size_t pkln;
-	const char *pk=luaL_checklstring(L,3,&pkln);	
+static int tw_box_getpk(lua_State *L) {
+	// return the public key associated to a secret key
 	size_t skln;
-	const char *sk=luaL_checklstring(L,4,&skln);	
-	if (mln <= crypto_box_ZEROBYTES) { r = 101 ; goto error; }
-	if (nln != crypto_box_NONCEBYTES) { r = 102 ; goto error; }
-	if (pkln != crypto_box_PUBLICKEYBYTES) { r = 103 ; goto error; }
-	if (skln != crypto_box_SECRETKEYBYTES) { r = 104 ; goto error; }
-	unsigned char * buf = malloc(mln);
-	r = crypto_box(buf, m, mln, n, pk, sk);
-	if (r != 0) { free(buf); goto error; } 
-	lua_pushlstring (L, buf, mln); 
-	free(buf);
+	unsigned char pk[crypto_box_PUBLICKEYBYTES];
+	const char *sk = luaL_checklstring(L,1,&skln); // secret key
+	if (skln != crypto_box_SECRETKEYBYTES) LERR("bad sk size");
+	int r = crypto_scalarmult_base(pk, sk);
+	lua_pushlstring (L, pk, crypto_box_PUBLICKEYBYTES); 
 	return 1;
+}//box_getpk()
 
-	error:
-    lua_pushnil (L);
-	lua_pushfstring (L, "nacl: box_open error %d", r);
-	return 2;         
+static int tw_box(lua_State *L) {
+	size_t mln, nln, pkln, skln;
+	const char *m = luaL_checklstring(L,1,&mln);   // plaintext
+	const char *n = luaL_checklstring(L,2,&nln);   // nonce
+	const char *pk = luaL_checklstring(L,3,&pkln); // public key
+	const char *sk = luaL_checklstring(L,4,&skln); // secret key
+	if (mln <= crypto_box_ZEROBYTES) LERR("box_open: mln <= ZEROBYTES");
+	if (nln != crypto_box_NONCEBYTES) LERR("box_open: bad nonce size");
+	if (pkln != crypto_box_PUBLICKEYBYTES) LERR("box_open: bad pk size");
+	if (skln != crypto_box_SECRETKEYBYTES) LERR("box_open: bad sk size");
+	unsigned char * buf = malloc(mln);
+	int r = crypto_box(buf, m, mln, n, pk, sk);
+	lua_pushlstring(L, buf, mln); 
+	free(buf);
+	return 1;   
 }// box()
 
-static int luazen_box_open(lua_State *L)
-{
-	int r = 0;
+static int tw_box_open(lua_State *L) {
 	char * msg = "box_open: argument error";
-	size_t cln;
-	const char *c=luaL_checklstring(L,1,&cln);	
-	size_t nln;
-	const char *n=luaL_checklstring(L,2,&nln);	
-	size_t pkln;
-	const char *pk=luaL_checklstring(L,3,&pkln);	
-	size_t skln;
-	const char *sk=luaL_checklstring(L,4,&skln);	
-	if (cln <= crypto_box_ZEROBYTES) { r = 101 ; goto error; }
-	if (nln != crypto_box_NONCEBYTES) { r = 102 ; goto error; }
-	if (pkln != crypto_box_PUBLICKEYBYTES) { r = 103 ; goto error; }
-	if (skln != crypto_box_SECRETKEYBYTES) { r = 104 ; goto error; }
+	size_t cln, nln, pkln, skln;
+	const char *c = luaL_checklstring(L,1,&cln);	
+	const char *n = luaL_checklstring(L,2,&nln);	
+	const char *pk = luaL_checklstring(L,3,&pkln);	
+	const char *sk = luaL_checklstring(L,4,&skln);	
+	if (cln <= crypto_box_ZEROBYTES) LERR("box_open: cln <= ZEROBYTES");
+	if (nln != crypto_box_NONCEBYTES) LERR("box_open: bad nonce size");
+	if (pkln != crypto_box_PUBLICKEYBYTES) LERR("box_open: bad pk size");
+	if (skln != crypto_box_SECRETKEYBYTES) LERR("box_open: bad sk size");
 	unsigned char * buf = malloc(cln);
-	r = crypto_box_open(buf, c, cln, n, pk, sk);
+	int r = crypto_box_open(buf, c, cln, n, pk, sk);
 	if (r != 0) { 
 		free(buf); 
-		msg = "box_open: integrity error";
-		goto error; 
+		lua_pushnil (L);
+		lua_pushfstring(L, "box_open error %d", r);
+		return 2;         
 	} 
 	lua_pushlstring (L, buf, cln); 
 	free(buf);
 	return 1;
-
-	error:
-    lua_pushnil (L);
-	lua_pushinteger (L, (lua_Integer) r);
-	lua_pushstring(L, msg);
-	return 3;         
 } // box_open()
 
+static int tw_box_beforenm(lua_State *L) {
+	int r;
+	size_t pkln, skln;
+	u8 k[32];
+	const char *pk = luaL_checklstring(L,1,&pkln); // dest public key
+	const char *sk = luaL_checklstring(L,2,&skln); // src secret key
+	if (pkln != crypto_box_PUBLICKEYBYTES) LERR("box_beforenm: bad pk size");
+	if (skln != crypto_box_SECRETKEYBYTES) LERR("box_beforenm: bad sk size");
+	r = crypto_box_beforenm(k, pk, sk);
+	lua_pushlstring(L, k, 32); 
+	return 1;   
+}// box()
 
-static int luazen_sha512(lua_State *L) {
+static int tw_secretbox(lua_State *L) {
+	int r;
+	size_t mln, nln, kln;
+	const char *m = luaL_checklstring(L,1,&mln);	
+	const char *n = luaL_checklstring(L,2,&nln);	
+	const char *k = luaL_checklstring(L,3,&kln);	
+	if (mln <= crypto_box_ZEROBYTES) LERR("secretbox: mln <= ZEROBYTES");
+	if (nln != crypto_box_NONCEBYTES) LERR("secretbox: bad nonce size");
+	if (kln != crypto_secretbox_KEYBYTES) LERR("secretbox: bad key size");
+	unsigned char * buf = malloc(mln);
+	r = crypto_secretbox(buf, m, mln, n, k);
+	lua_pushlstring (L, buf, mln); 
+	free(buf);
+	return 1;
+} // secretbox()
+
+static int tw_secretbox_open(lua_State *L) {
+	int r = 0;
+	size_t cln, nln, kln;
+	const char *c = luaL_checklstring(L,1,&cln);	
+	const char *n = luaL_checklstring(L,2,&nln);	
+	const char *k = luaL_checklstring(L,3,&kln);	
+	if (cln <= crypto_box_ZEROBYTES) LERR("secretbox_open: cln <= ZEROBYTES");
+	if (nln != crypto_box_NONCEBYTES) LERR("secretbox_open: bad nonce size");
+	if (kln != crypto_secretbox_KEYBYTES) LERR("secretbox_open: bad key size");
+	unsigned char * buf = malloc(cln);
+	r = crypto_secretbox_open(buf, c, cln, n, k);
+	if (r != 0) { 
+		free(buf); 
+		lua_pushnil (L);
+		lua_pushfstring(L, "secretbox_open error %d", r);
+		return 2;         
+	} 
+	lua_pushlstring (L, buf, cln); 
+	free(buf);
+	return 1;
+} // secretbox_open()
+
+static int tw_stream(lua_State *L) {
+	int r;
+	size_t mln, nln, kln;
+	mln = luaL_checkinteger(L,1);	
+	const char *n = luaL_checklstring(L,2,&nln);	
+	const char *k = luaL_checklstring(L,3,&kln);	
+	// dont know if the zerobyte limit applies for stream()...?!?
+	if (mln <= crypto_box_ZEROBYTES) LERR("msg length <= ZEROBYTES");
+	if (nln != crypto_box_NONCEBYTES) LERR("bad nonce size");
+	if (kln != crypto_secretbox_KEYBYTES) LERR("bad key size");
+	unsigned char * buf = malloc(mln);
+	r = crypto_stream(buf, mln, n, k);
+	lua_pushlstring (L, buf, mln); 
+	free(buf);
+	return 1;
+} // stream()
+
+static int tw_stream_xor(lua_State *L) {
+	int r;
+	size_t mln, nln, kln;
+	const char *m = luaL_checklstring(L,1,&mln);	
+	const char *n = luaL_checklstring(L,2,&nln);	
+	const char *k = luaL_checklstring(L,3,&kln);	
+	if (mln <= crypto_box_ZEROBYTES) LERR("msg length <= ZEROBYTES");
+	if (nln != crypto_box_NONCEBYTES) LERR("bad nonce size");
+	if (kln != crypto_secretbox_KEYBYTES) LERR("bad key size");
+	unsigned char * buf = malloc(mln);
+	r = crypto_stream_xor(buf, m, mln, n, k);
+	lua_pushlstring (L, buf, mln); 
+	free(buf);
+	return 1;
+} // stream_xor()
+
+static int tw_onetimeauth(lua_State *L) {
+	// no leading zerobytes
+	int r;
+	u8 mac[16];
+	size_t mln, kln;
+	const char *m = luaL_checklstring(L,1,&mln);	
+	const char *k = luaL_checklstring(L,2,&kln);	
+	if (kln != crypto_secretbox_KEYBYTES) LERR("bad key size");
+	r = crypto_onetimeauth(mac, m, mln, k);
+    lua_pushlstring (L, mac, 16); 
+    return 1;
+}//onetimeauth()
+
+// onetimeauth_verify - not implemented, very easy to do in Lua:
+//      if onetimeauth(m, k) == mac then ...
+
+static int tw_sha512(lua_State *L) {
     size_t sln; 
     const char *src = luaL_checklstring (L, 1, &sln);
     char digest[64];
@@ -150,257 +256,77 @@ static int luazen_sha512(lua_State *L) {
     return 1;
 }
 
+//-- sign functions (ed25519)
+// sign_BYTES 64
+// sign_PUBLICKEYBYTES 32
+// sign_SECRETKEYBYTES 64
 
-//------------------------------------------------------------
-// (pk) encrypt, decrypt easier functions
+static int tw_sign_keypair(lua_State *L) {
+	// generate and return a random key pair (pk, sk)
+	unsigned char pk[32];
+	unsigned char sk[64];
+	int r = crypto_box_keypair(pk, sk);
+	lua_pushlstring (L, pk, 32); 
+	lua_pushlstring (L, sk, 64); 
+	return 2;
+}//sign_keypair()
 
 
-static int luazen_pkencrypt(lua_State *L)
-{
-	//arguments:
-	//  1.  clrtxt msg
-	//  2.  pk
-	//  3.  sk
-	//
-	int r = 0;
-	// get arguments
-	size_t mln;
-	const char *m=luaL_checklstring(L,1,&mln);	
-    // get the pk, sk 
-	size_t pkln;
-	const char *pk=luaL_checklstring(L,2,&pkln);	
-	size_t skln;
-	const char *sk=luaL_checklstring(L,3,&skln);	
-	if (pkln != crypto_box_PUBLICKEYBYTES) { r = 103 ; goto error; }
-	if (skln != crypto_box_SECRETKEYBYTES) { r = 104 ; goto error; }	
-	// create the src buffer
-	size_t mbufln = crypto_box_ZEROBYTES + mln;
-	unsigned char * mbuf = malloc(mbufln);
-	// add the zero bytes required by box()
-	int i;
-	for (i = 0; i < crypto_box_ZEROBYTES; i++) { mbuf[i] = 0; } 
-	// append the msg to the buffer
-	for (i = 0; i < mln; i++) { mbuf[crypto_box_ZEROBYTES + i] = m[i]; } 
-
-	// create the dest buffer
-	size_t bufln = crypto_box_NONCEBYTES + mbufln;
-	unsigned char * buf = malloc(bufln);
-	// create a random nonce, put it at the beginning of the dest buffer
-	randombytes(buf, crypto_box_NONCEBYTES);
-	// now encrypt 
-	r = crypto_box(buf+crypto_box_NONCEBYTES, mbuf, mbufln, buf, pk, sk);
-	if (r != 0) { 
-		free(buf); 
-		goto error; 
-	} 
-	lua_pushlstring (L, buf, bufln); 
-	free(mbuf); 
+static int tw_sign(lua_State *L) {
+	int r;
+	size_t mln, skln;
+	const char *m = luaL_checklstring(L,1,&mln);   // text to sign
+	const char *sk = luaL_checklstring(L,2,&skln); // secret key
+	if (skln != 64) LERR("bad signature sk size");
+	u64 usmln = mln + 64;
+	unsigned char * buf = malloc(usmln);
+	r = crypto_sign(buf, &usmln, m, mln, sk);
+	lua_pushlstring(L, buf, usmln); 
 	free(buf);
-	return 1;
-	//
-	error:
-	free(mbuf); 
-    lua_pushnil (L);
-	lua_pushfstring (L, "pkencrypt error %d", r);
-	return 2;         
-}// pkencrypt()
+	return 1;   
+}// sign()
 
-static int luazen_pkdecrypt(lua_State *L)
-{
-	int r = 0;
-	char * msg = "pkdecrypt: argument error";
-	size_t cln;
-	const char *c=luaL_checklstring(L,1,&cln);	
-	size_t pkln;
-	const char *pk=luaL_checklstring(L,2,&pkln);	
-	size_t skln;
-	const char *sk=luaL_checklstring(L,3,&skln);	
-	if (cln <= crypto_box_ZEROBYTES + crypto_box_NONCEBYTES) { 
-		r = 101 ; goto error; 
-	}
-	if (pkln != crypto_box_PUBLICKEYBYTES) { r = 103 ; goto error; }
-	if (skln != crypto_box_SECRETKEYBYTES) { r = 104 ; goto error; }
-	unsigned char * buf = malloc(cln);
-	size_t nln = crypto_box_NONCEBYTES;
-	// here, c :: nonce, c+nln :: encr msg
-	r = crypto_box_open(buf, c+nln, cln-nln, c, pk, sk);
-	if (r != 0) { 
-		free(buf); 
-		msg = "pkdecrypt: integrity error";
-		goto error; 
-	} 
-	lua_pushlstring (L, buf+crypto_box_ZEROBYTES, cln-nln-crypto_box_ZEROBYTES); 
+static int tw_sign_open(lua_State *L) {
+	int r;
+	size_t smln, pkln;
+	const char *sm = luaL_checklstring(L,1,&smln);   // signed text
+	const char *pk = luaL_checklstring(L,2,&pkln);   // public key
+	if (pkln != 32) LERR("bad signature pk size");
+	unsigned char * buf = malloc(smln);
+	u64 umln;
+	r = crypto_sign(buf, &umln, sm, smln, pk);
+	lua_pushlstring(L, buf, umln); 
 	free(buf);
-	return 1;
-	//
-	error:
-    lua_pushnil (L);
-	lua_pushinteger (L, (lua_Integer) r);
-	lua_pushstring(L, msg);
-	return 3;         
-} // pkdecrypt()
+	return 1;   
+}// sign_open()
 
-static int luazen_pkecdh(lua_State *L)
-{
-	//arguments:
-	//  1.  pk (32 bytes)
-	//  2.  sk (32 bytes)
-	//  returns  k
-	//
-	int r = 0;
-	// get arguments
-    // get the pk, sk 
-	size_t pkln;
-	const char *pk=luaL_checklstring(L,1,&pkln);	
-	size_t skln;
-	const char *sk=luaL_checklstring(L,2,&skln);	
-	if (pkln != crypto_box_PUBLICKEYBYTES) { r = 301 ; goto error; }
-	if (skln != crypto_box_SECRETKEYBYTES) { r = 302 ; goto error; }	
-	// create the key buffer
-	size_t bufln = crypto_box_BEFORENMBYTES;
-	unsigned char * buf = malloc(bufln);
-	// compute the key
-	r = crypto_box_beforenm(buf, pk, sk);
-	if (r != 0) { 
-		free(buf); 
-		goto error; 
-	} 
-	lua_pushlstring (L, buf, bufln); 
-	free(buf);
-	return 1;
-	//
-	error:
-    lua_pushnil (L);
-	lua_pushfstring (L, "pkecdh error %d", r);
-	return 2;         
-}// pkecdh()
 
-//------------------------------------------------------------
-// secret key encryption
 
-static int luazen_encrypt(lua_State *L)
-{
-	//arguments:
-	//  1.  clrtxt msg
-	//  2.  key (must be 32 bytes)
-	//  returns encrypted msg
-	//
-	int r = 0;
-	// get arguments
-	size_t mln;
-	const char *m=luaL_checklstring(L,1,&mln);	
-    // get the key
-	size_t kln;
-	const char *k=luaL_checklstring(L,2,&kln);	
-	if (kln != crypto_box_BEFORENMBYTES) { r = 202 ; goto error; }	
-	
-	// create the src buffer
-	size_t mbufln = crypto_box_ZEROBYTES + mln;
-	unsigned char * mbuf = malloc(mbufln);
-	// add the zero bytes required by box()
-	int i;
-	for (i = 0; i < crypto_box_ZEROBYTES; i++) { mbuf[i] = 0; } 
-	// append the msg to the buffer
-	for (i = 0; i < mln; i++) { mbuf[crypto_box_ZEROBYTES + i] = m[i]; } 
-
-	// create the dest buffer
-	size_t bufln = crypto_box_NONCEBYTES + mbufln;
-	unsigned char * buf = malloc(bufln);
-	
-	// check if an explicit nonce has been given. Else generate a random nonce.
-	// any optional 3rd argument? (would be a nonce)
-	if ( !lua_isnoneornil(L, 3) ) {  	
-		size_t optln;
-		const char * optnonce = luaL_checklstring(L,3,&optln);
-		if (optln != crypto_box_NONCEBYTES) { r = 203 ; goto error; }	
-		// copy the nonce at beginning of buf
-			for (i = 0; i < optln; i++) { buf[i] = optnonce[i]; } 
-	}	else {  
-		// no nonce provided
-		// create a random nonce, put it at the beginning of the dest buffer
-		randombytes(buf, crypto_box_NONCEBYTES);
-	}
-	// now encrypt 
-	r = crypto_box_afternm(buf+crypto_box_NONCEBYTES, mbuf, mbufln, buf, k);
-	if (r != 0) { 
-		free(buf); 
-		goto error; 
-	} 
-	lua_pushlstring (L, buf, bufln); 
-	free(mbuf); 
-	free(buf);
-	return 1;
-	//
-	error:
-	free(mbuf); 
-    lua_pushnil (L);
-	lua_pushfstring (L, "encrypt error %d", r);
-	return 2;         
-}// encrypt()
-
-static int luazen_decrypt(lua_State *L)
-{
-	int r = 0;
-	char * msg = "decrypt: argument error";
-	// get arguments
-	// 1. encrypted text
-	// 2. key (32 bytes)
-	size_t cln;
-	const char *c=luaL_checklstring(L,1,&cln);	
-	size_t kln;
-	const char *k=luaL_checklstring(L,2,&kln);	
-	if (cln <= crypto_box_ZEROBYTES + crypto_box_NONCEBYTES) { 
-		r = 101 ; goto error; 
-	}
-	if (kln != crypto_box_BEFORENMBYTES) { r = 202 ; goto error; }
-	unsigned char * buf = malloc(cln);
-	size_t nln = crypto_box_NONCEBYTES;
-	// here, c :: nonce, c+nln :: encr msg
-	r = crypto_box_open_afternm(buf, c+nln, cln-nln, c, k);
-	if (r != 0) { 
-		free(buf); 
-		msg = "decrypt: integrity error";
-		goto error; 
-	} 
-	lua_pushlstring (L, buf+crypto_box_ZEROBYTES, cln-nln-crypto_box_ZEROBYTES); 
-	free(buf);
-	return 1;
-	//
-	error:
-    lua_pushnil (L);
-	lua_pushinteger (L, (lua_Integer) r);
-	lua_pushstring(L, msg);
-	return 3;         
-} // decrypt()
-
-//
-//------------------------------------------------------------
-// lzo compress, decompress
-
-//  tried 100904. compression significantly worse than zlib
-//	eg. 117k vs 86k ...
 
 //------------------------------------------------------------
 // lua library declaration
 //
 static const struct luaL_Reg tweetnacllib[] = {
 	// nacl functions
-	{"randombytes", luazen_randombytes},
-	{"box", luazen_box},
-	{"box_open", luazen_box_open},
-	{"box_keypair", luazen_box_keypair},
-	//~ {"box_beforenm", luazen_box_beforenm},
-	//~ {"box_afternm", luazen_box_afternm},
-	//~ {"box_open_afternm", luazen_box_open_afternm},
-	{"sha512", luazen_sha512},
-	
-	// convenience functions
-	{"pkencrypt", luazen_pkencrypt},
-	{"pkdecrypt", luazen_pkdecrypt},
-	{"pkecdh", luazen_pkecdh},
-	{"encrypt", luazen_encrypt},
-	{"decrypt", luazen_decrypt},
-	
+	{"randombytes", tw_randombytes},
+	{"box", tw_box},
+	{"box_open", tw_box_open},
+	{"box_keypair", tw_box_keypair},
+	{"box_getpk", tw_box_getpk},
+	{"secretbox", tw_secretbox},
+	{"secretbox_open", tw_secretbox_open},
+	{"box_afternm", tw_secretbox},
+	{"box_open_afternm", tw_secretbox_open},
+	{"box_beforenm", tw_box_beforenm},
+	{"box_stream_key", tw_box_beforenm}, // an alias for box_beforenm()
+	{"onetimeauth", tw_onetimeauth},
+	{"poly1305", tw_onetimeauth}, 
+	{"hash", tw_sha512},
+	{"sha512", tw_sha512}, 
+	{"sign", tw_sign}, 
+	{"sign_open", tw_sign_open}, 
+	{"sign_keypair", tw_sign_keypair}, 
+		
 	{NULL, NULL},
 };
 

@@ -286,8 +286,7 @@ static int tw_sign(lua_State *L) {
 	const char *m = luaL_checklstring(L,1,&mln);   // text to sign
 	const char *sk = luaL_checklstring(L,2,&skln); // secret key
 	if (skln != 64) LERR("bad signature sk size");
-	//~ u64 usmln = mln + 64;
-	u64 usmln = mln + 128;
+	u64 usmln = mln + 64;
 	unsigned char * buf = malloc(usmln);
 	r = crypto_sign(buf, &usmln, m, mln, sk);
 	if (r != 0) { 

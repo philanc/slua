@@ -2,16 +2,6 @@
 local ecode = [[
 print('hello'); h = 'hello!!!'
 local asep="++sluapp++";asep=asep..asep
-local f = assert(io.open('/proc/self/exe', 'rb'))
-local s = f:read("*a"); f:close()
-local i,j=s:find(asep, 1, true)
-if i then local ac=s:sub(j+1); load(ac)()
-end
-]]
-
-local ecode = [[
-print('hello'); h = 'hello!!!'
-local asep="++sluapp++";asep=asep..asep
 local f = assert(io.open(arg[0], 'rb'))
 local s = f:read("*a"); f:close()
 local i,j=s:find(asep, 1, true)
@@ -21,6 +11,8 @@ end
 
 local appcode = [[
 print("all this code has been appended. Yay!")
+print"Now, exiting..."
+os.exit(3)
 ]]
 
 local ecodesep = "++slua++"

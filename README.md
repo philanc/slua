@@ -14,7 +14,7 @@ slua preloaded libraries:
 - luaproc (multi-threading library)
 - linenoise (slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications)
 - ltbox - a small library to write text-based user interfaces based on the termbox library
-- socket.core and mime.core (from LuaSocket ). These are not preloaded in the default build (see src/linit.c).
+- socket.core and mime.core (from LuaSocket ). These are not preloaded in the default build (see src/linit.c and the Makefile).
 
 slua is linked completely statically. It uses no dynamic library, not even libc.  
 
@@ -41,7 +41,7 @@ Binary versions of slua are provided here for convenience.
 
 ### Package versions
 
-Lua 5.3.1 - http://www.lua.org/ftp/lua-5.3.1.tar.gz
+Lua 5.3.2 - http://www.lua.org/ftp/lua-5.3.2.tar.gz
 
 LuaSocket 3.0-rc1 - commit d1ec29be7f - https://github.com/diegonehab/luasocket
 
@@ -58,9 +58,8 @@ On Linux, the full *readline* library is not used. It is replaced by the much sm
 
 ### Pre-built binaries
 
-The Linux binary version of  slua has been built on a x86 (32-bit) platform with the Musl C library (version 1.1.10)
+The Linux x86 binary version of  slua has been built on a x86 (32-bit) platform with the Musl C library (version 1.1.10)
 
-The Windows32 version has been build with MinGW (not available yet)
 
 ### Related projects
 

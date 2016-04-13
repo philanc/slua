@@ -21,7 +21,7 @@ LDFLAGS=
 # list of additional libraries 
 # (lua, linenoise and slua are not included here)
 SLUALIBS= lfs.a lpeg.a luazen.a tweetnacl.a mtcp.a    \
-	luasocket.a ltbox.a luaproc.a
+	ltbox.a luaproc.a
 
 
 SLUA_O=      slua.o linit.o sluacode.o
@@ -34,14 +34,11 @@ LUA_O=       \
 LINENOISE_O= linenoise.o 
 LFS_O=       lfs.o
 LPEG_O=      lpcap.o lpcode.o lpprint.o lptree.o lpvm.o
-LUAZEN_O=    hmac.o luazen.o lzf_c.o lzf_d.o md5.o rc4.o sha1.o
+LUAZEN_O=    luazen.o lzf_c.o lzf_d.o md5.o rc4.o sha1.o base58.o
 TWEETNACL_O= luatweetnacl.o randombytes.o tweetnacl.o
 LTBOX_O=     ltbox.o termbox.o utf8.o
 MTCP_O=      mtcp.o
 LUAPROC_O=   luaproc.o lpsched.o
-LUASOCKET_O= \
-	luasocket.o timeout.o buffer.o io.o auxiliar.o compat.o \
-	options.o inet.o except.o select.o tcp.o udp.o usocket.o mime.o
 
 smoketest:  slua
 	./slua  test/smoketest.lua
@@ -98,11 +95,6 @@ mtcp.a:  lua.a src/mtcp/*.c
 luaproc.a:  lua.a src/luaproc/*.c src/luaproc/*.h
 	$(CC) -c $(CFLAGS) src/luaproc/*.c
 	$(AR) rcu luaproc.a $(LUAPROC_O)
-	rm -f *.o
-
-luasocket.a:  lua.a src/luasocket/*.c src/luasocket/*.h
-	$(CC) -c $(CFLAGS) -DLUASOCKET_API="" src/luasocket/*.c
-	$(AR) rcu luasocket.a $(LUASOCKET_O)
 	rm -f *.o
 
 clean:

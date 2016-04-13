@@ -5,13 +5,16 @@
 A small Lua extension library with crypto and compression functions
 (stuff that is very slow and inefficient when done in pure Lua...)
 
+160412 
+	removed hmac_md5, hmac_sha1 (rather use tweetnacl)
+	added base58 encode/decode
 150701 
 	replaced nacl-unknown with tweetnacl-20140427, incl sha512
 	moved nacl to its own module ("tweetnacl")
 150628
 	added nacl (unknown source, ca. 2008)
 150624
-	test lzf to replace gzip
+	test lzf to replace gzip (lzf is much smaller, albeit less efficient)
 110622
 	added macros from roberto's lpeg for 5.1/5.2 compat
 110123
@@ -23,7 +26,7 @@ A small Lua extension library with crypto and compression functions
 
 */
 
-#define LUAZEN_VERSION "luazen-0.3"
+#define LUAZEN_VERSION "luazen-0.5"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,8 +36,9 @@ A small Lua extension library with crypto and compression functions
 #include "lauxlib.h"
 #include "lzf.h"
 #include "rc4.h"
-#include "hmac.h"
-
+#include "md5.h"
+#include "sha1.h"
+#include "base58.h"
 
 //=========================================================
 // compatibility with Lua 5.2  --and lua 5.3, added 150621
@@ -60,6 +64,7 @@ A small Lua extension library with crypto and compression functions
 #endif
 //=========================================================
 
+// lzf compression functions
 
 static int luazen_compress(lua_State *L) {
     size_t sln, bufln; 
@@ -118,34 +123,6 @@ static int luazen_uncompress(lua_State *L) {
     free(buf);
     return 1;    
 }
-
-// crc32 and adler32 removed as zlib has been replaced with 
-// the much smaller (albeit less efficient) lzf library
-
-//~ //--- crc32(input:string) =>  crc32:number  (a 32-bit int)
-//~ //-- comes with zlib.
-//~ static int luazen_crc32(lua_State *L) {
-    //~ size_t sln; 
-    //~ const char *s = luaL_checklstring (L, 1, &sln);
-    //~ unsigned long crc;
-    //~ crc = crc32(0UL, s, sln);
-    //~ lua_pushinteger(L, (lua_Integer) crc); 
-    //~ return 1;    
-//~ }
-
-//--- adler32(input:string) =>  adler32:number  
-//-- adler32 is a form of crc. (a 32-bit unsigned int)
-//-- not as good but much faster than crc32 -- comes with zlib.
-//~ static int luazen_adler32(lua_State *L) {
-    //~ size_t sln; 
-    //~ const char *s = luaL_checklstring (L, 1, &sln);
-    //~ unsigned long adler;
-    //~ adler = adler32(0L, Z_NULL, 0);
-    //~ adler = adler32(adler, s, sln);
-    //~ lua_pushinteger(L, (lua_Integer) adler); 
-    //~ return 1;    
-//~ }
-
 
 //--- xor(input:string, key:string) =>  output:string
 //-- obfuscate a string using xor and a key string
@@ -210,6 +187,10 @@ static int luazen_rc4(lua_State *L) {
     return 1;
 }
 
+//----------------------------------------------------------------------
+// md5, sha1
+// 
+
 static int luazen_md5(lua_State *L) {
     size_t sln; 
     const char *src = luaL_checklstring (L, 1, &sln);
@@ -230,26 +211,6 @@ static int luazen_sha1(lua_State *L) {
     SHA1_Init(&ctx);
     SHA1_Update(&ctx, src, sln);
     SHA1_Final(digest, &ctx);
-    lua_pushlstring (L, digest, SHA1_SIZE); 
-    return 1;
-}
-
-static int luazen_hmac_md5(lua_State *L) {
-    size_t sln, kln; 
-    const char *src = luaL_checklstring (L, 1, &sln);
-    const char *key = luaL_checklstring (L, 2, &kln);
-    char digest[MD5_SIZE];
-    hmac_md5(src, sln, key, kln, digest);
-    lua_pushlstring (L, digest, MD5_SIZE); 
-    return 1;
-}
-
-static int luazen_hmac_sha1(lua_State *L) {
-    size_t sln, kln; 
-    const char *src = luaL_checklstring (L, 1, &sln);
-    const char *key = luaL_checklstring (L, 2, &kln);
-    char digest[SHA1_SIZE];
-    hmac_sha1(src, sln, key, kln, digest);
     lua_pushlstring (L, digest, SHA1_SIZE); 
     return 1;
 }
@@ -353,6 +314,59 @@ static int luazen_b64decode(lua_State *L)		/** decode(s) */
 	}
 	return 0;
 }
+//------------------------------------------------------------
+// base58 encode, decode 
+// based on code from Luke Dashjr (MIT license - see source code)
+
+// this encoding uses the same alphabet as bitcoin addresses:
+//   "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+
+static int luazen_b58encode(lua_State *L) {
+	size_t bln, eln;
+	const char *b = luaL_checklstring(L,1,&bln);	
+	if (bln == 0) { // empty string special case (not ok with b58enc)
+		lua_pushliteral (L, ""); 
+		return 1;
+	}
+	unsigned char * buf = malloc(bln * 2); // more than enough!
+	eln = bln * 2; // eln must be set to buffer size before calling b58enc
+	bool r = b58enc(buf, &eln, b, bln);
+	if (!r) { 
+		free(buf); 
+		lua_pushnil (L);
+		lua_pushfstring(L, "b58encode error");
+		return 2;         
+	} 
+	eln = eln - 1;  // b58enc add \0 at the end of the encode string
+	lua_pushlstring (L, buf, eln); 
+	free(buf);
+	return 1;
+}
+
+static int luazen_b58decode(lua_State *L) {
+	size_t bufsz, bln, eln;
+	const char *e = luaL_checklstring(L,1,&eln); // encoded data
+	if (eln == 0) { // empty string special case 
+		lua_pushliteral (L, ""); 
+		return 1;
+	}
+	bufsz = eln; // more than enough!
+	unsigned char *buf = malloc(bufsz); 
+	bln = bufsz; // give the result buffer size to b58tobin
+	//~ printf("dec bef eln=%d  bln=%d  \n", eln, bln);
+	bool r = b58tobin(buf, &bln, e, eln);
+	//~ printf("dec aft eln=%d  bln=%d  \n", eln, bln);
+	if (!r) { 
+		free(buf); 
+		lua_pushnil (L);
+		lua_pushfstring(L, "b58decode error");
+		return 2;         
+	} 
+	// b58tobin returns its result at the _end_ of buf!!!
+	lua_pushlstring (L, buf+bufsz-bln, bln); 
+	free(buf);
+	return 1;
+}
 
 //------------------------------------------------------------
 // lua library declaration
@@ -361,16 +375,14 @@ static const struct luaL_Reg luazenlib[] = {
 	{"xor", luazen_xor},
 	{"compress", luazen_compress},
 	{"uncompress", luazen_uncompress},
-	//~ {"crc32", luazen_crc32},
-	//~ {"adler32", luazen_adler32},
 	{"rc4", luazen_rc4},
 	{"rc4raw", luazen_rc4raw},
 	{"md5", luazen_md5},
 	{"sha1", luazen_sha1},
-	{"hmac_md5", luazen_hmac_md5},
-	{"hmac_sha1", luazen_hmac_sha1},
 	{"b64encode",	luazen_b64encode},
 	{"b64decode",	luazen_b64decode},
+	{"b58encode",	luazen_b58encode},
+	{"b58decode",	luazen_b58decode},
 	
 	{NULL, NULL},
 };

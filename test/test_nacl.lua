@@ -7,7 +7,7 @@ local function prx(s)
 	-- print hex repr of s, 16 bytes per line, separated by space
 	print(bin.stohex(s, 16, " "))
 end
-------------------------------------------------------------
+------------------------------------------------------------------------
 -- box functions - curve25519 + salsa20 + poly1305
 --
 -- gen alice keypair with keypair()
@@ -85,5 +85,5 @@ if r then print(r) end
 assert(checkmsg == msg)
 
 
-------------------------------------------------------------
-print("ok - test_nacl")
+------------------------------------------------------------------------
+print("test_nacl", "ok")

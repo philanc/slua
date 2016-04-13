@@ -33,7 +33,7 @@
  */
 
 #include <string.h>
-#include "hmac.h"
+#include "md5.h"
 
 /* Constants for MD5Transform routine.
  */

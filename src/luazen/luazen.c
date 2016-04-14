@@ -39,6 +39,7 @@ A small Lua extension library with crypto and compression functions
 #include "md5.h"
 #include "sha1.h"
 #include "base58.h"
+#include "rabbit-sync.h"
 
 //=========================================================
 // compatibility with Lua 5.2  --and lua 5.3, added 150621
@@ -123,7 +124,8 @@ static int luazen_uncompress(lua_State *L) {
     free(buf);
     return 1;    
 }
-
+//----------------------------------------------------------------------
+// 
 //--- xor(input:string, key:string) =>  output:string
 //-- obfuscate a string using xor and a key string
 //-- output is same length as input
@@ -186,6 +188,31 @@ static int luazen_rc4(lua_State *L) {
     free(dst);
     return 1;
 }
+
+//----------------------------------------------------------------------
+// rabbit stream cipher
+// 
+static int luazen_rabbit(lua_State *L) {
+	// Lua:  
+	//	rabbit(plaintext, key, iv) returns encrypted text
+	//	rabbit(encrypted, key, iv) returns decrypted text
+	//	key: the encryption key - must be a 16-byte string
+	//	iv: the initial value -  must be a 8-byte string
+	//
+    size_t pln, kln, ivln; 
+    const char *p = luaL_checklstring (L, 1, &pln);
+    const char *k = luaL_checklstring (L, 2, &kln);
+    const char *iv = luaL_checklstring (L, 3, &ivln);
+	char * e = malloc(pln); // buffer for encrypted text
+	ECRYPT_ctx ctx;
+	ECRYPT_keysetup(&ctx, k, 16, 8);
+	ECRYPT_ivsetup(&ctx, iv);
+	ECRYPT_process_bytes(0, &ctx, p, e, pln); // 1st param is ignored
+    lua_pushlstring (L, e, pln); 
+    free(e);
+    return 1;
+}
+
 
 //----------------------------------------------------------------------
 // md5, sha1
@@ -390,6 +417,7 @@ static const struct luaL_Reg luazenlib[] = {
 	{"uncompress", luazen_uncompress},
 	{"rc4", luazen_rc4},
 	{"rc4raw", luazen_rc4raw},
+	{"rabbit", luazen_rabbit},
 	{"md5", luazen_md5},
 	{"sha1", luazen_sha1},
 	{"b64encode",	luazen_b64encode},

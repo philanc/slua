@@ -3,8 +3,19 @@
 local lz = require "luazen"
 local bin = require "bin"
 
-local stx = bin.stohex
+local stx, xts = bin.stohex, bin.hextos
 
+
+------------------------------------------------------------------------
+-- lzf compression
+do
+	assert(lz.compress("") == "")
+	assert(lz.uncompress("") == "")
+	local x
+	x = "Hello world"; assert(lz.uncompress(lz.compress(x)) == x)
+	x = ("a"):rep(301); assert(lz.uncompress(lz.compress(x)) == x)
+	assert(#lz.compress(("a"):rep(301)) == 16)
+end
 
 ------------------------------------------------------------------------
 -- xor
@@ -21,6 +32,7 @@ do
 	assert(xor(("\xaa"):rep(31), ("\xff"):rep(17)) == ("\x55"):rep(31))
 	assert(xor(("\xaa"):rep(32), ("\xff"):rep(31)) == ("\x55"):rep(32))
 end
+
 ------------------------------------------------------------------------
 -- rc4
 do
@@ -32,6 +44,45 @@ do
 	assert(encr == "\x01\x78\xa1\x09\xf2\x21")
 	plain = plain:rep(100)
 	assert(plain == lz.rc4(lz.rc4(plain, k), k))
+end
+
+------------------------------------------------------------------------
+-- rabbit
+do
+	-- quick test with some eSTREAM test vectors
+	local key, iv, txt, exp, ec
+	local key0 = ('\0'):rep(16)
+	local iv0 = ('\0'):rep(8)
+	local txt0 = ('\0'):rep(48)
+	ec = lz.rabbit(txt0, key0, iv0)
+	exp = xts[[	EDB70567375DCD7CD89554F85E27A7C6
+				8D4ADC7032298F7BD4EFF504ACA6295F
+				668FBF478ADB2BE51E6CDE292B82DE2A ]]
+	assert(ec == exp)
+	
+	iv = '\x27\x17\xF4\xD2\x1A\x56\xEB\xA6'
+	ec = lz.rabbit(txt0, key0, iv)
+	exp = xts[[	4D1051A123AFB670BF8D8505C8D85A44
+				035BC3ACC667AEAE5B2CF44779F2C896
+				CB5115F034F03D31171CA75F89FCCB9F ]]
+	assert(ec == exp)
+	
+	--Set 5, vector# 63
+	iv = xts "0000000000000001"
+	ec = lz.rabbit(txt0, key0, iv)
+	exp = xts[[	55FB0B90A9FB953AE96D372BADBEBD30
+				F531A454D31B669BCD8BAAD78C6C9994
+				FFCCEC7ACB22F914A072DA22A617C0B7 ]]
+	assert(ec == exp)
+	
+	--Set6, vector# 0
+	key = xts "0053A6F94C9FF24598EB3E91E4378ADD"
+	iv =  xts "0D74DB42A91077DE"
+	ec = lz.rabbit(txt0, key, iv)
+	exp = xts[[	75D186D6BC6905C64F1B2DFDD51F7BFC
+				D74F926E6976CD0A9B1A3AE9DD8CB43F
+				F5CD60F2541FF7F22C5C70CE07613989 ]]
+	assert(ec == exp)
 end
 
 ------------------------------------------------------------------------
@@ -77,26 +128,29 @@ do
 end --b64
 
 ------------------------------------------------------------------------
--- b58encode
-assert(lz.b58encode('\x01') == '2')
-assert(lz.b58encode('\x00\x01') == '12')
-assert(lz.b58encode('') == '')
-assert(lz.b58encode('\0\0') == '11')
-assert(lz.b58encode('o hai') == 'DYB3oMS') --[1]
-local x1 = "\x00\x01\x09\x66\x77\x60\x06\x95\x3D\x55\x67\x43" 
-	.. "\x9E\x5E\x39\xF8\x6A\x0D\x27\x3B\xEE\xD6\x19\x67\xF6" 
-local e1 = "16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM" --[2]
-assert(lz.b58encode(x1) == e1)
-local x2 = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" 
-	.. "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"
-local e2 = "thX6LZfHDZZKUs92febYZhYRcXddmzfzF2NvTkPNE" --[3]
-assert(lz.b58encode(x2) == e2) 
--- b58decode
-assert(lz.b58decode('') == '')
-assert(lz.b58decode('11') == '\0\0')	
-assert(lz.b58decode('DYB3oMS') == 'o hai')
-assert(lz.b58decode(e1) == x1)
-assert(lz.b58decode(e2) == x2)
-
+-- b58encode  (check on-line at eg. http://lenschulwitz.com/base58)
+do
+	assert(lz.b58encode('\x01') == '2')
+	assert(lz.b58encode('\x00\x01') == '12')
+	assert(lz.b58encode('') == '')
+	assert(lz.b58encode('\0\0') == '11')
+	assert(lz.b58encode('o hai') == 'DYB3oMS')
+	assert(lz.b58encode('Hello world') == 'JxF12TrwXzT5jvT')
+	local x1 = "\x00\x01\x09\x66\x77\x60\x06\x95\x3D\x55\x67\x43" 
+		.. "\x9E\x5E\x39\xF8\x6A\x0D\x27\x3B\xEE\xD6\x19\x67\xF6" 
+	local e1 = "16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM"
+	assert(lz.b58encode(x1) == e1)
+	local x2 = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" 
+		.. "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"
+	local e2 = "thX6LZfHDZZKUs92febYZhYRcXddmzfzF2NvTkPNE"
+	assert(lz.b58encode(x2) == e2) 
+	-- b58decode
+	assert(lz.b58decode('') == '')
+	assert(lz.b58decode('11') == '\0\0')	
+	assert(lz.b58decode('DYB3oMS') == 'o hai')
+	assert(lz.b58decode('JxF12TrwXzT5jvT') == 'Hello world')
+	assert(lz.b58decode(e1) == x1)
+	assert(lz.b58decode(e2) == x2)
+end
 ------------------------------------------------------------------------
 print("test_luazen", "ok")

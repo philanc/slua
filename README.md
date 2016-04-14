@@ -46,7 +46,7 @@ LuaFileSystem 1.6.3  - commit 6d039ff385 - https://github.com/keplerproject/luaf
 	
 LPeg - http://www.inf.puc-rio.br/~roberto/lpeg/lpeg-1.0.0.tar.gz
 
-Luaproc 1.0.4 - commit 990ecf6 - https://github.com/askyrme/luaproc
+Luaproc 1.0.4 - commit 990ecf6, Oct 20, 2015 - https://github.com/askyrme/luaproc
 
 ltbox - the termbox C library comes from https://github.com/nsf/termbox.
 

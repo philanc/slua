@@ -1,10 +1,10 @@
 /// slua embedded code loader module
 ///
-/// The content of the string 'slua_embedded_buffer' is loaded and 
-/// executed by Lua before the regular REPL.
+/// The content of the string 'slua_embedded_buffer' is loaded as Lua
+/// code and executed by slua before the regular REPL.
 /// The default code provided is intended to look if some Lua code
 /// has been appended to the slua executable file. If so, the appended
-/// Lua code is loaded and executed in turn before tentering the REPL
+/// Lua code is loaded and executed in turn before entering the REPL
 /// (see Lua code in 'slua_embedded_buffer' below).
 /// A (unique) marker is added at the beginning and the end of 
 /// 'slua_embedded_buffer' to allow the replacement of the content

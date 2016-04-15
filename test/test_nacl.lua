@@ -1,4 +1,4 @@
--- test_nacl.lua
+	-- test_nacl.lua
 
 bin = require "bin"
 tw = require "tweetnacl"

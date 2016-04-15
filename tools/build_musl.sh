@@ -2,7 +2,7 @@
 
 # build musl-1.1.14
 #
-# tested 2016-04-15 on a i386 32-bit linux
+# tested 2016-04-15 on a i386 32-bit linux with gcc 4.7.1
 #
 # adjust variable musl_topdir below as needed
 #   - source is placed or downloaded in $musl_topdir/src

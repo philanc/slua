@@ -55,7 +55,7 @@ The full *readline* library is not used. It is replaced by the much smaller *lin
 
 ### Pre-built binaries
 
-The Linux x86 binary version of  slua has been built on a x86 (32-bit) platform with the Musl C library (version 1.1.10)
+The Linux x86 binary version of  slua has been built on a x86 (32-bit) platform with the Musl C library (version 1.1.14)
 
 
 ### Related projects
@@ -63,6 +63,7 @@ The Linux x86 binary version of  slua has been built on a x86 (32-bit) platform 
 Although their objectives are different, slua has been inspired by other projects:
 - MurgaLua, by John Murga - http://www.murga-projects.com/murgaLua.html
 - BonaLuna, by Christophe Delord - http://www.cdsoft.fr/bl/bonaluna.html
+- Luabuild, by Steve Donovan, is a much more ambitious tool to build a static Lua with bundled libraries - https://github.com/stevedonovan/luabuild
 
 ### License
 

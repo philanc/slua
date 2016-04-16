@@ -61,6 +61,8 @@ slua.a:  lua.a linenoise.a src/slua.c src/linit.c src/sluacode.c
 lua.a:  src/lua/*.c src/lua/*.h
 	$(CC) -c $(CFLAGS) src/lua/*.c
 	$(AR) rcu lua.a $(LUA_O)
+	# build also the lua compiler before removing the .o files
+	$(CC) -static -o sluac luac.o lua.a
 	rm -f *.o
 
 linenoise.a:  lua.a src/linenoise/*.c src/linenoise/*.h

@@ -28,19 +28,20 @@
 /// single quotes to delimit Lua strings!
 ///
 /// Test appending Lua code to slua: append first the append marker
-/// '++slua appended lua code++', then append the Lua code:
-///   echo "++slua appended lua code++" >> slua
+/// '--slua appended code\n', then append the Lua code:
+///   echo "--slua appended code" >> slua
 ///   echo "print('Hello slua')" >> slua
 ///   ./slua  <-- will display 'Hello slua' before the Lua banner.
 
 char *slua_embedded_buffer = 
 	"++slua++" // start of embedded code marker - must be 8 bytes
+	//~ "print[["  // uncomment this line and ']]' below to display the code
 	"-- slua embedded loader                                    \n"
-	"local asep = '++slua appended ' .. 'lua code++'            \n"
+	"local asep = '%-%-slua appended code\\r?\\n'               \n"
 	"local f = assert(io.open('/proc/self/exe', 'rb'))          \n"
 	"local s = f:read('*a')                                     \n"
 	"f:close()                                                  \n"
-	"local i,j = s:find(asep, 1, true)                          \n"
+	"local i,j = s:find(asep, 1)                                \n"
 	"if i then                                                  \n"
 	"  local ac = s:sub(j+1);                                   \n"
 	"  local f, msg = load(ac)                                  \n"
@@ -50,6 +51,7 @@ char *slua_embedded_buffer =
 	"         ..'(maybe a syntax error)')                       \n"
 	"  end                                                      \n"
 	"end                                                        \n"
+	//~ "]]"  // uncomment this to display the code
 	"                                                           \n" 
 	"                                                           \n" 
 	"                                                           \n" 

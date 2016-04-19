@@ -58,6 +58,17 @@ static const luaL_Reg loadedlibs[] = {
   {NULL, NULL}
 };
 
+
+LUALIB_API void luaL_openlibs (lua_State *L) {
+  const luaL_Reg *lib;
+  /* "require" functions from 'loadedlibs' and set results to global table */
+  for (lib = loadedlibs; lib->func; lib++) {
+    luaL_requiref(L, lib->name, lib->func, 1);
+    lua_pop(L, 1);  /* remove lib */
+  }
+  ///-------------------------------------------------------
+  ///slua - add preloaded libraries
+  
 // PRELOAD: preload a library (see luaL_openlibs below)
 #define PRELOAD(libname)  \
 	int luaopen_##libname (lua_State *L); \
@@ -71,19 +82,10 @@ static const luaL_Reg loadedlibs[] = {
 	lua_pushcfunction(L, luaopen_##libfuncname);	\
     lua_setfield(L, -2, #libname);	
 
-
-LUALIB_API void luaL_openlibs (lua_State *L) {
-  const luaL_Reg *lib;
-  /* "require" functions from 'loadedlibs' and set results to global table */
-  for (lib = loadedlibs; lib->func; lib++) {
-    luaL_requiref(L, lib->name, lib->func, 1);
-    lua_pop(L, 1);  /* remove lib */
-  }
-  ///-------------------------------------------------------
-  ///slua 151018 - add preloaded libraries
   luaL_getsubtable(L, LUA_REGISTRYINDEX, "_PRELOAD");
 
   PRELOAD(linenoise)
+#if !defined(SLUA_DYNLINK)
   PRELOAD(lfs)
   PRELOAD(lpeg)
   PRELOAD(mtcp)
@@ -93,8 +95,9 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
   PRELOAD(tweetnacl)
   PRELOAD(ltbox)
   PRELOAD(luaproc)
-
+#endif
   lua_pop(L, 1);  /* remove _PRELOAD table */
   ///-------------------------------------------------------
-}
+
+} // luaL_openlibs()
 

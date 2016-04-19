@@ -52,6 +52,15 @@
 #define ECRYPT_UNKNOWN
 #endif
 
+///---------------------------------------------------------------------
+/// ph: endianness not detected for ARM 
+/// => make it explicit - all the targets (x86, arm) are little endian
+#undef ECRYPT_UNKNOWN
+#define ECRYPT_LITTLE_ENDIAN
+///---------------------------------------------------------------------
+
+
+
 /* ------------------------------------------------------------------------- */
 
 /*

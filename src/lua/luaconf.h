@@ -199,6 +199,14 @@
 		LUA_CDIR"?.so;" LUA_CDIR"loadall.so;" "./?.so"
 #endif			/* } */
 
+///---------------------------------------------------------------------
+/// slua default path - search only in current directory
+#undef LUA_PATH_DEFAULT
+#undef LUA_CPATH_DEFAULT
+#define LUA_PATH_DEFAULT  "./?.lua;" "./?/init.lua"
+#define LUA_CPATH_DEFAULT "./?.so;"
+///---------------------------------------------------------------------
+
 
 /*
 @@ LUA_DIRSEP is the directory separator (for submodules).

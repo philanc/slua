@@ -31,10 +31,10 @@ mkdir -p $musl_src
 cd $musl_src
 [ ! -f $musl.tar.gz ] && \
   wget http://www.musl-libc.org/releases/$musl.tar.gz
-fi
+
 tar xzvf  $musl.tar.gz
 cd $musl_src/$musl
-./configure --prefix=$musl_topdir
+./configure --prefix=$musl_topdir --syslibdir=$musl_topdir/lib
 make
 make install
 
@@ -52,4 +52,5 @@ cd kernel-headers-master
 make ARCH=$musl_arch prefix=$musl_topdir install
 
 cd $musl_src
+
 

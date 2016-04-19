@@ -52,6 +52,17 @@ ltbox - the termbox C library comes from https://github.com/nsf/termbox.
 
 The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
 
+### Modifications of the vanilla Lua
+
+src/lua/luaconf.h:
+- modification of LUA_PATH_DEFAULT and LUA_CPATH_DEFAULT
+
+src/lua/linit.c - not used. It is replaced with src/linit.c
+- addition of the preloaded libraries
+
+src/lua/lua.c - not used. It is replaced with src/slua.c
+- replacement of readline with linenoise
+- mechanism to load Lua code appended to the slua executable (see src/lua.c and additional file sluacode.c)
 
 ### Pre-built binaries
 

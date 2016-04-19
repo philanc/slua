@@ -7,10 +7,12 @@
 	int luaopen_##libname (lua_State *L); \
 	luaproc_reglualib( L, #libname, luaopen_##libname );
 ///
+#if !defined(SLUA_DYNLINK)
 PRELOAD(lfs)
 PRELOAD(lpeg)
 PRELOAD(mtcp)
 PRELOAD(tweetnacl)
 PRELOAD(luazen)
+#endif
 ///
 /// end luaproc_preload.h

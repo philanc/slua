@@ -33,7 +33,7 @@ It is possible to append Lua code to the slua executable. The appended code will
 If entering the REPL is not wanted, the appended 
 code can just be ended with "os.exit()".
 
-he appended code must start with the following exact string:  "--slua appended code", ending with a newline.
+The appended code must start with the following exact string:  "`--slua appended code`", ending with a newline.
 
 Then it is enough to:
 ```
@@ -48,7 +48,7 @@ If some_code.lua does not start with the magic string, it is easy to add it. For
 	cat test/test_nacl.lua >> my_nacl_test
 	echo "os.exit()" >>my_nacl_test
 ```
-Then './my_nacl_test'  will just run the test.
+Then `./my_nacl_test`  will just run the test.
 
 The append code mechanism within slua is itself written in Lua (see src/sluacode.c).  It is invoked in src/slua.c (after comment "/// slua embedded Lua code").
 

@@ -16,24 +16,24 @@ Communication between Lua processes relies exclusively on message passing."*  - 
 
 ### linenoise
 
-See [linenoise.md]()
+See [linenoise.md](linenoise.md)
 
 ### luazen
 
-A small library with various encoding, compression and cryptographic functions. See [luazen.md]()
+A small library with various encoding, compression and cryptographic functions. See [luazen.md](luazen.md)
 
 ### tweetnacl
 
-A binding to the wonderful NaCl crypto library by Dan Bernstein, Tanja Lange et al. See [tweetnacl.md]()
+A binding to the wonderful NaCl crypto library by Dan Bernstein, Tanja Lange et al. See [tweetnacl.md](tweetnacl.md)
 
 ### mtcp
 
-A minimal wrapper over sockets for tcp connections. See [mtcp.md]()
+A minimal wrapper over sockets for tcp connections. See [mtcp.md](mtcp.md)
 
 
 ### ltbox
 
-A wrapper for the termbox library.  It allows to write simple tty/character-based interfaces without the huge ncurses overhead. See [mtcp.md]()
+A wrapper for the termbox library.  It allows to write simple tty/character-based interfaces without the huge ncurses overhead. See [ltbox.md](ltbox.md)
 
 
 

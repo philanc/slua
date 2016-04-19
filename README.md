@@ -100,7 +100,7 @@ src/lua/linit.c - not used. It is replaced with src/linit.c
 
 src/lua/lua.c - not used. It is replaced with src/slua.c
 - replacement of readline with linenoise
-- mechanism to load Lua code appended to the slua executable (see src/lua.c and additional file sluacode.c)
+- extension mechanism (see above)
 
 ### Pre-built binaries
 

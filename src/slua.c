@@ -273,7 +273,6 @@ extern char *slua_embedded_buffer;
 
 static int do_slua_embedded_code(lua_State *L) {
 	char *ecode = slua_embedded_buffer + 8;
-	//~ char *ecode = "print'hello test1!' ";
 	if ( *((long long *)ecode) != 0x2020202020202020 ) {
 		return dochunk(L, luaL_loadstring(L, ecode));
 	}

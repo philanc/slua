@@ -35,7 +35,7 @@
 
 char *slua_embedded_buffer = 
 	"++slua++" // start of embedded code marker - must be 8 bytes
-	//~ "print[["  // uncomment this line and ']]' below to display the code
+	// "print[["  // uncomment this line and ']]' below to display the code
 	"-- slua embedded loader                                    \n"
 	"local asep = '%-%-slua appended code\\r?\\n'               \n"
 	"local f = assert(io.open('/proc/self/exe', 'rb'))          \n"
@@ -51,7 +51,7 @@ char *slua_embedded_buffer =
 	"         ..'(maybe a syntax error)')                       \n"
 	"  end                                                      \n"
 	"end                                                        \n"
-	//~ "]]"  // uncomment this to display the code
+	// "]]"  // uncomment "print[[" above and this line to display the code
 	"                                                           \n" 
 	"                                                           \n" 
 	"                                                           \n" 

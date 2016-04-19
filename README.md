@@ -37,6 +37,11 @@ slua still respects the environment variables LUA_PATH and LUA_CPATH.
 		
 Binary versions of slua are provided here for convenience.
 
+*Musl libc* - A script is provided to fetch and build musl libc and the required Linux headers. See tools/build_musl.sh and comments at the beginning of the script.
+
+*Dynamic linking version* - A makefile to build 'sdlua', a dynamic version of slua, with the same additional libraries as .so files.  'sdlua' has the same functions as slua (built-in linenoise line-editing, execution of appended lua code). It is built with the same musl libc. 
+
+Note that as 'sdlua' is a dynamic executable, the path to the musl libc and dynamic linker is hard coded in the executable! If the musl-gcc wrapper is at /somepath/musl1114/bin/musl-gcc, then the libc.so and dynamic linker must be in /somepath/musl1114/lib/ when 'sdlua' is executed.
 
 ### Package versions
 
@@ -51,6 +56,8 @@ Luaproc 1.0.4 - commit 990ecf6, Oct 20, 2015 - https://github.com/askyrme/luapro
 ltbox - the termbox C library comes from https://github.com/nsf/termbox.
 
 The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
+
+Musl libc - slua has been built against musl-1.1.10 and 1.1.14 on x86, and musl-1.1.12 on arm.
 
 ### Modifications of the vanilla Lua
 

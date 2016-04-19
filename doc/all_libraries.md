@@ -20,15 +20,20 @@ See [linenoise.md](linenoise.md)
 
 ### luazen
 
-See [luazen.md](luazen.md)
+A small library with various encoding, compression and cryptographic functions. See [luazen.md](luazen.md)
 
 ### tweetnacl
 
-See [tweetnacl.md](tweetnacl.md)
+A binding to the wonderful NaCl crypto library by Dan Bernstein, Tanja Lange et al. See [tweetnacl.md](tweetnacl.md)
 
-### luazen
+### mtcp
 
-See [luazen.md](luazen.md)
+A minimal wrapper over sockets for tcp connections. See [mtcp.md]
+
+
+### ltbox
+
+A wrapper for the termbox library.  It allows to write simple tty/character-based interfaces without the huge ncurses overhead. See [mtcp.md]
 
 
 

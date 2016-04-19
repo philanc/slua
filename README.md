@@ -16,6 +16,8 @@ Additional libraries are *pre-loaded*. They must be require()'d before use (see 
 - linenoise (slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications)
 - ltbox - a small library to write text-based user interfaces based on the termbox library
 
+Some documentation and references about these libraries is available in [doc/all_libraries.md] and directory doc.
+
 ### Static build
 
 slua is linked completely statically. It uses no dynamic library, not even libc.  

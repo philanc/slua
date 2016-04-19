@@ -38,7 +38,7 @@ box(plain, nonce, bpk, ask)
 	ask (32 bytes):  Alice's secret key
 	return the encrypted text or (nil, error msg)
 	--
-	the box() and box_open functions perfor the following steps:
+	the box() and box_open functions perform the following steps:
 	- generate a session key common to Alice and Bob with a 
 	  Diffie-Hellman based on the elliptic curve 25519 scalar multiplication
 	- authenticated en(de)cryption with Salsa20 stream encryption

@@ -1,7 +1,7 @@
 
 # slua
 
-A static build of Lua 5.3 for Linux, with a few extension libraries.
+A static build of [Lua](http://www.lua.org/) 5.3 for Linux, with a few extension libraries.
 
 Additional libraries are *pre-loaded*. They must be require()'d before use (see lua/src/linit.c)
 

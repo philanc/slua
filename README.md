@@ -5,7 +5,8 @@ A static build of Lua 5.3 for Linux, with a few extension libraries.
 
 Additional libraries are *pre-loaded*. They must be require()'d before use (see lua/src/linit.c)
 
-slua preloaded libraries:
+### Preloaded libraries
+
 - lfs (from LuaFileSystem)
 - lpeg (from LPeg 1.0.0)
 - luazen (a small library with basic crypto and compression functions)
@@ -15,6 +16,8 @@ slua preloaded libraries:
 - linenoise (slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications)
 - ltbox - a small library to write text-based user interfaces based on the termbox library
 
+### Static build
+
 slua is linked completely statically. It uses no dynamic library, not even libc.  
 
 It can be used anywhere, whatever the platform dynamic linker. The Linux x86 version is built with the Musl C library which allows a very compact executable. If built in a x86 environment, it can be run on any Linux system (x86 or x86_64)
@@ -22,6 +25,34 @@ It can be used anywhere, whatever the platform dynamic linker. The Linux x86 ver
 It can be dropped and run from any directory, without interference or dynamic library incompatibilities.  Defaults paths ("package.path") are limited to the current directory to minimize the risk of "catching" Lua files at the standard locations, intended to be used by a regular, installed Lua.
 
 On the other end, obviously, slua cannot load dynamic C libraries. It is *not* intended to be a replacement for a full fledged Lua installation.
+
+### Extension mechanism
+
+It is possible to append Lua code to the slua executable. The appended code will  be run by slua before entering the Lua REPL  (this is similar to 'lua -i somecode.lua'). 
+
+If entering the REPL is not wanted, the appended 
+code can just be ended with "os.exit()".
+
+he appended code must start with the following exact string:  "--slua appended code", ending with a newline.
+
+Then it is enough to:
+```
+	cp slua my_program
+	cat some_code.lua >> my_program
+```
+
+If some_code.lua does not start with the magic string, it is easy to add it. For example let's build a standalone program that runs the nacl test (in test/) and exits:
+```
+	cp slua my_nacl_test
+	echo "--slua appended code" >>my_nacl_test
+	cat test/test_nacl.lua >> my_nacl_test
+	echo "os.exit()" >>my_nacl_test
+```
+Then './my_nacl_test'  will just run the test.
+
+The append code mechanism within slua is itself written in Lua (see src/sluacode.c).  It is invoked in src/slua.c (after comment "/// slua embedded Lua code").
+
+It can be easily modified --in Lua!-- to, for example, load compressed or encrypted code. Or for anything else.
 
 ### Installation
 

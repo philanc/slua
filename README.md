@@ -114,6 +114,8 @@ Although their objectives are different, slua has been inspired by other project
 - BonaLuna, by Christophe Delord - http://www.cdsoft.fr/bl/bonaluna.html
 - Luabuild, by Steve Donovan, is a much more ambitious tool to build a static Lua with bundled libraries - https://github.com/stevedonovan/luabuild
 
+And I am of course grateful to the PUC-Rio team for the wonderful [Lua](http://www.lua.org/).
+
 ### License
 
 Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent). See LICENSE files in directories lua, luafilesystem, and the file lpeg.html in directory lpeg.

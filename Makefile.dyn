@@ -8,21 +8,13 @@
 # then the libc.so and dynamic linker must be in /f/b/musl1114/lib/
 #
 # This build requires only
-#   - the musl libc
-#   - the linux headers
+#   - the musl libc installed with the linux headers
 #   - make, gcc and associated tools
-#   - unzip from info-zip (or any other unzip capable of extracting
-#     symbolic links -- not busybox unzip) for the linux headers
 #
 # A script building the musl libc and its gcc wrapper is available
 # in directory 'tools'. Check it before using it! :-)
 #
-# Building statically with Glibc:  TL;DR: Don't do it.  :-)
-# The mtcp library requires functions that cannot be linked 
-# statically (getaddrinfo, gethostbyaddr, gesthostbyname). 
-# In addition, the executable would be _much_ larger with Glibc,
-# eg.  988KB with glibc vs 326KB with musl libc.
-# 
+#
 # note: to build with glibc or uClibc, must add " -lpthread -lm " at 
 # the end of the link lines for slua and sluac.
 #

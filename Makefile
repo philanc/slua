@@ -3,8 +3,7 @@
 # (with the 'musl-gcc' wrapper provided with Musl C)
 #
 # This build requires only
-#   - the musl libc
-#   - the linux headers
+#   - the musl libc installed with the linux headers
 #   - make, gcc and associated tools
 #
 # A script building the musl libc and its gcc wrapper is available

@@ -10,6 +10,10 @@
 #   - the musl libraries are built in $musl_topdir/lib
 #   - the musl include files and linux headers are installed 
 #     in $musl_topdir/include
+#
+# Note: unzip from info-zip is needed to extract the linux headers
+# (or any other unzip capable of extracting symbolic links - ie. 
+# not busybox unzip)
 
 musl_topdir=/f/b/musl1114
 musl=musl-1.1.14

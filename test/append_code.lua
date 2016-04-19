@@ -1,16 +1,20 @@
 --[[
 
-Append some Lua code to the slua executable. The appended code will be run by slua before entering the REPL  (this is similar to 'lua -i somecode.lua'). 
+Append some Lua code to the slua executable. The appended code will 
+be run by slua before entering the REPL  (this is similar to 
+'lua -i somecode.lua'). 
 
-If entering the REPL is not wanted, just end the appended code with "os.exit()".
+If entering the REPL is not wanted, just end the appended 
+code with "os.exit()".
 
-The appended code must start with the following exact string:  "--slua appended code" ending with a newline.
+The appended code must start with the following exact string:  
+"--slua appended code", ending with a newline.
 
 Then it is enough to:
 	cp slua my_program
 	cat some_code.lua >> my_program
 
-If some_code.lua does not start with the magic string, it is easy to 
+If some_code.lua does not start with the magic string, it is easy to
 add it. For example let's build a standalone program running the 
 nacl test and exiting:
 
@@ -23,9 +27,12 @@ Then './my_nacl_test'  will just run the test.
 
 ---
 	
-The append code mechanism within slua is itself written in Lua (see src/sluacode.c).  It is invoked in src/slua.c (after comment "/// slua embedded Lua code buffer").
+The append code mechanism within slua is itself written in Lua 
+(see src/sluacode.c).  It is invoked in src/slua.c (after 
+comment "/// slua embedded Lua code buffer").
 
-It can be easily modified --in Lua!-- to, for example, load compressed or encrypted code. Or for anything else.
+It can be easily modified --in Lua!-- to, for example, 
+load compressed or encrypted code. Or for anything else.
 
 
 ]]

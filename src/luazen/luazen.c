@@ -154,17 +154,22 @@ static int luazen_xor(lua_State *L) {
 //-- use rc4() instead for regular uses (a rc4-drop implementation)
 //
 static int luazen_rc4raw(lua_State *L) {
-    size_t sln, kln; 
-    const char *src = luaL_checklstring (L, 1, &sln);
-    const char *key = luaL_checklstring (L, 2, &kln);
-    //printf("[%s]%d  [%s]%d \n", s, sln, k, kln);
-    char *dst = (char *) malloc(sln); 
-    rc4_ctx ctx;
-    rc4_setup(&ctx, key, kln); 
-    rc4_crypt(&ctx, src, dst, sln);
-    lua_pushlstring (L, dst, sln); 
-    free(dst);
-    return 1;
+	size_t sln, kln; 
+	const char *src = luaL_checklstring (L, 1, &sln);
+	const char *key = luaL_checklstring (L, 2, &kln);
+	if (kln != 16) {
+		lua_pushnil (L);
+		lua_pushliteral (L, "luazen: rc4 key must be 16 bytes");
+		return 2;         
+	}
+	//printf("[%s]%d  [%s]%d \n", s, sln, k, kln);
+	char *dst = (char *) malloc(sln); 
+	rc4_ctx ctx;
+	rc4_setup(&ctx, key, kln); 
+	rc4_crypt(&ctx, src, dst, sln);
+	lua_pushlstring (L, dst, sln); 
+	free(dst);
+	return 1;
 }
 
 
@@ -175,7 +180,15 @@ static int luazen_rc4(lua_State *L) {
     size_t sln, kln; 
     const char *src = luaL_checklstring (L, 1, &sln);
     const char *key = luaL_checklstring (L, 2, &kln);
-    char drop[256]; 
+	if (kln != 16) {
+		lua_pushnil (L);
+		lua_pushliteral (L, "luazen: rc4 key must be 16 bytes");
+		return 2;         
+	}
+	const int dropln = 256;
+    char drop[dropln]; 
+	// ensure drop is zeroed
+	int i;  for (i=0, i<dropln, i++) drop[i] = 0;
     char *dst = (char *) malloc(sln); 
     rc4_ctx ctx;
     rc4_setup(&ctx, key, kln); 
@@ -203,6 +216,12 @@ static int luazen_rabbit(lua_State *L) {
     const char *p = luaL_checklstring (L, 1, &pln);
     const char *k = luaL_checklstring (L, 2, &kln);
     const char *iv = luaL_checklstring (L, 3, &ivln);
+	if ((kln != 16) || (ivln != 8)) {
+		lua_pushnil (L);
+		lua_pushliteral (L, 
+			"luazen: rabbit key and iv must be 16 and 8 bytes");
+		return 2;         
+	}
 	char * e = malloc(pln); // buffer for encrypted text
 	ECRYPT_ctx ctx;
 	ECRYPT_keysetup(&ctx, k, 16, 8);

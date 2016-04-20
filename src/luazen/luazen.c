@@ -188,7 +188,7 @@ static int luazen_rc4(lua_State *L) {
 	const int dropln = 256;
     char drop[dropln]; 
 	// ensure drop is zeroed
-	int i;  for (i=0, i<dropln, i++) drop[i] = 0;
+	int i;  for (i=0;  i<dropln; i++) drop[i] = 0;
     char *dst = (char *) malloc(sln); 
     rc4_ctx ctx;
     rc4_setup(&ctx, key, kln); 

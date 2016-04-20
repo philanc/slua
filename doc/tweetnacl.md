@@ -12,7 +12,10 @@ by Dan Bernstein et al. --  http://tweetnacl.cr.yp.to/index.html
 To understand the NaCl specs, the reader is referred to the NaCl specs at http://nacl.cr.yp.to/.  This binding is very thin and should be easy
 to use for anybody knowing NaCl. 
 
-Usage in Lua programs:
+On the other hand, the binding does not include convenience functions (eg, for dealing with the "32-byte null prefix" and other API specificity). Convenience functions are expected to be implemented in Lua (or maybe in this library in the future)
+
+
+Functions:
 ```
 randombytes(n)
 	return a string containing n random bytes
@@ -61,28 +64,81 @@ box_stream_key() is an alias of box_beforenm()
 box_afternm() is an alias of secretbox()
 box_afternm_open() is an alias of secretbox_open()
 		
-secretbox()
+secretbox(plain, n, k)
+	encrypt plain string with key k and nonce n
+	plain MUST start with 32 null bytes
+	k: a 32-byte string
+	n: a 24-byte nonce
+	return the encrypted text
+	example: to encrypt string 'abc'  with key 'kkk...' and nonce 'nnn...':
+	   e = secretbox(('\0'):rep32)..'abc', ('n'):rep(24), ('k'):rep(32))
+	Note: secretbox() performs an authenticated encryption, that is
+	encrypt the plain test (with Salsa20) and compute a MAC (with Poly1305)
+	of the encrypted text. It allows the receiver of the encrypted text to
+	detect if it has been tampered with. The MAC is embedded in the
+	encrypted text (at the beginning, bytes 16 to 32)
+	
+secretbox_open(encr, n, k)
+	decrypt encrypted string encr with key k and nonce n. The MAC
+	embedded in 'encr' is checked before the actual decryption.
+	k: a 32-byte string
+	n: a 24-byte nonce
+	return the decrypted text (including the leading 32 null char...)
+	or (nil, error msg) if the MAC is wrong of if the nonce or key 
+	lengths are not valid.
 
-secretbox_open()
+stream(ln, n, k)
+	generate an encrypting stream with the salsa20 algorithm
+	ln: integer, number of bytes to generate
+	k: a 32-byte string
+	n: a 24-byte nonce
+	return a ln-byte long string or (nil error message) if the 
+	nonce or key lengths are not valid.
 
-stream()
+stream_xor(text, n, k)
+	encrypt or decrypt text with the salsa20 algorithm. The same 
+	function is used to encrypt and decrypt.
+	k: a 32-byte string
+	n: a 24-byte nonce
+	As for secretbox(), the text to encrypt MUST start with 32 null bytes.
+	return an encrypted or decrypted string or (nil, error message) if the 
+	nonce or key lengths are not valid.	
 
-stream_xor()
-
-onetimeauth()
+onetimeauth(text, k)
+	compute the 16-byte MAC for the text and key k.
+	the MAC algorithm is Poly1305
+	k: a 32-byte string
+	return the 16-byte MAC as a string or (nil, error message) if the 
+	key length is not valid.	
 
 poly1305() is an alias of onetimeauth()
 
-hash()
-
+hash(s)
+	compute the SHA2-512 hash of string s
+	return the hash as a 64-byte binary string (no hex encoding)
+	
 sha512() is an alias of hash()
 
-sign()
-
-sign_open()
-
 sign_keypair()
+	generate a random key pair for the siganture algorithm (ed25519)
+	return pk, sk
+	where pk is the public key (a 32-byte string)
+	where sk is the secret key (a 64-byte string)
+	(actually, the last 32 bytes of the secret key are the public key)
 
+sign(text, sk)
+	sign a text with a secret key
+	sk: a 64-byte string
+	return the signed text, including the text and the signature
+	return (nil, error msg) if the sk lemgth is not valid (not 64)
+
+sign_open(text, pk)
+	verify a signed text with the corresponding public key
+	pk: a 32-byte string
+	if the signature is valid, return the original text 
+	(ie. without the signature)
+	return (nil, error msg) if the signature is not valid or if the 
+	pk lemgth is not valid (not 32)
 
 ```
 

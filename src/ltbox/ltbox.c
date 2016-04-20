@@ -66,8 +66,8 @@ static int ltb_present(lua_State *L) {
 }
 
 static int ltb_setcursor(lua_State *L) {
-	int cx = luaL_optinteger(L, 1, -1);
-	int cy = luaL_optinteger(L, 2, -1);
+	int cx = luaL_optinteger(L, 1, 0);
+	int cy = luaL_optinteger(L, 2, 0);
 	// on the Lua side, top left is (1,1) vs. (0,0) for termbox
 	tb_set_cursor(cx-1, cy-1);
 	return 0;

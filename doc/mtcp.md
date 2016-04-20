@@ -1,7 +1,11 @@
 
 ### mtcp
 
-A minimal wrapper over sockets for tcp connections. 
+A ***minimal*** wrapper over sockets for tcp connections.
+
+The level of functionality is sufficient for some simple applications, but is definitely more primitive than, for example, socket.core in LuaSocket.
+
+!!work in progress!!
 
 Functions:
 ```
@@ -42,7 +46,8 @@ write(fd, s [, idx, n])
 	idx: integer index in s. The bytes to send start in s at idx
 	n: number of bytes to send (if too large, n is adjusted to the number
 	   of bytes remaining in string s at idx)
-	idx and n are optional. If not present they are assumed to be 1 and #s.
+	idx and n are optional. If not present they are assumed to be 1 and 
+	the number of bytes remaining in string s at idx.
 	return the number of bytes sent, or (nil error msg). In case of 
 	write error, the error msg includes the value of 'errno'
 	
@@ -58,7 +63,7 @@ getsockname(fd)
 	return the raw client address as a string,  or nil, errmsg
 	
 getpeername(fd)
-	get the address the peer a socket is connected to
+	get the address of the peer a socket is connected to
 	fd: the socket file descriptor (as integer)
 	return the raw client address as a string,  or nil, errmsg	
 
@@ -68,10 +73,11 @@ getaddrinfo(hostname [, port])
 
 getnameinfo(addr [, numeric_host])
 	converts a raw address into a host and port
-	addr: a raw address (sockaddr) as returned by bind, connect, getaddrinfo
+	addr: a raw address (sockaddr) as returned by bind, connect, 
+    accept, getaddrinfo.
 	numeric_host: if true, the function returns a numeric IP address for 
 	the host.
-	return hostname-or-IP-addr, port (port is always returned as an integer)
+	return hostname-or-IP-address, port (port is returned as an integer)
 
 msleep(n)
 	suspend the execution of the calling thread for n milliseconds

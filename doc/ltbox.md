@@ -56,7 +56,6 @@ inputmode([mode])
 	mode=2: set the ALT modifier for the next input event
 			(except when ESC is part of a known escape sequence)
 			
-
 outputmode([mode])
 	set the output mode
 	if mode is not provided, the current mode is returned
@@ -77,6 +76,8 @@ pollevent(evt [, timeout])
 	wait for an event
 	evt is a table provided by the caller. It is filled with the event
 	details according to the event type.
+	timeout is an integer number of milliseconds.
+	if timeout is -1 or not present, wait indefinitely for an event.
 	The function returns the event type, or (nil, error msg)
 	event types:  0  timeout
 	              1  key pressed

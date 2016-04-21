@@ -89,8 +89,6 @@ LPeg - http://www.inf.puc-rio.br/~roberto/lpeg/lpeg-1.0.0.tar.gz
 
 Luaproc 1.0.4 - commit 990ecf6, Oct 20, 2015 - https://github.com/askyrme/luaproc
 
-ltbox - the termbox C library comes from https://github.com/nsf/termbox.
-
 The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
 
 Musl libc - slua has been built against musl-1.1.10 and 1.1.14 on x86, and musl-1.1.12 on arm.

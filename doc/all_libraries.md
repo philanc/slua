@@ -31,10 +31,5 @@ A binding to the wonderful NaCl crypto library by Dan Bernstein, Tanja Lange et 
 A minimal wrapper over sockets for tcp connections. See [mtcp.md](mtcp.md)
 
 
-### ltbox
-
-A wrapper for the termbox library.  It allows to write simple tty/character-based interfaces without the huge ncurses overhead. See [ltbox.md](ltbox.md)
-
-
 
 

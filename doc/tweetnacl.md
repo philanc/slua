@@ -30,12 +30,12 @@ box_getpk(sk)
 	Note: this function is not in NaCl but may be useful in some 
 	contexts. Actually, 
 		pk, sk = keypair()
-	is trictly equivalent to:
+	is strictly equivalent to:
 		sk = randombytes(32); pk = box_getpk(sk)
 
 box(plain, nonce, bpk, ask)
 	plain is the plain text that Alice encrypts for Bob
-	plain MUST start with 32 null bytes
+	plain MUST start with 32 null bytes, ie. ('\0'):rep(32)
 	nonce is 24 bytes (must be different for each encryption)
 	bpk (32 bytes):  Bob's public key 
 	ask (32 bytes):  Alice's secret key
@@ -45,7 +45,7 @@ box(plain, nonce, bpk, ask)
 	- generate a session key common to Alice and Bob with a 
 	  Diffie-Hellman based on the elliptic curve 25519 scalar multiplication
 	- authenticated en(de)cryption with Salsa20 stream encryption
-	  and Poly1305 MAC using the session key
+	  and Poly1305 MAC generation/verification using the session key
 	(see http://nacl.cr.yp.to/ for details and rationale!)
 
 box_open(encr, nonce, apk, bsk)

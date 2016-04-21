@@ -10,7 +10,6 @@ local libs = {
 	'linenoise',
 	'lfs',
 	'lpeg',
-	'ltbox',
 	'luaproc',
 	'luazen',
 	'mtcp',

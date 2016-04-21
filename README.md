@@ -14,7 +14,6 @@ Additional libraries are *pre-loaded*. They must be require()'d before use (see 
 - mtcp (a minimal socket library for tcp connections)
 - luaproc (multi-threading library)
 - linenoise (slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications)
-- ltbox - a small library to write text-based user interfaces based on the termbox library
 
 Some documentation and references about these libraries is available in [doc/all_libraries.md](https://github.com/philanc/slua/tree/master/doc/all_libraries.md) and directory doc.
 
@@ -72,7 +71,11 @@ Binary versions of slua are provided here for convenience.
 
 *Musl libc* - A script is provided to fetch and build musl libc and the required Linux headers. See tools/build_musl.sh and comments at the beginning of the script.
 
-*Dynamic linking version* - A makefile to build 'sdlua', a dynamic version of slua, with the same additional libraries as .so files.  'sdlua' has the same functions as slua (built-in linenoise line-editing, execution of appended lua code). It is built with the same musl libc. 
+*Dynamic linking version* - A makefile to build 'sdlua', a dynamic version of slua, with the same additional libraries as .so files.  'sdlua' has the same functions as slua (built-in linenoise line-editing, execution of appended lua code). It is built with the same musl libc.  
+
+For 'sdlua', the default Lua paths are slightly different:
+* `package.path:  "lua;./?/init.lua" `
+* `package.cpath: "./?.so" `
 
 Note that as 'sdlua' is a dynamic executable, the path to the musl libc and dynamic linker is hard coded in the executable! If the musl-gcc wrapper is at /somepath/musl1114/bin/musl-gcc, then the libc.so and dynamic linker must be in /somepath/musl1114/lib/ when 'sdlua' is executed.
 

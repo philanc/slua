@@ -6,6 +6,8 @@ The version of linenoise included here has been both simplified (no support for 
 
 Usage in Lua programs:
 ```
+--- Linenoise functions
+
 linenoise(prompt)
 	display prompt, read a line (with all the linenoise line 
 	editing facilities). return read line or (nil, error message)
@@ -21,17 +23,37 @@ gethistory()
 clearhistory()
 	empties the current history. return nothing
 
-setrawmode()
-	set the current tty in raw mode
-	return true on success or (nil, error message)
-	(usually fails because stdin is not a tty)
-
-resetmode()
-	reset the current tty mode (as saved when setrawmode was called)
-	return true on success or (nil, error message)
-	(usually fails because stdin is not a tty)
+--- Other tty functions
 
 isatty(fd)
 	wraps the unix isatty() function
 	return true if the file descriptor fd is a tty, or else false
+
+getmode(mode)
+	get the current terminal mode
+	return the current mode as a binary string
+	(a copy of the termios structure)
+	in case of error, the function returns (nil, error message)
+	(usually fails because stdin is not a tty)
+
+setmode(mode)
+	set the terminal mode
+	'mode' is a binary string obtained by getmode()
+	return true on success or (nil, error message)
+	(can fail because either stdin is not a tty or mode is not valid)
+
+setrawmode([opost])
+	set the current tty in raw mode
+	if the optional parameter opost is 1, output post processing 
+	is not disabled. By default, output post processing is disabled.
+	return true on success or (nil, error message)
+	(usually fails because stdin is not a tty)
+
+kbhit()
+	this is the old conio kbhit() function
+	It is intended to be used in raw mode.
+	return true if a key has been hit or else false
+	in case of poll error, the function returns nil, error msg.	
+
+
 ```

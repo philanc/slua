@@ -120,6 +120,7 @@
 #include <unistd.h>
 #include "linenoise.h"
 
+
 #define LINENOISE_DEFAULT_HISTORY_MAX_LEN 100
 #define LINENOISE_MAX_LINE 4096
 //~ static char *unsupported_term[] = {"dumb","cons25","emacs",NULL};
@@ -1102,16 +1103,21 @@ void linenoiseHistory(char ***hp, int *hlenp) {
 /// to implement file load and save in Lua)
 
 /// --------------------------------------------------------------------
-/// Lua bindings
+/// Linenoise Lua bindings
 
 #include <lua.h>
 #include <lauxlib.h>
+
+#include <poll.h>  // for l_kbhit()
+
 
 static int l_linenoise(lua_State *L) {
 	// invoke the linenoise function (diplay a prompt and read a line
 	// from the current stdin)
 	// Lua args:  the prompt to be displayed
 	// return value: the read line or nil, errmsg
+	// linenoise() takes care of setting and resetting the terminal mode
+	//
 	const char *prompt = luaL_checkstring(L, 1);
 	char *line = linenoise(prompt);
 	if (line == NULL) {
@@ -1174,46 +1180,9 @@ static int l_clearhistory(lua_State *L) {
 /// (see LINENOISE_DEFAULT_HISTORY_MAX_LEN) should be ok for most uses.
 /// (to be revisited)
 
-static int l_setrawmode(lua_State *L) {
-	// set the current tty in raw mode 
-	// (see linenoise function enableRawMode)
-	// Lua args: none.
-	// return true on success or nil, errmsg on failure
-	// (usually fails because stdin is not a tty)
-	// caveat: linenoise() should not be called when tty is in raw mode
-	// because it sets itself the raw mode (=> invoke resetmode() before 
-	// calling linenoise())
-	int n;
-	n = enableRawMode(STDIN_FILENO);
-	if (n == -1) {
-		lua_pushnil (L);
-		lua_pushfstring (L, "setrawmode failed");
-		return 2;
-	}
-	//success, return true
-	lua_pushboolean (L, 1);
-	return 1;	
-} //l_setrawmode
 
-
-static int l_resetmode(lua_State *L) {
-	// reset the current tty mode (as saved when setrawmode was called)
-	// (see linenoise function enableRawMode)
-	// Lua args: none.
-	// return true on success or nil, errmsg on failure
-	// (usually fails because stdin is not a tty)
-	//
-	int n;
-	n = disableRawMode(STDIN_FILENO);
-	if (n == -1) {
-		lua_pushnil (L);
-		lua_pushfstring (L, "resetmode failed");
-		return 2;
-	}
-	//success, return true
-	lua_pushboolean (L, 1);
-	return 1;	
-} //l_resetmode
+/// --------------------------------------------------------------------
+/// additional tty functions
 
 static int l_isatty(lua_State *L) {
 	// test if a file descriptor is associated to a tty
@@ -1225,18 +1194,124 @@ static int l_isatty(lua_State *L) {
 	return 1;	
 } //l_isatty
 
+static int l_getmode(lua_State *L) {
+	// Lua usage: 
+	//   curmode = getmode()  -- return the current tty mode as a string
+	// the return value is a binary string
+	// (it actually is a copy of the termios structure).
+	// in case of error, the function returns nil, error msg.
+	struct termios mode;
+	size_t modeln = sizeof(mode);
+	if (tcgetattr(0,&mode) == -1) {
+		lua_pushnil (L);
+		lua_pushfstring (L, "getmode failed (ENOTTY)");
+		return 2;	
+	}
+	lua_pushlstring(L, (const char *) &mode, modeln);
+	return 1;
+} //l_getmode
+
+static int l_setmode(lua_State *L) {
+	// Lua usage: 
+	//   setmode(mode)  -- set the tty mode ('mode' is a string)
+	// the 'mode' argument is a binary string obtained by getmode()
+	// in case of error, the function returns nil, error msg.
+	struct termios mode;
+	size_t modeln = sizeof(mode);
+	size_t sln;
+	const char *s = luaL_checklstring(L, 1, &sln);
+	if (sln == modeln) { // size is ok
+		memcpy(&mode, s, modeln);
+		if (tcsetattr(0,TCSAFLUSH,&mode) < 0) goto fatal;
+		lua_pushboolean (L, 1);
+		return 1;
+	}
+	fatal:
+	lua_pushnil (L);
+	lua_pushfstring (L, "setmode failed (ENOTTY or invalid mode)");
+	return 2;	
+} //l_setmode
+
+static int l_setrawmode(lua_State *L) {
+	// set the current tty in raw mode 
+	// Lua usage:  setrawmode([opost])
+	// if opost = 1, output post processing is not disabled
+	// by default, output post processing is disabled
+	// return true on success or nil, errmsg on failure
+	// (usually fails because stdin is not a tty)
+	//
+	// this is similar to linenoise enableRawMode() except that
+	//	 - the current mode is not saved before switching to raw mode
+	//   - no atexit(0 handler is registered to restore the mode.
+	// => caller must ensure that mode is saved and restored properly
+	//    with function ttymode()
+	//
+	int opost = luaL_optinteger(L, 1, 0); // default value is 0
+    struct termios raw;
+    if (!isatty(0)) goto fatal;
+    if (tcgetattr(0,&raw) == -1) goto fatal;
+    /* input modes: no break, no CR to NL, no parity check, no strip char,
+     * no start/stop output control. */
+    raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+    /* output modes - disable post processing */
+    if (!opost) raw.c_oflag &= ~(OPOST);
+    /* control modes - set 8 bit chars */
+    raw.c_cflag |= (CS8);
+    /* local modes - echoing off, canonical off, no extended functions,
+     * no signal chars (^Z,^C) */
+    raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+    /* control chars - set return condition: min number of bytes and timer.
+     * We want read to return every single byte, without timeout. */
+    raw.c_cc[VMIN] = 1; raw.c_cc[VTIME] = 0; /* 1 byte, no timer */
+    /* put terminal in raw mode after flushing */
+    if (tcsetattr(0,TCSAFLUSH,&raw) < 0) goto fatal;
+	//success, return true
+	lua_pushboolean (L, 1);
+	return 1;		
+fatal:
+	lua_pushnil (L);
+	lua_pushfstring (L, "setrawmode failed (ENOTTY)");
+	return 2;
+} //l_setrawmode
+
+
+static int l_kbhit(lua_State *L) {	
+	// this is the old conio kbhit() function
+	// (intended to be used in raw mode)
+	// returns true if a key has been hit or else false
+	// Lua usage:  bool = kbhit()
+	// in case of poll error, the function returns nil, error msg.
+	struct pollfd pfd;
+	int nbytes, rbytes, n;
+	pfd.fd = 0; // stdin
+	pfd.events = POLLIN;
+	pfd.revents = 0;
+	n = poll(&pfd, (nfds_t) 1, 0); // timeout is 0
+	if (n < 0) {  // poll error
+		lua_pushnil (L);
+		lua_pushfstring (L, "poll error: %d  errno: %d", n, errno);
+		return 2;
+	}
+	lua_pushboolean(L, (n > 0));
+	return 1;
+} // l_kbhit
+
 
 // ---------------------------------------------------------------------
 // Lua library function
 
 static const struct luaL_Reg linenoiselib[] = {
+	// linenoise and history functions
 	{"linenoise", l_linenoise},
 	{"addhistory", l_addhistory},
 	{"gethistory", l_gethistory},
 	{"clearhistory", l_clearhistory},
-	{"setrawmode", l_setrawmode},
-	{"resetmode", l_resetmode},
+	// other tty functions
 	{"isatty", l_isatty},
+	{"getmode", l_getmode},
+	{"setmode", l_setmode},
+	{"setrawmode", l_setrawmode},
+	{"kbhit", l_kbhit},
 	
 	{NULL, NULL},
 };

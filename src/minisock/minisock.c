@@ -45,8 +45,8 @@ It can also easily be parsed with string.unpack:  eg. for a IPv4 address:
 #include "lualib.h"
 
 // ---------------------------------------------------------------------
-#define minisock_VERSION "0.2"
-#define BUFSIZE 1024
+#define minisock_VERSION "0.3"
+#define BUFSIZE 4096
 #define BACKLOG 32
 
 // default timeout: 10 seconds
@@ -199,12 +199,11 @@ int minisock_read(lua_State *L) {
 	// read bytes from a socket file descriptor
 	// Lua args:  
 	//    socket fd: integer
-	//    nbytes: integer - max number of bytes to read 
-	//              (optional - defaults to BUFSIZE)
 	//    timeout: integer (in milliseconds)
 	//				(optional - defaults to DEFAULT_TIMEOUT)
-	// reading stops on error, on timeout, when at least nbytes bytes 
-	// have been read, or when last read() returned less than BUFSIZE.
+	// reads at most BUFSIZE bytes. 
+	// return the bytes read as a string, or (nil, error msg) 
+	// on error or timeout
 	//
 	int fd;
 	int n;
@@ -215,42 +214,30 @@ int minisock_read(lua_State *L) {
 	int nbytes, rbytes;
 
 	fd = luaL_checkinteger(L, 1);
-	nbytes = luaL_optinteger(L, 2, BUFSIZE); 
-	timeout = luaL_optinteger(L, 3, DEFAULT_TIMEOUT); 
+	timeout = luaL_optinteger(L, 2, DEFAULT_TIMEOUT); 
 
-	luaL_buffinit(L,&b);
 	pfd.fd = fd;
 	pfd.events = POLLIN;
 	pfd.revents = 0;
 	rbytes = 0; // total number of bytes read
-	while(1) {
-		n = poll(&pfd, (nfds_t) 1, timeout);
-		if (n < 0) {  // poll error
-			lua_pushnil (L);
-			lua_pushfstring (L, "poll error: %d  %d", n, errno);
-			return 2;      
-		}
-		if (n == 0) { // poll timeout
-			lua_pushnil (L);
-			lua_pushfstring (L, "poll timeout");
-			return 2;      
-		}
-		n = read(fd, buf, BUFSIZE);
-		if (n == 0) { // nothing read
-			break;
-		}
-		if (n < 0) {  // read error
-			lua_pushnil (L);
-			lua_pushfstring (L, "read error: %d  %d", n, errno);
-			return 2;      
-		}		
-		luaL_addlstring(&b, buf, n);
-		rbytes += n;
-		if (n < BUFSIZE) break;
-		if (rbytes >= nbytes) break;
+	n = poll(&pfd, (nfds_t) 1, timeout);
+	if (n < 0) {  // poll error
+		lua_pushnil (L);
+		lua_pushfstring (L, "poll error: %d  %d", n, errno);
+		return 2;      
 	}
-	//success, return read bytes
-	luaL_pushresult(&b);
+	if (n == 0) { // timeout
+		lua_pushnil (L);
+		lua_pushfstring (L, "read timeout");
+		return 2;      
+	}
+	n = read(fd, buf, BUFSIZE);
+	if (n < 0) {  // read error
+		lua_pushnil (L);
+		lua_pushfstring (L, "read error: %d  %d", n, errno);
+		return 2;      
+	}		
+	lua_pushlstring (L, (const char *)&buf, n);
 	return 1;
 } //minisock_read
 

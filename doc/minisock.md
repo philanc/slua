@@ -21,23 +21,21 @@ accept(servfd)
 	return the client socket file descriptor (as an integer) and
 	the raw client address as a string,  or nil, error msg
 	
-
 connect(host, service)
 	connect to a host
 	arguments: host and service, as strings
 	return the connection socket fd (as an integer) and the host 
 	raw address as a string, or nil, error msg
 	
-read(fd [, n [, timeout]])
+read(fd [, timeout])
 	read bytes from a socket
 	fd: the socket descriptor (as an integer)
-	n: number of bytes to read (defaults to 1,024 - see BUFSIZE in minisock.c)
 	timeout: an integer number of milliseconds (defaults to 10,000 - see
 	  DEFAULT_TIMEOUT in minisock.c)
-	reading stops on error, on timeout, when at least nbytes bytes 
-	have been read, or when last socket read returned less than BUFSIZE.
-	(the read function is not buffered)
-	return the bytes read, or (nil, error msg)
+	the function reads up to BUFSIZE bytes (read uses an internal buffer
+	which is BUFSIZE bytes large)
+	return the bytes read as a string, or (nil, error msg) on error or 
+	timeout. The error msg includes the value of 'errno'.
 	
 write(fd, s [, idx, n])
 	write bytes from a string to a socket
@@ -50,7 +48,6 @@ write(fd, s [, idx, n])
 	the number of bytes remaining in string s at idx.
 	return the number of bytes sent, or (nil error msg). In case of 
 	write error, the error msg includes the value of 'errno'
-	
 	
 close(fd)
 	close a socket 

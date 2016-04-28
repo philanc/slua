@@ -26,9 +26,9 @@ A small library with various encoding, compression and cryptographic functions. 
 
 A binding to the wonderful NaCl crypto library by Dan Bernstein, Tanja Lange et al. See [tweetnacl.md](tweetnacl.md)
 
-### mtcp
+### minisock
 
-A minimal wrapper over sockets for tcp connections. See [mtcp.md](mtcp.md)
+A minimal wrapper over sockets for tcp connections. See [minisock.md](minisock.md)
 
 
 

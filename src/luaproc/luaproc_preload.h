@@ -10,7 +10,7 @@
 #if !defined(SLUA_DYNLINK)
 PRELOAD(lfs)
 PRELOAD(lpeg)
-PRELOAD(mtcp)
+PRELOAD(minisock)
 PRELOAD(tweetnacl)
 PRELOAD(luazen)
 #endif

@@ -88,7 +88,7 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
 #if !defined(SLUA_DYNLINK)
   PRELOAD(lfs)
   PRELOAD(lpeg)
-  PRELOAD(mtcp)
+  PRELOAD(minisock)
   //~ PRELOAD2(socket.core, socket_core)
   //~ PRELOAD2(mime.core, mime_core)
   PRELOAD(luazen)

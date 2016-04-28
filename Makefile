@@ -10,7 +10,7 @@
 # in directory 'tools'. Check it before using it! :-)
 #
 # Building statically with Glibc:  TL;DR: Don't do it.  :-)
-# The mtcp library requires functions that cannot be linked 
+# The minisock library requires functions that cannot be linked 
 # statically (getaddrinfo, gethostbyaddr, gesthostbyname). 
 # In addition, the executable would be _much_ larger with Glibc,
 # eg.  988KB with glibc vs 326KB with musl libc.
@@ -29,7 +29,7 @@ LDFLAGS=
 
 # list of additional libraries 
 # (lua, linenoise and slua are not included here)
-SLUALIBS= lfs.a lpeg.a luazen.a tweetnacl.a mtcp.a luaproc.a
+SLUALIBS= lfs.a lpeg.a luazen.a tweetnacl.a minisock.a luaproc.a
 
 
 SLUA_O=      slua.o linit.o sluacode.o
@@ -44,7 +44,7 @@ LFS_O=       lfs.o
 LPEG_O=      lpcap.o lpcode.o lpprint.o lptree.o lpvm.o
 LUAZEN_O=    luazen.o lzf_c.o lzf_d.o md5.o rc4.o sha1.o base58.o rabbit.o
 TWEETNACL_O= luatweetnacl.o randombytes.o tweetnacl.o
-MTCP_O=      mtcp.o
+MINISOCK_O=      minisock.o
 LUAPROC_O=   luaproc.o lpsched.o
 
 smoketest:  slua
@@ -91,9 +91,9 @@ tweetnacl.a:  lua.a src/tweetnacl/*.c src/tweetnacl/*.h
 	$(AR) rcu tweetnacl.a $(TWEETNACL_O)
 	rm -f *.o
 
-mtcp.a:  lua.a src/mtcp/*.c
-	$(CC) -c $(CFLAGS) src/mtcp/*.c
-	$(AR) rcu mtcp.a $(MTCP_O)
+minisock.a:  lua.a src/minisock/*.c
+	$(CC) -c $(CFLAGS) src/minisock/*.c
+	$(AR) rcu minisock.a $(MINISOCK_O)
 	rm -f *.o
 
 luaproc.a:  lua.a src/luaproc/*.c src/luaproc/*.h

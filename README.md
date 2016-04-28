@@ -112,12 +112,16 @@ The Linux x86 binary version of  slua has been built on a x86 (32-bit) platform 
 
 ### Related projects
 
+I am of course grateful to the PUC-Rio team for the wonderful [Lua](http://www.lua.org/).
+
 Although their objectives are different, slua has been inspired by other projects:
 - MurgaLua, by John Murga - http://www.murga-projects.com/murgaLua.html
 - BonaLuna, by Christophe Delord - http://www.cdsoft.fr/bl/bonaluna.html
-- Luabuild, by Steve Donovan, is a much more ambitious tool to build a static Lua with bundled libraries - https://github.com/stevedonovan/luabuild
+- Luabuild, by Steve Donovan, which is a more ambitious tool to build a static Lua with bundled libraries - https://github.com/stevedonovan/luabuild
 
-And I am of course grateful to the PUC-Rio team for the wonderful [Lua](http://www.lua.org/).
+Other related projects
+- Luastatic -  https://github.com/ers35/luastatic
+- Omnia (based on Luastatic) - https://github.com/tongson/omnia
 
 ### License
 

@@ -1,5 +1,5 @@
 
-### mtcp
+### minisock
 
 A ***minimal*** wrapper over sockets for tcp connections.
 
@@ -31,13 +31,13 @@ connect(host, service)
 read(fd [, n [, timeout]])
 	read bytes from a socket
 	fd: the socket descriptor (as an integer)
-	n: number of bytes to read (defaults to 1,024 - see BUFSIZE in mtcp.c)
+	n: number of bytes to read (defaults to 1,024 - see BUFSIZE in minisock.c)
 	timeout: an integer number of milliseconds (defaults to 10,000 - see
-	  DEFAULT_TIMEOUT in mtcp.c)
+	  DEFAULT_TIMEOUT in minisock.c)
 	reading stops on error, on timeout, when at least nbytes bytes 
 	have been read, or when last socket read returned less than BUFSIZE.
 	(the read function is not buffered)
-	return the number of bytes read, or (nil, error msg)
+	return the bytes read, or (nil, error msg)
 	
 write(fd, s [, idx, n])
 	write bytes from a string to a socket

@@ -12,7 +12,7 @@ local libs = {
 	'lpeg',
 	'luaproc',
 	'luazen',
-	'mtcp',
+	'minisock',
 	'tweetnacl',
 }
 print("\nsdlua - a dynamic build of Lua 5.3 with some shared libraries:")

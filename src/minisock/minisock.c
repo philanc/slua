@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------
 /* 
 
-mtcp - A minimal Lua socket library for tcp connections
+minisock - A minimal Lua socket library for tcp connections
 
 Functions:
   bind         create a socket; bind it to a host address and port; listen
@@ -37,7 +37,7 @@ It can also easily be parsed with string.unpack:  eg. for a IPv4 address:
 #include <poll.h>
 #include <errno.h>
 
-// for mtcp_msleep()
+// for minisock_msleep()
 #include <time.h>
 
 #include "lua.h"
@@ -45,7 +45,7 @@ It can also easily be parsed with string.unpack:  eg. for a IPv4 address:
 #include "lualib.h"
 
 // ---------------------------------------------------------------------
-#define MTCP_VERSION "0.2"
+#define minisock_VERSION "0.2"
 #define BUFSIZE 1024
 #define BACKLOG 32
 
@@ -53,7 +53,7 @@ It can also easily be parsed with string.unpack:  eg. for a IPv4 address:
 #define DEFAULT_TIMEOUT 10000
 
 
-int mtcp_bind(lua_State *L) {
+int minisock_bind(lua_State *L) {
 	// create a server socket, bind, then listen 
 	// Lua args: host, service (as strings)
 	// returns server socket file descriptor (as integer) and
@@ -95,9 +95,9 @@ int mtcp_bind(lua_State *L) {
 	lua_pushinteger (L, sfd);
 	lua_pushlstring(L, (const char *)rp->ai_addr, rp->ai_addrlen);
 	return 2;
-} //mtcp_bind
+} //minisock_bind
 
-int mtcp_accept(lua_State *L) {
+int minisock_accept(lua_State *L) {
 	// accept incoming connections on a server socket 
 	// Lua args: server socket file descriptor (as integer)
 	// returns client socket file descriptor (as integer) and
@@ -118,10 +118,10 @@ int mtcp_accept(lua_State *L) {
 	lua_pushinteger (L, cfd);
 	lua_pushlstring(L, (const char *)&addr, len);
 	return 2;
-} //mtcp_accept
+} //minisock_accept
 
 
-int mtcp_connect(lua_State *L) {
+int minisock_connect(lua_State *L) {
 	// connect to a host
 	// Lua args: host, service or port (as strings)
 	// returns connection socket fd (as integer) and host raw address 
@@ -159,9 +159,9 @@ int mtcp_connect(lua_State *L) {
 	lua_pushinteger (L, cfd);
 	lua_pushlstring(L, (const char *)rp->ai_addr, rp->ai_addrlen);
 	return 2;
-} //mtcp_connect
+} //minisock_connect
 
-int mtcp_write(lua_State *L) {
+int minisock_write(lua_State *L) {
 	// Lua args:
 	//   fd: integer - socket descriptor
 	//   s: string - string to send
@@ -193,9 +193,9 @@ int mtcp_write(lua_State *L) {
 	//success, return number of bytes sent
 	lua_pushinteger (L, n);
 	return 1;
-} //mtcp_write
+} //minisock_write
 
-int mtcp_read(lua_State *L) {
+int minisock_read(lua_State *L) {
 	// read bytes from a socket file descriptor
 	// Lua args:  
 	//    socket fd: integer
@@ -252,9 +252,9 @@ int mtcp_read(lua_State *L) {
 	//success, return read bytes
 	luaL_pushresult(&b);
 	return 1;
-} //mtcp_read
+} //minisock_read
 
-int mtcp_close(lua_State *L) {
+int minisock_close(lua_State *L) {
 	// close a socket 
 	// Lua args: socket file descriptor (as integer)
 	// returns true on success or nil, errmsg
@@ -272,9 +272,9 @@ int mtcp_close(lua_State *L) {
 	//success, return true
 	lua_pushboolean (L, 1);
 	return 1;
-} //mtcp_close
+} //minisock_close
 
-int mtcp_getpeername(lua_State *L) {
+int minisock_getpeername(lua_State *L) {
 	// get the address the peer a socket is connected to
 	// Lua args: socket file descriptor (as integer)
 	// returns the raw client address as a string,  or nil, errmsg	
@@ -294,9 +294,9 @@ int mtcp_getpeername(lua_State *L) {
 	//success, return peer socket addr
 	lua_pushlstring (L, (const char *)&addr, len);
 	return 1;
-} //mtcp_getpeername
+} //minisock_getpeername
 
-int mtcp_getsockname(lua_State *L) {
+int minisock_getsockname(lua_State *L) {
 	// get the address a socket is bound to
 	// Lua args: socket file descriptor (as integer)
 	// returns the raw client address as a string,  or nil, errmsg
@@ -316,9 +316,9 @@ int mtcp_getsockname(lua_State *L) {
 	//success, return socket addr
 	lua_pushlstring (L, (const char *)&addr, len);
 	return 1;
-} //mtcp_getsockname
+} //minisock_getsockname
 
-int mtcp_getaddrinfo(lua_State *L) {
+int minisock_getaddrinfo(lua_State *L) {
 	// get a list of addresses corresponding to a hostname and port
 	const char *host, *service;
 	struct addrinfo hints;
@@ -349,12 +349,12 @@ int mtcp_getaddrinfo(lua_State *L) {
 	}	
 	// return the address table
 	return 1;
-} //mtcp_getaddrinfo
+} //minisock_getaddrinfo
 
 #define HOSTLEN 512
 #define SERVLEN 128
 
-int mtcp_getnameinfo(lua_State *L) {
+int minisock_getnameinfo(lua_State *L) {
 	// inverse of getaddrinfo(). converts a raw address into a host and port
 	// port is always returned as an integer
 	// Lua args:
@@ -384,9 +384,9 @@ int mtcp_getnameinfo(lua_State *L) {
 	lua_pushstring(L, hostname);
 	lua_pushinteger(L, atoi(servname));
 	return 2;	
-} //mtcp_getnameinfo
+} //minisock_getnameinfo
 
-int mtcp_msleep(lua_State *L) {
+int minisock_msleep(lua_State *L) {
 	// suspend the execution of the calling thread for some time 
 	// Lua args: the sleep time in milliseconds as an integer
 	// return value: true on success, or nil, errmsg
@@ -405,34 +405,34 @@ int mtcp_msleep(lua_State *L) {
 	//success, return socket addr
 	lua_pushboolean (L, 1);
 	return 1;
-} //mtcp_msleep
+} //minisock_msleep
 
 
 // ---------------------------------------------------------------------
 // Lua library function
 
-static const struct luaL_Reg mtcplib[] = {
-	{"bind", mtcp_bind},
-	{"accept", mtcp_accept},
-	{"connect", mtcp_connect},
-	{"write", mtcp_write},
-	{"read", mtcp_read},
-	{"close", mtcp_close},
-	{"getsockname", mtcp_getsockname},
-	{"getpeername", mtcp_getpeername},
-	{"getaddrinfo", mtcp_getaddrinfo},
-	{"getnameinfo", mtcp_getnameinfo},
-	{"msleep", mtcp_msleep},
+static const struct luaL_Reg minisocklib[] = {
+	{"bind", minisock_bind},
+	{"accept", minisock_accept},
+	{"connect", minisock_connect},
+	{"write", minisock_write},
+	{"read", minisock_read},
+	{"close", minisock_close},
+	{"getsockname", minisock_getsockname},
+	{"getpeername", minisock_getpeername},
+	{"getaddrinfo", minisock_getaddrinfo},
+	{"getnameinfo", minisock_getnameinfo},
+	{"msleep", minisock_msleep},
 	
 	{NULL, NULL},
 };
 
 
-int luaopen_mtcp (lua_State *L) {
-	luaL_newlib (L, mtcplib);
+int luaopen_minisock (lua_State *L) {
+	luaL_newlib (L, minisocklib);
     // 
     lua_pushliteral (L, "VERSION");
-	lua_pushliteral (L, MTCP_VERSION); 
+	lua_pushliteral (L, minisock_VERSION); 
 	lua_settable (L, -3);
     lua_pushliteral (L, "BUFSIZE");
 	lua_pushinteger (L, BUFSIZE); 

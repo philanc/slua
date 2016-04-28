@@ -11,7 +11,7 @@ Additional libraries are *pre-loaded*. They must be require()'d before use (see 
 - lpeg (from LPeg 1.0.0)
 - luazen (a small library with basic crypto and compression functions)
 - nacl (the NaCl crypto library, from Dan Bernstein et al. This small Lua wrapper is based on the *tweet nacl* implementation which is also included)
-- mtcp (a minimal socket library for tcp connections)
+- minisock (a minimal socket library for tcp connections)
 - luaproc (multi-threading library)
 - linenoise (slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications)
 
@@ -127,7 +127,7 @@ Other related projects
 
 Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent). See LICENSE files in directories lua, luafilesystem, and the file lpeg.html in directory lpeg.
 
-Luazen, mtcp, the tweetnacl Lua wrapper are distributed under the MIT License. The "tweet" NaCl core implementation is public domain, by Daniel Bernstein et al.
+Luazen, minisock, the tweetnacl Lua wrapper are distributed under the MIT License. The "tweet" NaCl core implementation is public domain, by Daniel Bernstein et al.
 
 The luazen library includes some code from various authors (see src/luazen):
 - base64 functions by Luiz Henrique de Figueiredo (public domain)

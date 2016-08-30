@@ -1,6 +1,6 @@
 // Copyright (c) 2015  Phil Leblanc  -- see LICENSE file
 // ---------------------------------------------------------------------
-/* tweetnacl
+/*   luatweetnacl
 
 A binding to the wonderful NaCl crypto library by Dan Bernstein,
 Tanja Lange et al. -- http://nacl.cr.yp.to/
@@ -8,32 +8,33 @@ Tanja Lange et al. -- http://nacl.cr.yp.to/
 The version included here is the "Tweet" version ("NaCl in 100 tweets")
 by Dan Bernstein et al. --  http://tweetnacl.cr.yp.to/index.html
 
+160827
+- the leading 32 and 16 null bytes are no longer required or 
+  returned to the user. This is processed in the Lua binding
+  functions. 
+
 160408 
-- removed the ill-designed, "easier" functions - stick with the original api
+- removed the ill-designed, "convenience" functions
 
 150721
-- split luazen and tweetnacl.  
+- split luazen and tweetnacl. removed luazen history. 
 - nacl lua interface is in this file (luatweetnacl.c)
 
-TweetNaCl version 20140427 - loaded on 150630 from
-http://tweetnacl.cr.yp.to/index.html
-includes: tweetnacl.c, tweetnacl.h
-
 150630
-- addition of the tweetnacl binding to luazen
-  based on tweetnacl version 20140427 - loaded on 150630 from
-  http://tweetnacl.cr.yp.to/index.html
-  includes: tweetnacl.c, tweetnacl.h
+loaded TweetNaCl version 20140427 from
+http://tweetnacl.cr.yp.to/index.html
+it includes: tweetnacl.c, tweetnacl.h
+added luatweetnacl.c for the Lua binding
 
-  randombytes()  not included in tweetnacl. Got it from
-  https://hyperelliptic.org/nacl/nacl-20110221.tar.bz2
-  (Tanja Lange site)
+randombytes()  not included in the original tweetnacl. 
+got randombytes.c from Tanja Lange site
+https://hyperelliptic.org/nacl/nacl-20110221.tar.bz2
 
-NaCl specs: http://nacl.cr.yp.to/
+NaCl specs: see http://nacl.cr.yp.to/
 
 */
 
-#define TWEETNACL_VERSION "tweetnacl-0.2"
+#define LUATWEETNACL_VERSION "luatweetnacl-0.3"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -119,13 +120,17 @@ static int tw_box(lua_State *L) {
 	const char *n = luaL_checklstring(L,2,&nln);   // nonce
 	const char *pk = luaL_checklstring(L,3,&pkln); // public key
 	const char *sk = luaL_checklstring(L,4,&skln); // secret key
-	if (mln <= crypto_box_ZEROBYTES) LERR("box_open: mln <= ZEROBYTES");
 	if (nln != crypto_box_NONCEBYTES) LERR("box_open: bad nonce size");
 	if (pkln != crypto_box_PUBLICKEYBYTES) LERR("box_open: bad pk size");
 	if (skln != crypto_box_SECRETKEYBYTES) LERR("box_open: bad sk size");
-	unsigned char * buf = malloc(mln);
-	int r = crypto_box(buf, m, mln, n, pk, sk);
-	lua_pushlstring(L, buf, mln); 
+	unsigned char * buf = malloc(mln+64);
+	// will encrypt over the plain text with a 64 byte window
+	memcpy(buf+64, m, mln);
+	// zero the 32 bytes before the plain text m
+	memset(buf+64-32, 0, 32);
+	//~ int r = crypto_box(buf, m, mln, n, pk, sk);
+	int r = crypto_box(buf, buf+64-32, mln+32, n, pk, sk);
+	lua_pushlstring(L, buf+16, mln+16); 
 	free(buf);
 	return 1;   
 }// box()
@@ -137,19 +142,25 @@ static int tw_box_open(lua_State *L) {
 	const char *n = luaL_checklstring(L,2,&nln);	
 	const char *pk = luaL_checklstring(L,3,&pkln);	
 	const char *sk = luaL_checklstring(L,4,&skln);	
-	if (cln <= crypto_box_ZEROBYTES) LERR("box_open: cln <= ZEROBYTES");
 	if (nln != crypto_box_NONCEBYTES) LERR("box_open: bad nonce size");
 	if (pkln != crypto_box_PUBLICKEYBYTES) LERR("box_open: bad pk size");
 	if (skln != crypto_box_SECRETKEYBYTES) LERR("box_open: bad sk size");
-	unsigned char * buf = malloc(cln);
-	int r = crypto_box_open(buf, c, cln, n, pk, sk);
+	unsigned char * buf = malloc(cln+64);
+	// will decrypt over the encrypted text with a 64 byte window
+	memcpy(buf+64, c, cln);
+	// zero the 16 bytes before the encr text
+	memset(buf+64-16, 0, 16);
+	//~ int r = crypto_box_open(buf, c, cln, n, pk, sk);
+	int r = crypto_box_open(buf, buf+64-16, cln+16, n, pk, sk);
 	if (r != 0) { 
 		free(buf); 
 		lua_pushnil (L);
 		lua_pushfstring(L, "box_open error %d", r);
 		return 2;         
 	} 
-	lua_pushlstring (L, buf, cln); 
+	// return the plain text, after the 32 null
+	// plain text is 16 bytes shorter than encrypted (the poly1305 MAC)
+	lua_pushlstring (L, buf+32, cln-16); 
 	free(buf);
 	return 1;
 } // box_open()
@@ -173,12 +184,17 @@ static int tw_secretbox(lua_State *L) {
 	const char *m = luaL_checklstring(L,1,&mln);	
 	const char *n = luaL_checklstring(L,2,&nln);	
 	const char *k = luaL_checklstring(L,3,&kln);	
-	if (mln <= crypto_box_ZEROBYTES) LERR("secretbox: mln <= ZEROBYTES");
 	if (nln != crypto_box_NONCEBYTES) LERR("secretbox: bad nonce size");
 	if (kln != crypto_secretbox_KEYBYTES) LERR("secretbox: bad key size");
-	unsigned char * buf = malloc(mln);
-	r = crypto_secretbox(buf, m, mln, n, k);
-	lua_pushlstring (L, buf, mln); 
+	unsigned char * buf = malloc(mln+64);
+	// will encrypt over the plain text with a 64 byte window
+	memcpy(buf+64, m, mln);
+	// zero the 32 bytes before the plain text m
+	memset(buf+64-32, 0, 32);
+	//~ r = crypto_secretbox(buf, m, mln, n, k);
+	r = crypto_secretbox(buf, buf+64-32, mln+32, n, k);
+	// bytes 0-15 are null, 16-31 are the poly1305 MAC
+	lua_pushlstring (L, buf+16, mln+16); 
 	free(buf);
 	return 1;
 } // secretbox()
@@ -189,30 +205,37 @@ static int tw_secretbox_open(lua_State *L) {
 	const char *c = luaL_checklstring(L,1,&cln);	
 	const char *n = luaL_checklstring(L,2,&nln);	
 	const char *k = luaL_checklstring(L,3,&kln);	
-	if (cln <= crypto_box_ZEROBYTES) LERR("secretbox_open: cln <= ZEROBYTES");
+	//~ if (cln <= crypto_box_ZEROBYTES) LERR("secretbox_open: cln <= ZEROBYTES");
 	if (nln != crypto_box_NONCEBYTES) LERR("secretbox_open: bad nonce size");
 	if (kln != crypto_secretbox_KEYBYTES) LERR("secretbox_open: bad key size");
-	unsigned char * buf = malloc(cln);
-	r = crypto_secretbox_open(buf, c, cln, n, k);
+	unsigned char * buf = malloc(cln+128);
+	memcpy(buf+128, c, cln);
+	// zero the 16 bytes before the encr text
+	memset(buf+128-16, 0, 16);
+	//~ r = crypto_secretbox_open(buf, c, cln, n, k);
+	r = crypto_secretbox_open(buf, buf+128-16, cln+16, n, k);
 	if (r != 0) { 
 		free(buf); 
 		lua_pushnil (L);
 		lua_pushfstring(L, "secretbox_open error %d", r);
 		return 2;         
 	} 
-	lua_pushlstring (L, buf, cln); 
+	// the first 32 bytes should be null. ignore them
+	// plain is 16 byte shorter than encrypted (the 16-byte MAC)
+	lua_pushlstring (L, buf+32, cln-16); 
 	free(buf);
 	return 1;
 } // secretbox_open()
 
 static int tw_stream(lua_State *L) {
+	// stream(mln, nonce, key)
+	// return a stream of mln bytes 
+	// (mln can be any length, no >16 or >32 constraint)
 	int r;
 	size_t mln, nln, kln;
 	mln = luaL_checkinteger(L,1);	
 	const char *n = luaL_checklstring(L,2,&nln);	
 	const char *k = luaL_checklstring(L,3,&kln);	
-	// dont know if the zerobyte limit applies for stream()...?!?
-	//if (mln <= crypto_box_ZEROBYTES) LERR("msg length <= ZEROBYTES");
 	if (nln != crypto_box_NONCEBYTES) LERR("bad nonce size");
 	if (kln != crypto_secretbox_KEYBYTES) LERR("bad key size");
 	unsigned char * buf = malloc(mln);
@@ -223,12 +246,14 @@ static int tw_stream(lua_State *L) {
 } // stream()
 
 static int tw_stream_xor(lua_State *L) {
+	// stream_xor(m, nonce, key)
+	// equivalent to m XOR stream(#m, nonce, key)
+	// m can be any length. no >16 or >32 constraint
 	int r;
 	size_t mln, nln, kln;
 	const char *m = luaL_checklstring(L,1,&mln);	
 	const char *n = luaL_checklstring(L,2,&nln);	
 	const char *k = luaL_checklstring(L,3,&kln);	
-	if (mln <= crypto_box_ZEROBYTES) LERR("msg length <= ZEROBYTES");
 	if (nln != crypto_box_NONCEBYTES) LERR("bad nonce size");
 	if (kln != crypto_secretbox_KEYBYTES) LERR("bad key size");
 	unsigned char * buf = malloc(mln);
@@ -326,7 +351,7 @@ static int tw_sign_open(lua_State *L) {
 //------------------------------------------------------------
 // lua library declaration
 //
-static const struct luaL_Reg tweetnacllib[] = {
+static const struct luaL_Reg luatweetnacllib[] = {
 	// nacl functions
 	{"randombytes", tw_randombytes},
 	{"box", tw_box},
@@ -352,11 +377,11 @@ static const struct luaL_Reg tweetnacllib[] = {
 	{NULL, NULL},
 };
 
-int luaopen_tweetnacl (lua_State *L) {
-	luaL_register (L, "tweetnacl", tweetnacllib);
+int luaopen_luatweetnacl (lua_State *L) {
+	luaL_register (L, "luatweetnacl", luatweetnacllib);
     // 
-    lua_pushliteral (L, "_VERSION");
-	lua_pushliteral (L, TWEETNACL_VERSION); 
+    lua_pushliteral (L, "VERSION");
+	lua_pushliteral (L, LUATWEETNACL_VERSION); 
 	lua_settable (L, -3);
 	return 1;
 }

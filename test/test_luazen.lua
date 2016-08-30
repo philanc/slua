@@ -14,7 +14,7 @@ do
 	local x
 	x = "Hello world"; assert(lz.uncompress(lz.compress(x)) == x)
 	x = ("a"):rep(301); assert(lz.uncompress(lz.compress(x)) == x)
-	assert(#lz.compress(("a"):rep(301)) == 16)
+	assert(#lz.compress(("a"):rep(301)) < 30)
 end
 
 ------------------------------------------------------------------------

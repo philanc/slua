@@ -20,7 +20,7 @@
 #
 # ----------------------------------------------------------------------
 
-CC= /f/b/musl1114/bin/musl-gcc
+CC= /f/b/musl-1.1.14/bin/musl-gcc
 AR= ar
 CFLAGS= -Os -Isrc/lua/ -DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
          -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG
@@ -29,7 +29,7 @@ LDFLAGS=
 
 # list of additional libraries 
 # (lua, linenoise and slua are not included here)
-SLUALIBS= lfs.a lpeg.a luazen.a tweetnacl.a minisock.a luaproc.a
+SLUALIBS= lfs.a lpty.a lpeg.a luazen.a luatweetnacl.a minisock.a luaproc.a
 
 
 SLUA_O=      slua.o linit.o sluacode.o
@@ -41,9 +41,10 @@ LUA_O=       \
 	lstring.o ltm.o lzio.o
 LINENOISE_O= linenoise.o 
 LFS_O=       lfs.o
+LPTY_O=      lpty.o
 LPEG_O=      lpcap.o lpcode.o lpprint.o lptree.o lpvm.o
 LUAZEN_O=    luazen.o lzf_c.o lzf_d.o md5.o rc4.o sha1.o base58.o rabbit.o
-TWEETNACL_O= luatweetnacl.o randombytes.o tweetnacl.o
+LUATWEETNACL_O= luatweetnacl.o randombytes.o tweetnacl.o
 MINISOCK_O=      minisock.o
 LUAPROC_O=   luaproc.o lpsched.o
 
@@ -76,6 +77,11 @@ lfs.a:  lua.a src/lfs/*.c src/lfs/*.h
 	$(AR) rcu lfs.a $(LFS_O)
 	rm -f *.o
 
+lpty.a:  lua.a src/lpty/lpty.c 
+	$(CC) -c $(CFLAGS) src/lpty/lpty.c
+	$(AR) rcu lpty.a $(LPTY_O)
+	rm -f *.o
+
 lpeg.a:  lua.a src/lpeg/*.c src/lpeg/*.h
 	$(CC) -c $(CFLAGS) src/lpeg/*.c
 	$(AR) rcu lpeg.a $(LPEG_O)
@@ -86,9 +92,9 @@ luazen.a:  lua.a src/luazen/*.c src/luazen/*.h
 	$(AR) rcu luazen.a $(LUAZEN_O)
 	rm -f *.o
 
-tweetnacl.a:  lua.a src/tweetnacl/*.c src/tweetnacl/*.h
-	$(CC) -c $(CFLAGS) src/tweetnacl/*.c
-	$(AR) rcu tweetnacl.a $(TWEETNACL_O)
+luatweetnacl.a:  lua.a src/luatweetnacl/*.c src/luatweetnacl/*.h
+	$(CC) -c $(CFLAGS) src/luatweetnacl/*.c
+	$(AR) rcu luatweetnacl.a $(LUATWEETNACL_O)
 	rm -f *.o
 
 minisock.a:  lua.a src/minisock/*.c

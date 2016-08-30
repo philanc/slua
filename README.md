@@ -21,7 +21,7 @@ Some documentation and references about these libraries is available in [doc/all
 
 slua is linked completely statically. It uses no dynamic library, not even libc.  
 
-It can be used anywhere, whatever the platform dynamic linker. The Linux x86 version is built with the Musl C library which allows a very compact executable. If built in a x86 environment, it can be run on any Linux system (x86 or x86_64)
+It can be used anywhere, whatever the platform dynamic linker. The Linux x86 version is built with the Musl C library which allows a very compact executable. If built in a x86 (32-bit) environment, it can be run on any Linux system (x86 or x86_64)
 
 It can be dropped and run from any directory, without interference or dynamic library incompatibilities.  Defaults paths ("package.path") are limited to the current directory to minimize the risk of "catching" Lua files at the standard locations, intended to be used by a regular, installed Lua.
 
@@ -77,7 +77,7 @@ For 'sdlua', the default Lua paths are slightly different:
 * `package.path:  "lua;./?/init.lua" `
 * `package.cpath: "./?.so" `
 
-Note that as 'sdlua' is a dynamic executable, the path to the musl libc and dynamic linker is hard coded in the executable! If the musl-gcc wrapper is at /somepath/musl1114/bin/musl-gcc, then the libc.so and dynamic linker must be in /somepath/musl1114/lib/ when 'sdlua' is executed.
+Note that as 'sdlua' is a dynamic executable, the path to the musl libc and dynamic linker is hard coded in the executable! If the musl-gcc wrapper is for example at /somepath/musl-1.1.14/bin/musl-gcc, then the libc.so and dynamic linker must be in /somepath/musl-1.1.14/lib/ when 'sdlua' is executed.
 
 ### Package versions
 
@@ -107,7 +107,7 @@ src/lua/lua.c - not used. It is replaced with src/slua.c
 
 ### Pre-built binaries
 
-The Linux x86 binary version of  slua has been built on a x86 (32-bit) platform with the Musl C library (version 1.1.14)
+The Linux x86 binary version of  slua has been built on a x86_64 (64-bit) platform with the Musl C library (version 1.1.14)
 
 
 ### Related projects

@@ -1,7 +1,7 @@
 	-- test_nacl.lua
 
 bin = require "bin"
-tw = require "tweetnacl"
+tw = require "luatweetnacl"
 
 local function prx(s)
 	-- print hex repr of s, 16 bytes per line, separated by space
@@ -20,7 +20,7 @@ nonce = tw.randombytes(24)
 zero16 = string.rep("\0", 16) -- leading zero bytes (in encrypted text)
 zero32 = string.rep("\0", 32) -- leading zero bytes
 msg = "Hello, Bob"
-ma = zero32 .. msg -- must start with 32 zerobytes
+ma = msg -- must no longer start with 32 zerobytes
 c = tw.box(ma, nonce, bpk, ask) -- msg encrypted by alice for bob
 mb = tw.box_open(c, nonce, apk, bsk)  -- msg decrypted by bob
 assert(ma == mb)
@@ -32,7 +32,7 @@ assert(ma == mb2)
 k = tw.box_beforenm(apk, bsk)
 c2 = tw.box_afternm(ma, nonce, k)
 assert(c == c2)
-assert(c:sub(1,16) == zero16)
+-- assert(c:sub(1,16) == zero16) -- no longer!
 -- check aliases are defined
 assert(tw.box_afternm == tw.secretbox)
 assert(tw.box_open_afternm == tw.secretbox_open)

@@ -11,7 +11,7 @@
 PRELOAD(lfs)
 PRELOAD(lpeg)
 PRELOAD(minisock)
-PRELOAD(tweetnacl)
+PRELOAD(luatweetnacl)
 PRELOAD(luazen)
 #endif
 ///

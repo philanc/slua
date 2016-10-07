@@ -94,10 +94,11 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
   PRELOAD(luazen)
   PRELOAD(luatweetnacl)
   PRELOAD(luaproc)
-  PRELOAD(lpty)
 #endif
   lua_pop(L, 1);  /* remove _PRELOAD table */
   ///-------------------------------------------------------
 
 } // luaL_openlibs()
+
+
 

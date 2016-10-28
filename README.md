@@ -127,12 +127,14 @@ Other related projects
 
 Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent). See LICENSE files in directories lua, luafilesystem, and the file lpeg.html in directory lpeg.
 
-Luazen, minisock, the tweetnacl Lua wrapper are distributed under the MIT License. The "tweet" NaCl core implementation is public domain, by Daniel Bernstein et al.
+The "tweet" NaCl core implementation is public domain, by Daniel Bernstein et al.
 
 The luazen library includes some code from various authors (see src/luazen):
 - base64 functions by Luiz Henrique de Figueiredo (public domain)
 - base58 functions by Luke Dashjr (MIT)
 - md5, sha1 by Cameron Rich (BSD)
+
+Luazen, minisock, the tweetnacl Lua wrapper are distributed under the MIT License (see file LICENSE)
 
 Copyright (c) 2015  Phil Leblanc 
 

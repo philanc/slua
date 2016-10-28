@@ -1,21 +1,25 @@
 
 
-### tweetnacl
+### luatweetnacl
 
-This is a binding to the wonderful NaCl crypto library by 
-Dan Bernstein, Tanja Lange et al. -- http://nacl.cr.yp.to/
+This is a Lua binding to the wonderful NaCl crypto library by Dan Bernstein, Tanja Lange et al. -- http://nacl.cr.yp.to/
 
-The version included here is the "Tweet" version ("NaCl in 100 tweets")
-by Dan Bernstein et al. --  http://tweetnacl.cr.yp.to/index.html 
-(all the tweet nacl code is included in this library.
+The version included here is the "Tweet" version ("NaCl in 100 tweets") by Dan Bernstein et al. -- http://tweetnacl.cr.yp.to/index.html (all the tweet nacl code is included in this library.
 
-To understand the NaCl specs, the reader is referred to the NaCl specs at http://nacl.cr.yp.to/.  This binding is very thin and should be easy
-to use for anybody knowing NaCl. 
-
-On the other hand, the binding does not include convenience functions (eg, for dealing with the "32-byte null prefix" and other API specificity). Convenience functions are expected to be implemented in Lua (or maybe in this library in the future)
+To understand the NaCl specs, the reader is referred to the NaCl specs at http://nacl.cr.yp.to/. 
+This binding is very thin and should be easy to use for anybody knowing NaCl. 
 
 
-Functions:
+The Lua binding hides the NaCl idiosynchrasies 
+(32 mandatory leading null bytes for the text to encrypt 
+and 16 leading null bytes in the encrypted text). So the user 
+does not need to provide or take care of these leading null spaces.
+
+The binding has also been built and tested as a standalone extension library on Linux with Lua-5.3.3, Lua-5.2.4 and Lua-5.1.5 - see the [luatweetnacl repository](https://github.com/philanc/luatweetnacl).
+
+It should work for any POSIXy system featuring /dev/urandom (used by function 'randombytes()')
+
+### Functions:
 ```
 randombytes(n)
 	return a string containing n random bytes
@@ -35,8 +39,7 @@ box_getpk(sk)
 
 box(plain, nonce, bpk, ask)
 	plain is the plain text that Alice encrypts for Bob
-	plain MUST start with 32 null bytes, ie. ('\0'):rep(32)
-	nonce is 24 bytes (must be different for each encryption)
+  	nonce is 24 bytes (must be different for each encryption)
 	bpk (32 bytes):  Bob's public key 
 	ask (32 bytes):  Alice's secret key
 	return the encrypted text or (nil, error msg)
@@ -66,24 +69,23 @@ box_open_afternm() is an alias of secretbox_open()
 		
 secretbox(plain, n, k)
 	encrypt plain string with key k and nonce n
-	plain MUST start with 32 null bytes
-	k: a 32-byte string
+ 	k: a 32-byte string
 	n: a 24-byte nonce
 	return the encrypted text
 	example: to encrypt string 'abc'  with key 'kkk...' and nonce 'nnn...':
-	   e = secretbox(('\0'):rep32)..'abc', ('n'):rep(24), ('k'):rep(32))
+	   e = secretbox('abc', ('n'):rep(24), ('k'):rep(32))
 	Note: secretbox() performs an authenticated encryption, that is
 	encrypt the plain test (with Salsa20) and compute a MAC (with Poly1305)
 	of the encrypted text. It allows the receiver of the encrypted text to
 	detect if it has been tampered with. The MAC is embedded in the
-	encrypted text (at the beginning, bytes 16 to 32)
+	encrypted text (at the beginning, bytes 1-16)
 	
 secretbox_open(encr, n, k)
 	decrypt encrypted string encr with key k and nonce n. The MAC
 	embedded in 'encr' is checked before the actual decryption.
 	k: a 32-byte string
 	n: a 24-byte nonce
-	return the decrypted text (including the leading 32 null char...)
+	return the decrypted text
 	or (nil, error msg) if the MAC is wrong of if the nonce or key 
 	lengths are not valid.
 
@@ -100,7 +102,6 @@ stream_xor(text, n, k)
 	function is used to encrypt and decrypt.
 	k: a 32-byte string
 	n: a 24-byte nonce
-	As for secretbox(), the text to encrypt MUST start with 32 null bytes.
 	return an encrypted or decrypted string or (nil, error message) if the 
 	nonce or key lengths are not valid.	
 
@@ -139,8 +140,13 @@ sign_open(text, pk)
 	(ie. without the signature)
 	return (nil, error msg) if the signature is not valid or if the 
 	pk lemgth is not valid (not 32)
-
 ```
 
-	
+### License
+
+luatweetnacl is distributed under the terms of the MIT License. The "tweet" NaCl core implementation is public domain, by Daniel Bernstein et al.
+
+Copyright (c) 2016  Phil Leblanc 
+
+
 

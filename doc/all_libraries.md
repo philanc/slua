@@ -22,9 +22,9 @@ See [linenoise.md](linenoise.md)
 
 A small library with various encoding, compression and cryptographic functions. See [luazen.md](luazen.md)
 
-### tweetnacl
+### luatweetnacl
 
-A binding to the wonderful NaCl crypto library by Dan Bernstein, Tanja Lange et al. See [tweetnacl.md](tweetnacl.md)
+A binding to the wonderful NaCl crypto library by Dan Bernstein, Tanja Lange et al. See [luatweetnacl.md](luatweetnacl.md)
 
 ### minisock
 

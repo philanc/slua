@@ -62,7 +62,7 @@ box_beforenm(bpk, ask)
 
 box_stream_key() is an alias of box_beforenm()
 box_afternm() is an alias of secretbox()
-box_afternm_open() is an alias of secretbox_open()
+box_open_afternm() is an alias of secretbox_open()
 		
 secretbox(plain, n, k)
 	encrypt plain string with key k and nonce n

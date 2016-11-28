@@ -91,10 +91,10 @@ To build sglua:
 
 ### Package versions
 
-Lua 5.3.2 - http://www.lua.org/ftp/lua-5.3.2.tar.gz
+Lua 5.3.3 - http://www.lua.org/ftp/lua-5.3.3.tar.gz
 
 LuaFileSystem 1.6.3  - commit 6d039ff385 - https://github.com/keplerproject/luafilesystem
-	
+
 Luaproc 1.0.4 - commit 990ecf6, Oct 20, 2015 - https://github.com/askyrme/luaproc
 
 The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
@@ -144,7 +144,7 @@ The luazen library includes some code from various authors (see src/luazen):
 
 Luazen, minisock, the tweetnacl Lua wrapper are distributed under the MIT License (see file LICENSE)
 
-Copyright (c) 2015  Phil Leblanc 
+Copyright (c) 2016  Phil Leblanc 
 
 
 

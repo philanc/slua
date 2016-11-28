@@ -96,7 +96,7 @@ luaproc.a:  lua.a src/luaproc/*.c src/luaproc/*.h
 	rm -f *.o
 
 clean:
-	rm -f slua sluac sdlua *.o *.a *.so
+	rm -f slua sluac sglua *.o *.a *.so
 
 setbin:
 	md5sum slua >bin/slua.md5	

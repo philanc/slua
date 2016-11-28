@@ -6,15 +6,19 @@ cryptographic functions. All the functions work on strings, there is no stream o
 
 The compression functions are based on the tiny lzf library (see references in the readme). It is not as efficient as gzip, but much smaller.
 
-Usage in Lua programs:
+Endoding and decoding functions are provided for **base64** and **base58** (for base58, the BitCoin encoding alphabet is used)
+
+Cryptographic functions include **md5**, **sha1**, and **rc4**.
+
+### API
 ```
 --- Compression functions
 
-compress(str)
+lzf(str)
 	compress string str
 	return the compressed string or (nil, error message)
 
-uncompress(cstr)
+unlzf(cstr)
 	uncompress string cstr
 	return the uncompressed string or (nil, error message)
 
@@ -69,15 +73,6 @@ rc4(str, key)
 	arguments and return are the same as rc4raw()
 	key length must be 16 (or nil, error msg is returned)
 
-rabbit(str, key, iv)
-	encrypt (or decrypt, as rabbit is symmetric) string str with 
-	key string key and initial value string iv.
-	key must be 16 bytes. iv must be 8 bytes
-	return the encrypted string (same length as str)
-	or nil, error msg if the key or iv lengths are not correct
-	-- for more information and references on rabbit, see the comment 
-	at the top of src/luazen/rabbit.c
-
 md5(str)
 	return the md5 hash of string str as a binary string
 	(no hex encoding)
@@ -86,3 +81,4 @@ sha1(str)
 	return the sha1 hash of string str as a binary string
 	(no hex encoding)
 ```
+

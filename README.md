@@ -8,7 +8,6 @@ Additional libraries are *pre-loaded*. They must be require()'d before use (see 
 ### Preloaded libraries
 
 - lfs (from LuaFileSystem)
-- lpeg (from LPeg 1.0.0)
 - luazen (a small library with basic crypto and compression functions)
 - nacl (the NaCl crypto library, from Dan Bernstein et al. This small Lua wrapper is based on the *tweet nacl* implementation which is also included)
 - minisock (a minimal socket library for tcp connections)
@@ -66,18 +65,29 @@ The default Lua paths ('package.path' and 'package.cpath') have been modified. T
 * `package.cpath: "" `
 
 slua still respects the environment variables LUA_PATH and LUA_CPATH.
+
+To build slua:
+```
+	# adjust the CC variable in the Makefile, then:
+    make
+```
 		
-Binary versions of slua are provided here for convenience.
+Binary versions of slua may be provided here for convenience.
 
 *Musl libc* - A script is provided to fetch and build musl libc and the required Linux headers. See tools/build_musl.sh and comments at the beginning of the script.
 
-*Dynamic linking version* - A makefile to build 'sdlua', a dynamic version of slua, with the same additional libraries as .so files.  'sdlua' has the same functions as slua (built-in linenoise line-editing, execution of appended lua code). It is built with the same musl libc.  
+*Dynamic linking version* - A makefile to build 'sglua', a dynamic version of slua, with the same additional libraries statically linked and preloaded.  'sglua' has the same functions as slua (built-in linenoise line-editing, execution of appended lua code). It is intended to be built with the regular glibc (so the only runtime dependencies are libc, libm, libpthread and libdl). Additional C libraries can be loaded with 'require()'.
 
-For 'sdlua', the default Lua paths are slightly different:
+For 'sglua', the default Lua paths are slightly different:
 * `package.path:  "lua;./?/init.lua" `
 * `package.cpath: "./?.so" `
 
-Note that as 'sdlua' is a dynamic executable, the path to the musl libc and dynamic linker is hard coded in the executable! If the musl-gcc wrapper is for example at /somepath/musl-1.1.14/bin/musl-gcc, then the libc.so and dynamic linker must be in /somepath/musl-1.1.14/lib/ when 'sdlua' is executed.
+To build sglua:
+```
+    make -f Makefile.glibc
+```
+
+
 
 ### Package versions
 
@@ -85,8 +95,6 @@ Lua 5.3.2 - http://www.lua.org/ftp/lua-5.3.2.tar.gz
 
 LuaFileSystem 1.6.3  - commit 6d039ff385 - https://github.com/keplerproject/luafilesystem
 	
-LPeg - http://www.inf.puc-rio.br/~roberto/lpeg/lpeg-1.0.0.tar.gz
-
 Luaproc 1.0.4 - commit 990ecf6, Oct 20, 2015 - https://github.com/askyrme/luaproc
 
 The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
@@ -125,7 +133,7 @@ Other related projects
 
 ### License
 
-Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent). See LICENSE files in directories lua, luafilesystem, and the file lpeg.html in directory lpeg.
+Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent). See LICENSE files in directories lua, and luafilesystem.
 
 The "tweet" NaCl core implementation is public domain, by Daniel Bernstein et al.
 

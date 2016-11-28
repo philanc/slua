@@ -1,36 +1,28 @@
-# Build a dynamic 'sdlua' on Linux with the Musl C library 
-# (with the 'musl-gcc' wrapper provided with Musl C)
-# and some shared libraries (the same as the libs built in slua)
-#
-# Note that as it is a dynamic executable, the path to the musl libc and
-# dynamic linker is hard coded in the executable!
-# If the musl-gcc wrapper is at /f/b/musl1114/bin/musl-gcc, 
-# then the libc.so and dynamic linker must be in /f/b/musl1114/lib/
-#
-# This build requires only
-#   - the musl libc installed with the linux headers
-#   - make, gcc and associated tools
-#
-# A script building the musl libc and its gcc wrapper is available
-# in directory 'tools'. Check it before using it! :-)
+
+# Build sglua - a slua with its extension libraries statically linked,
+# dynamically linked with glibc. sglua supports dynamic loading
+# of other libraries as .so files.
 #
 #
-# note: to build with glibc or uClibc, must add " -lpthread -lm " at 
+# 
+# note: to build with glibc or uClibc, must add " -lpthread -lm -ldl " at 
 # the end of the link lines for slua and sluac.
 #
 # ----------------------------------------------------------------------
 
-# === adjust the following path to your musl libc tree path ===
-CC= /f/b/musl-1.1.14/bin/musl-gcc
+CC= gcc
 AR= ar
+
+# note: don't use  -DSLUA_DYNLINK to link statically the extension libs
 CFLAGS= -Os -Isrc/lua/ -DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
-         -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG \
-		 -DLUA_USE_DLOPEN -DSLUA_DYNLINK
+         -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG  \
+		 -DLUA_USE_DLOPEN
 LDFLAGS= 
+
 
 # list of additional libraries 
 # (lua, linenoise and slua are not included here)
-SLUALIBS= lfs.a lpeg.a luazen.a luatweetnacl.a minisock.a luaproc.a
+SLUALIBS= lfs.a luazen.a luatweetnacl.a minisock.a luaproc.a
 
 
 SLUA_O=      slua.o linit.o sluacode.o
@@ -48,13 +40,13 @@ LUATWEETNACL_O= luatweetnacl.o randombytes.o tweetnacl.o
 MINISOCK_O=      minisock.o
 LUAPROC_O=   luaproc.o lpsched.o
 
-smoketest_dyn:  sdlua
-	./sdlua  test/smoketest_dyn.lua
+smoketest:  sglua
+	./sglua  test/smoketest_g.lua
 
-sdlua:  slua.a lua.a linenoise.a $(SLUALIBS)
-	$(CC)  -o sdlua $(LDFLAGS) slua.a linenoise.a lua.a -Wl,-E
-	strip sdlua
-	rm -f *.o *.a
+sglua:  slua.a lua.a linenoise.a $(SLUALIBS)
+	$(CC)  -o sglua $(LDFLAGS) slua.a linenoise.a $(SLUALIBS) lua.a \
+	   -Wl,-E -lpthread -lm -ldl
+	strip sglua
 
 slua.a:  lua.a linenoise.a src/slua.c src/linit.c src/sluacode.c 
 	$(CC) -c $(CFLAGS) -Isrc/linenoise/ src/*.c
@@ -64,10 +56,7 @@ slua.a:  lua.a linenoise.a src/slua.c src/linit.c src/sluacode.c
 lua.a:  src/lua/*.c src/lua/*.h
 	$(CC) -c $(CFLAGS) src/lua/*.c
 	$(AR) rcu lua.a $(LUA_O)
-	$(AR) s lua.a  
-	# build also the lua compiler before removing the .o files
-	$(CC) -static -o sluac luac.o lua.a
-	#rm -f *.o
+	rm -f *.o
 
 linenoise.a:  lua.a src/linenoise/*.c src/linenoise/*.h
 	$(CC) -c $(CFLAGS) src/linenoise/*.c
@@ -76,40 +65,35 @@ linenoise.a:  lua.a src/linenoise/*.c src/linenoise/*.h
 
 lfs.a:  lua.a src/lfs/*.c src/lfs/*.h
 	$(CC) -c $(CFLAGS) src/lfs/*.c
-	$(CC) -shared -o lfs.so $(LFS_O)
-	rm -f *.o
-
-lpeg.a:  lua.a src/lpeg/*.c src/lpeg/*.h
-	$(CC) -c $(CFLAGS) src/lpeg/*.c
-	$(CC) -shared -o lpeg.so $(LPEG_O)
+	$(AR) rcu lfs.a $(LFS_O)
 	rm -f *.o
 
 luazen.a:  lua.a src/luazen/*.c src/luazen/*.h
 	$(CC) -c $(CFLAGS) src/luazen/*.c
-	$(CC) -shared -o luazen.so $(LUAZEN_O)
+	$(AR) rcu luazen.a $(LUAZEN_O)
 	rm -f *.o
 
 luatweetnacl.a:  lua.a src/luatweetnacl/*.c src/luatweetnacl/*.h
 	$(CC) -c $(CFLAGS) src/luatweetnacl/*.c
-	$(CC) -shared -o luatweetnacl.so $(LUATWEETNACL_O)
+	$(AR) rcu luatweetnacl.a $(LUATWEETNACL_O)
 	rm -f *.o
 
 minisock.a:  lua.a src/minisock/*.c
 	$(CC) -c $(CFLAGS) src/minisock/*.c
-	$(CC) -shared -o minisock.so $(MINISOCK_O)
+	$(AR) rcu minisock.a $(MINISOCK_O)
 	rm -f *.o
 
 luaproc.a:  lua.a src/luaproc/*.c src/luaproc/*.h
 	$(CC) -c $(CFLAGS) src/luaproc/*.c
-	$(CC) -shared -o luaproc.so $(LUAPROC_O)
+	$(AR) rcu luaproc.a $(LUAPROC_O)
 	rm -f *.o
 
 clean:
-	rm -f slua sluac sdlua *.o *.a  *.so
+	rm -f slua sluac sglua sdlua *.o *.a *.so
 
 setbin:
-	md5sum slua >bin/slua.md5	
-	cp slua bin/
+	md5sum sglua >bin/sglua.md5	
+	cp sglua bin/
 	
-.PHONY: clean setbin smoketest_dyn
+.PHONY: clean setbin smoketest
 

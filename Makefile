@@ -29,7 +29,7 @@ LDFLAGS=
 
 # list of additional libraries 
 # (lua, linenoise and slua are not included here)
-SLUALIBS= lfs.a lpeg.a luazen.a luatweetnacl.a minisock.a luaproc.a
+SLUALIBS= lfs.a luazen.a luatweetnacl.a minisock.a luaproc.a
 
 
 SLUA_O=      slua.o linit.o sluacode.o
@@ -41,7 +41,6 @@ LUA_O=       \
 	lstring.o ltm.o lzio.o
 LINENOISE_O= linenoise.o 
 LFS_O=       lfs.o
-LPEG_O=      lpcap.o lpcode.o lpprint.o lptree.o lpvm.o
 LUAZEN_O=    luazen.o lzf_c.o lzf_d.o md5.o rc4.o sha1.o base58.o rabbit.o
 LUATWEETNACL_O= luatweetnacl.o randombytes.o tweetnacl.o
 MINISOCK_O=      minisock.o
@@ -74,11 +73,6 @@ linenoise.a:  lua.a src/linenoise/*.c src/linenoise/*.h
 lfs.a:  lua.a src/lfs/*.c src/lfs/*.h
 	$(CC) -c $(CFLAGS) src/lfs/*.c
 	$(AR) rcu lfs.a $(LFS_O)
-	rm -f *.o
-
-lpeg.a:  lua.a src/lpeg/*.c src/lpeg/*.h
-	$(CC) -c $(CFLAGS) src/lpeg/*.c
-	$(AR) rcu lpeg.a $(LPEG_O)
 	rm -f *.o
 
 luazen.a:  lua.a src/luazen/*.c src/luazen/*.h

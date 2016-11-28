@@ -9,7 +9,7 @@
 ///
 #if !defined(SLUA_DYNLINK)
 PRELOAD(lfs)
-PRELOAD(lpeg)
+//~ PRELOAD(lpeg)
 PRELOAD(minisock)
 PRELOAD(luatweetnacl)
 PRELOAD(luazen)

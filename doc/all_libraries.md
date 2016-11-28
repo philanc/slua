@@ -1,4 +1,4 @@
-## slua - preloaded libraries
+## slua preloaded libraries
 
 ### lfs
 

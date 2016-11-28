@@ -4,7 +4,7 @@
 Luazen is a small library with various encoding, compression and 
 cryptographic functions. All the functions work on strings, there is no stream or chunked more complex interfaces.
 
-The compression functions are based on the tiny lzf library (see references in the readme). It is not as efficient as gzip, but much smaller.
+The compression functions are based on the tiny **lzf** library (see references in the readme). It is not as efficient as gzip, but much smaller.
 
 Endoding and decoding functions are provided for **base64** and **base58** (for base58, the BitCoin encoding alphabet is used)
 

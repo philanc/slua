@@ -1,11 +1,9 @@
+## slua - preloaded libraries
 
 ### lfs
 
 *"LuaFileSystem is a Lua library developed to complement the set of functions related to file systems offered by the standard Lua distribution."* - see https://keplerproject.github.io/luafilesystem/
 
-### lpeg
-
-*"LPeg is a new pattern-matching library for Lua, based on Parsing Expression Grammars (PEGs)."* - see http://www.inf.puc-rio.br/~roberto/lpeg/
 
 ### luaproc
 

@@ -8,13 +8,15 @@ Additional libraries are *pre-loaded*. They must be require()'d before use (see 
 ### Preloaded libraries
 
 - lfs (from LuaFileSystem)
-- luazen (a small library with basic crypto and compression functions)
-- nacl (the NaCl crypto library, from Dan Bernstein et al. This small Lua wrapper is based on the *tweet nacl* implementation which is also included)
+- lz (a small library with compression, encoding and encryption functions)
 - minisock (a minimal socket library for tcp connections)
 - luaproc (multi-threading library)
 - linenoise (slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications)
 
 Some documentation and references about these libraries is available in [doc/all_libraries.md](https://github.com/philanc/slua/tree/master/doc/all_libraries.md) and directory doc.
+
+Note: the luazen and tweetnacl libraries have been replaced by the new lx library. The last slua version with luazen and tweetnacl is v0.6.
+
 
 ### Static build
 
@@ -99,7 +101,7 @@ Luaproc 1.0.4 - commit 990ecf6, Oct 20, 2015 - https://github.com/askyrme/luapro
 
 The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
 
-Musl libc - slua has been built against musl-1.1.10 and 1.1.14 on x86, and musl-1.1.12 on arm.
+Musl libc - slua has been built against musl-1.1.10, .14 and .16 on x86, and musl-1.1.12 on arm.
 
 ### Modifications of the vanilla Lua
 
@@ -135,16 +137,16 @@ Other related projects
 
 Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent). See LICENSE files in directories lua, and luafilesystem.
 
-The "tweet" NaCl core implementation is public domain, by Daniel Bernstein et al.
-
-The luazen library includes some code from various authors (see src/luazen):
+The lz library includes some code from various authors (see src/lz):
+- Norx encryption from the Norx submission to Caesar - http://norx.io
+- curve25519, ed25519, blake2b, argon2i from Loup Vaillant's Monocypher - http://loup-vaillant.fr/projects/monocypher/
 - base64 functions by Luiz Henrique de Figueiredo (public domain)
 - base58 functions by Luke Dashjr (MIT)
-- md5, sha1 by Cameron Rich (BSD)
+- md5 by Cameron Rich (BSD)
 
-Luazen, minisock, the tweetnacl Lua wrapper are distributed under the MIT License (see file LICENSE)
+Lz and minisock are distributed under the MIT License (see file LICENSE)
 
-Copyright (c) 2016  Phil Leblanc 
+Copyright (c) 2017  Phil Leblanc 
 
 
 

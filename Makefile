@@ -22,14 +22,18 @@
 
 CC= /opt/musl-1.1.14/bin/musl-gcc
 AR= ar
-CFLAGS= -Os -Isrc/lua/ -DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
-         -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG
+CFLAGS= -Os -Isrc/lua/ \
+		-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
+        -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG \
+		-DNOLEGACY
+##	-DNOARGON -DNOLEGACY
+	
 LDFLAGS= 
 
 
 # list of additional libraries 
 # (lua, linenoise and slua are not included here)
-SLUALIBS= lfs.a luazen.a luatweetnacl.a minisock.a luaproc.a
+SLUALIBS= lfs.a lz.a minisock.a luaproc.a
 
 
 SLUA_O=      slua.o linit.o sluacode.o
@@ -41,9 +45,9 @@ LUA_O=       \
 	lstring.o ltm.o lzio.o
 LINENOISE_O= linenoise.o 
 LFS_O=       lfs.o
-LUAZEN_O=    luazen.o lzf_c.o lzf_d.o md5.o rc4.o sha1.o base58.o
-LUATWEETNACL_O= luatweetnacl.o randombytes.o tweetnacl.o
-MINISOCK_O=      minisock.o
+LZ_O=        lz.o lzf_c.o lzf_d.o md5.o rc4.o base58.o \
+             norx.o mono.o randombytes.o
+MINISOCK_O=  minisock.o
 LUAPROC_O=   luaproc.o lpsched.o
 
 smoketest:  slua
@@ -75,14 +79,9 @@ lfs.a:  lua.a src/lfs/*.c src/lfs/*.h
 	$(AR) rcu lfs.a $(LFS_O)
 	rm -f *.o
 
-luazen.a:  lua.a src/luazen/*.c src/luazen/*.h
-	$(CC) -c $(CFLAGS) src/luazen/*.c
-	$(AR) rcu luazen.a $(LUAZEN_O)
-	rm -f *.o
-
-luatweetnacl.a:  lua.a src/luatweetnacl/*.c src/luatweetnacl/*.h
-	$(CC) -c $(CFLAGS) src/luatweetnacl/*.c
-	$(AR) rcu luatweetnacl.a $(LUATWEETNACL_O)
+lz.a:  lua.a src/lz/*.c src/lz/*.h
+	$(CC) -c $(CFLAGS) src/lz/*.c
+	$(AR) rcu lz.a $(LZ_O)
 	rm -f *.o
 
 minisock.a:  lua.a src/minisock/*.c
@@ -102,5 +101,8 @@ setbin:
 	md5sum slua >bin/slua.md5	
 	cp slua bin/
 	
-.PHONY: clean setbin smoketest
+testlz:
+	( cd test ; ../slua test_lz.lua )
+	
+.PHONY: clean setbin smoketest testlz
 

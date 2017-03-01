@@ -353,7 +353,7 @@ int minisock_getnameinfo(lua_State *L) {
 	char hostname[HOSTLEN];
 	char servname[SERVLEN];
 	const char *addr;
-	int addrlen;
+	size_t addrlen;
 	int numerichost;
 	int n;
 	addr = luaL_checklstring(L, 1, &addrlen); // raw addr (sockaddr)

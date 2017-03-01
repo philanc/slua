@@ -18,6 +18,10 @@ scrypt, it is designed to be expensive in both CPU and memory.
 
 Legacy cryptographic functions include **md5**,  and **rc4** (a config option allows to build slua without the legacy functions)
 
+Lz borrows heavily to the following projects:
+- Monocypher by Loup Vaillant for the blake2b, argon2i, curve25519 and ed25519 functions,
+- Norx by Jean-Philippe Aumasson et al, for the high performance authenticated encryption functions.
+
 ### API
 ```
 --- Compression functions

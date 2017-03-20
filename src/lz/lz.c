@@ -220,7 +220,11 @@ static int lz_key_exchange(lua_State *L) {
 	const char *pk = luaL_checklstring(L,2,&pkln); // their public key
 	if (pkln != 32) LERR("bad pk size");
 	if (skln != 32) LERR("bad sk size");
-	crypto_key_exchange(k, sk, pk);
+
+    unsigned char shared_secret[32];
+	/// replace crypto_chacha20_H with crypto_blake2b_general
+    int status = crypto_x25519(shared_secret, sk, pk);
+    crypto_blake2b_general(k, 32, 0, 0, shared_secret, 32);	
 	lua_pushlstring(L, k, 32); 
 	return 1;   
 }// lz_key_exchange()

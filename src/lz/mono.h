@@ -1,4 +1,22 @@
 
+
+/*
+
+This is directly extracted from the Monocypher library by Loup Vaillant.
+http://loup-vaillant.fr/projects/monocypher/   (version 0.2)
+
+All the Monocypher functions are included, except Chacha20 and Poly1305 
+which are replaced with NORX.
+
+The code below is copyrighted by Loup Vaillant, 2017. See LICENSE-monocypher.
+
+20170319  - updated to Monocypher v0.6
+
+*/
+
+#ifndef MONOCYPHER_H
+#define MONOCYPHER_H
+
 #include <inttypes.h>
 #include <stddef.h>
 
@@ -10,8 +28,13 @@ int crypto_memcmp(const uint8_t *p1, const uint8_t *p2, size_t n);
 // returns 0 if the input is all zero, -1 otherwise.
 int crypto_zerocmp(const uint8_t *p, size_t n);
 
+////////////////
+/// Chacha20 ///  REMOVED
+////////////////
 
-/// chacha20 and poly1305 removed ///
+/////////////////
+/// Poly 1305 ///  REMOVED
+/////////////////
 
 
 ////////////////
@@ -25,21 +48,21 @@ typedef struct {
     uint8_t  output_size;   // digest size
 } crypto_blake2b_ctx;
 
-void crypto_blake2b_general_init(crypto_blake2b_ctx *ctx, size_t outlen,
-                                 const uint8_t      *key, size_t keylen);
+void crypto_blake2b_general_init(crypto_blake2b_ctx *ctx, size_t out_size,
+                                 const uint8_t      *key, size_t key_size);
 
 void crypto_blake2b_init(crypto_blake2b_ctx *ctx);
 
 void crypto_blake2b_update(crypto_blake2b_ctx *ctx,
-                           const uint8_t *in, size_t inlen);
+                           const uint8_t *in, size_t in_size);
 
 void crypto_blake2b_final(crypto_blake2b_ctx *ctx, uint8_t *out);
 
-void crypto_blake2b_general(uint8_t       *out, size_t outlen, // digest
-                            const uint8_t *key, size_t keylen, // optional secret
-                            const uint8_t *in , size_t inlen);
+void crypto_blake2b_general(uint8_t       *out, size_t out_size, // digest
+                            const uint8_t *key, size_t key_size, // optional
+                            const uint8_t *in , size_t in_size);
 
-void crypto_blake2b(uint8_t out[64], const uint8_t *in, size_t inlen);
+void crypto_blake2b(uint8_t out[64], const uint8_t *in, size_t in_size);
 
 ////////////////
 /// Argon2 i ///
@@ -85,9 +108,8 @@ int crypto_key_exchange(uint8_t       shared_key      [32],
                         const uint8_t your_secret_key [32],
                         const uint8_t their_public_key[32]);
 
-/// XXX remove this. expose crypto_x25519() instead, maybe
-///		with another name, eg. get_shared_secret()
-///		reason: allow to have official test vectors
+////////////////////////////////
+/// Authenticated encryption ///  REMOVED
+////////////////////////////////
 
-/// Authenticated encryption removed ///
-
+#endif // MONOCYPHER_H

@@ -18,6 +18,12 @@
 # note: to build with glibc or uClibc, must add " -lpthread -lm " at 
 # the end of the link lines for slua and sluac.
 #
+# Compile options (CFLAGS):
+#
+#    -DNOLEGACY  - do not include the md5 and rc4 legacy functions
+#    -DNOARGON   - do not include the (somewhat large) argon2i
+#                  password derivation function
+#
 # ----------------------------------------------------------------------
 
 CC= /opt/musl-1.1.14/bin/musl-gcc
@@ -67,6 +73,7 @@ lua.a:  src/lua/*.c src/lua/*.h
 	$(AR) rcu lua.a $(LUA_O)
 	# build also the lua compiler before removing the .o files
 	$(CC) -static -o sluac luac.o lua.a
+	
 	rm -f *.o
 
 linenoise.a:  lua.a src/linenoise/*.c src/linenoise/*.h

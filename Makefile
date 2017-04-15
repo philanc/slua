@@ -26,7 +26,7 @@
 #
 # ----------------------------------------------------------------------
 
-CC= /opt/musl-1.1.14/bin/musl-gcc
+CC= /opt/musl/bin/musl-gcc
 AR= ar
 CFLAGS= -Os -Isrc/lua/ \
 		-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \

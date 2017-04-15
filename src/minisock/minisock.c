@@ -76,6 +76,9 @@ int minisock_bind(lua_State *L) {
 	for (rp = result; rp != NULL; rp = rp->ai_next) {
 		sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
 		if (sfd == -1) { continue; }
+		// set REUSEADDR option
+		int reuseopt = 1;
+		setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &reuseopt, sizeof(int));
 		n = bind(sfd, rp->ai_addr, rp->ai_addrlen);
 		if (n == 0) break;
 		close(sfd);

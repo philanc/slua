@@ -12,8 +12,7 @@ PRELOAD(lfs)
 //~ PRELOAD(lpeg)
 PRELOAD(minisock)
 //~ PRELOAD(luatweetnacl)
-//~ PRELOAD(luazen)
-PRELOAD(lz)
+PRELOAD(luazen)
 #endif
 ///
 /// end luaproc_preload.h

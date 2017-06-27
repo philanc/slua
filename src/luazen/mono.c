@@ -5,7 +5,7 @@ This is directly extracted from the Monocypher library by Loup Vaillant.
 http://loup-vaillant.fr/projects/monocypher/   (version 0.2)
 
 All the Monocypher functions are included, except Chacha20 and Poly1305 
-(which are replaced with NORX - see lz)
+(which are replaced with NORX - see luazen)
 
 The code below is copyrighted by Loup Vaillant, 2017. See LICENSE-monocypher.
 

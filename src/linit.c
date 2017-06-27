@@ -91,8 +91,7 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
   PRELOAD(minisock)
   //~ PRELOAD2(socket.core, socket_core)
   //~ PRELOAD2(mime.core, mime_core)
-  PRELOAD(lz)
-  //~ PRELOAD(luazen)
+  PRELOAD(luazen)
   //~ PRELOAD(luatweetnacl)
   PRELOAD(luaproc)
 #endif

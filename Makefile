@@ -38,7 +38,7 @@ LDFLAGS=
 
 # list of additional libraries 
 # (lua, linenoise and slua are not included here)
-SLUALIBS= lfs.a luazen.a minisock.a luaproc.a
+SLUALIBS= lfs.a luazen.a minisock.a 
 
 
 SLUA_O=      slua.o linit.o sluacode.o
@@ -50,10 +50,11 @@ LUA_O=       \
 	lstring.o ltm.o lzio.o
 LINENOISE_O= linenoise.o 
 LFS_O=       lfs.o
-LUAZEN_O=        luazen.o lzf_c.o lzf_d.o md5.o rc4.o base58.o \
-             norx.o mono.o randombytes.o
+LUAZEN_O=    luazen.o lzf_c.o lzf_d.o md5.o rc4.o base58.o \
+             norx.o mono.o randombytes.o \
+			 brieflz.o depacks.o 
+			 
 MINISOCK_O=  minisock.o
-LUAPROC_O=   luaproc.o lpsched.o
 
 smoketest:  slua
 	./slua  test/smoketest.lua
@@ -95,11 +96,6 @@ minisock.a:  lua.a src/minisock/*.c
 	$(AR) rcu minisock.a $(MINISOCK_O)
 	rm -f *.o
 
-luaproc.a:  lua.a src/luaproc/*.c src/luaproc/*.h
-	$(CC) -c $(CFLAGS) src/luaproc/*.c
-	$(AR) rcu luaproc.a $(LUAPROC_O)
-	rm -f *.o
-
 clean:
 	rm -f slua sluac sglua *.o *.a *.so
 
@@ -107,8 +103,8 @@ setbin:
 	md5sum slua >bin/slua.md5	
 	cp slua bin/
 	
-testluazen:
-	( cd test ; ../slua test_luazen.lua )
+test:  slua
+	./slua test/test_luazen.lua
 	
-.PHONY: clean setbin smoketest testluazen
+.PHONY: clean setbin smoketest test
 

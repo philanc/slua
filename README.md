@@ -8,14 +8,13 @@ Additional libraries are *pre-loaded*. They must be require()'d before use (see 
 ### Preloaded libraries
 
 - lfs (from LuaFileSystem)
-- lz (a small library with compression, encoding and encryption functions)
+- luazen (a small library with compression, encoding and encryption functions)
 - minisock (a minimal socket library for tcp connections)
-- luaproc (multi-threading library)
 - linenoise (slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications)
 
 Some documentation and references about these libraries is available in [doc/all_libraries.md](https://github.com/philanc/slua/tree/master/doc/all_libraries.md) and directory doc.
 
-Note: the luazen and tweetnacl libraries have been replaced by the new lx library. The last slua version with luazen and tweetnacl is v0.6.
+(Note: the old luazen and tweetnacl libraries have been replaced by the new luazen library. The last slua version with the old luazen and tweetnacl is v0.6)
 
 
 ### Static build
@@ -59,6 +58,8 @@ It can be easily modified --in Lua!-- to, for example, load compressed or encryp
 ### Installation
 
 To build slua on Linux, just adjust the 'Makefile' (eg. to compile with Musl libc, the CC variable must be set to the path of the 'musl-gcc' wrapper), run 'make' at the root of the source tree. 
+
+To build slua with the default glibc, do `make -f Makefile.glibc`. This builds a `sglua` executable dynamically linked with glibc, but with all the lua modules statically linked.
 
 There is no installation. The slua binary can be placed and executed anywhere. 
 

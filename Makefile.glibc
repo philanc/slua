@@ -22,7 +22,7 @@ LDFLAGS=
 
 # list of additional libraries 
 # (lua, linenoise and slua are not included here)
-SLUALIBS= lfs.a luazen.a luatweetnacl.a minisock.a luaproc.a
+SLUALIBS= lfs.a luazen.a minisock.a
 
 
 SLUA_O=      slua.o linit.o sluacode.o
@@ -34,10 +34,11 @@ LUA_O=       \
 	lstring.o ltm.o lzio.o
 LINENOISE_O= linenoise.o 
 LFS_O=       lfs.o
-LUAZEN_O=    luazen.o lzf_c.o lzf_d.o md5.o rc4.o sha1.o base58.o 
-LUATWEETNACL_O= luatweetnacl.o randombytes.o tweetnacl.o
+LUAZEN_O=    luazen.o lzf_c.o lzf_d.o md5.o rc4.o base58.o \
+             norx.o mono.o randombytes.o \
+			 brieflz.o depacks.o 
+
 MINISOCK_O=      minisock.o
-LUAPROC_O=   luaproc.o lpsched.o
 
 smoketest:  sglua
 	./sglua  test/smoketest_g.lua
@@ -72,19 +73,9 @@ luazen.a:  lua.a src/luazen/*.c src/luazen/*.h
 	$(AR) rcu luazen.a $(LUAZEN_O)
 	rm -f *.o
 
-luatweetnacl.a:  lua.a src/luatweetnacl/*.c src/luatweetnacl/*.h
-	$(CC) -c $(CFLAGS) src/luatweetnacl/*.c
-	$(AR) rcu luatweetnacl.a $(LUATWEETNACL_O)
-	rm -f *.o
-
 minisock.a:  lua.a src/minisock/*.c
 	$(CC) -c $(CFLAGS) src/minisock/*.c
 	$(AR) rcu minisock.a $(MINISOCK_O)
-	rm -f *.o
-
-luaproc.a:  lua.a src/luaproc/*.c src/luaproc/*.h
-	$(CC) -c $(CFLAGS) src/luaproc/*.c
-	$(AR) rcu luaproc.a $(LUAPROC_O)
 	rm -f *.o
 
 clean:
@@ -93,6 +84,9 @@ clean:
 setbin:
 	md5sum sglua >bin/sglua.md5	
 	cp sglua bin/
+
+test: sglua
+	./sglua test/test_luazen.lua
 	
-.PHONY: clean setbin smoketest
+.PHONY: clean setbin smoketest test
 

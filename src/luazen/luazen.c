@@ -3,16 +3,12 @@
 
 /*
 
-170522  
-- slua lz renamed to luazen for win slua533-2
-- added a windows RNG function in file randombytes_win.c
-  (randombytes.c from win slua533-1 tweetnacl)
-
-
 TODO:  
 - remove keypair functions? leave it to lua apps
 - drop key_echange => repl with x25519 or "get_shared_secret"
   or key it but expose x25519 to allow public test vectors
+
+170815  added the amazing BriefLZ compression
 
 ---
 
@@ -25,18 +21,20 @@ It includes the following algorithms
 - Blake2b cryptographic hash 
 - Argon2i key derivation 
 - curve25519 key exchange and ed25519 signature
-e- LZF compression
+- BriefLZ  compression
+- LZF compression
 - base64, base58, xor
 - legacy cryptography (md5, rc4)
 
 */
 
-#define VERSION "luazen-0.8"
+#define VERSION "luazen-0.9"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 
 #include "lua.h"
 #include "lauxlib.h"
@@ -47,7 +45,10 @@ e- LZF compression
 // for blake2b, curve25519
 #include "mono.h"
 
-//for luazen stuff
+// for BriefLZ compression
+#include "brieflz.h"
+
+//for other luazen stuff
 #include "lzf.h"
 #include "rc4.h"
 #include "md5.h"
@@ -87,23 +88,26 @@ extern int randombytes(unsigned char *x,unsigned long long xlen);
 
 static int lz_randombytes(lua_State *L) {
 	// Lua API:   randombytes(n)  returns a string with n random bytes 
-	// or nil, error msg if the RNG fails
-	// size limit: If n > 4096, randombytes will return a 4096-byte string
+	// n must be 256 or less.
+	// randombytes return nil, error msg  if the RNG fails or if n > 256
+	//	
     size_t bufln; 
+	unsigned char buf[256];
 	lua_Integer li = luaL_checkinteger(L, 1);  // 1st arg
-	bufln = (size_t) li;
-    unsigned char *buf = malloc(bufln); 
+	if ((li > 256 ) || (li < 0)) {
+		lua_pushnil (L);
+		lua_pushliteral(L, "invalid byte number");
+		return 2;      		
+	}
 	int r = randombytes(buf, li);
 	if (r != 0) { 
-		free(buf); 
 		lua_pushnil (L);
-		lua_pushliteral(L, "randombytes error");
+		lua_pushliteral(L, "random generator error");
 		return 2;         
 	} 	
-    lua_pushlstring (L, buf, bufln); 
-    free(buf);
+    lua_pushlstring (L, buf, li); 
 	return 1;
-}//randombytes()
+} //randombytes()
 
 //----------------------------------------------------------------------
 // NORX authenticated encryption
@@ -318,7 +322,7 @@ static int lz_blake2b_final(lua_State *L) {
 	//
 	crypto_blake2b_ctx *ctx = (crypto_blake2b_ctx *) lua_touserdata(L, 1);
 	if (ctx == NULL) LERR("invalid ctx");	
-	int digln = ctx->output_size;
+	int digln = ctx->hash_size;
 	unsigned char dig[64];
     crypto_blake2b_final(ctx, dig);
 	free(ctx);
@@ -428,7 +432,64 @@ static int lz_argon2i(lua_State *L) {
 #endif
 
 //----------------------------------------------------------------------
-// luazen functions
+// other luazen functions
+
+
+// brieflz compression functions
+
+static uint32_t load32_le(const uint8_t s[4]) {
+    return (uint32_t)s[0]
+        | ((uint32_t)s[1] <<  8)
+        | ((uint32_t)s[2] << 16)
+        | ((uint32_t)s[3] << 24);
+}
+
+static void store32_le(uint8_t out[4], uint32_t in) {
+    out[0] =  in        & 0xff;
+    out[1] = (in >>  8) & 0xff;
+    out[2] = (in >> 16) & 0xff;
+    out[3] = (in >> 24) & 0xff;
+}
+
+static int lz_blz(lua_State *L) {
+	// Lua API:  blz(s) => c
+	// compress string s, return compressed string c
+	// or nil, error msg in case of error
+	//
+	size_t sln, cln, bufln, workln;
+	const char *s = luaL_checklstring(L, 1, &sln);	
+	assert(sln < 0xffffffff); // fit a uint32
+	bufln = blz_max_packed_size(sln) + 4;  // +4 to store s length
+	workln = blz_workmem_size(sln);
+	char * buf = lua_newuserdata(L, bufln);
+	char * work = lua_newuserdata(L, workln);
+	cln = blz_pack(s, buf+4, sln, work);
+	// prefix compressed string with original s length (stored as LE)
+	store32_le(buf, sln);
+	lua_pushlstring (L, buf, cln + 4); 	
+	return 1;
+} //blz()
+
+static int lz_unblz(lua_State *L) {
+	// Lua API:  unblz(c) => s | nil, error msg
+	// decompress string c, return original string s
+	// or nil, error msg in case of decompression error
+	//
+	size_t sln, cln, bufln, dln;
+	const char *c = luaL_checklstring(L, 1, &cln);	
+	sln = load32_le(c);  
+	bufln = sln + 8;  // have some more space.  ...for what?
+	char * buf = lua_newuserdata(L, bufln);
+	dln = blz_depack_safe(c + 4, cln - 4, buf, sln);
+	if (dln != sln) {
+		lua_pushnil (L);
+		lua_pushliteral(L, "uncompress error");
+		return 2;         
+	}
+	lua_pushlstring (L, buf, sln); 
+	return 1;
+} //unblz()
+
 
 // lzf compression functions
 
@@ -529,12 +590,7 @@ static int lz_rc4raw(lua_State *L) {
 	size_t sln, kln; 
 	const char *src = luaL_checklstring (L, 1, &sln);
 	const char *key = luaL_checklstring (L, 2, &kln);
-	if (kln != 16) {
-		lua_pushnil (L);
-		lua_pushliteral (L, "luazen: rc4 key must be 16 bytes");
-		return 2;         
-	}
-	//printf("[%s]%d  [%s]%d \n", s, sln, k, kln);
+	if (kln != 16)  LERR("bad key size");
 	char *dst = (char *) malloc(sln); 
 	rc4_ctx ctx;
 	rc4_setup(&ctx, key, kln); 
@@ -545,28 +601,25 @@ static int lz_rc4raw(lua_State *L) {
 }
 
 
+#define DROPLN 256
+
 //--- rc4() - a rc4-drop encrypt/decrypt function
 //-- see http://www.users.zetnet.co.uk/hopwood/crypto/scan/cs.html#RC4-drop
+//-- encrypt and drop DROPLN bytes before starting to encrypt the plain text
 //
 static int lz_rc4(lua_State *L) {
     size_t sln, kln; 
     const char *src = luaL_checklstring (L, 1, &sln);
     const char *key = luaL_checklstring (L, 2, &kln);
-	if (kln != 16) {
-		lua_pushnil (L);
-		lua_pushliteral (L, "luazen: rc4 key must be 16 bytes");
-		return 2;         
-	}
-	const int dropln = 256;
-    char drop[dropln]; 
+	if (kln != 16)  LERR("bad key size");
+	char drop[DROPLN]; 
 	// ensure drop is zeroed
-	int i;  for (i=0;  i<dropln; i++) drop[i] = 0;
+	int i;  for (i=0;  i<DROPLN; i++) drop[i] = 0;
     char *dst = (char *) malloc(sln); 
     rc4_ctx ctx;
     rc4_setup(&ctx, key, kln); 
-    // drop initial bytes of keystream
-    // copy following line n times to get a rc4-drop <n*256>
-    rc4_crypt(&ctx, drop, drop, 256);
+    // drop initial DROPLN bytes of keystream
+    rc4_crypt(&ctx, drop, drop, DROPLN);
     // crypt actual input
     rc4_crypt(&ctx, src, dst, sln);
     lua_pushlstring (L, dst, sln); 
@@ -709,47 +762,48 @@ static int lz_b64decode(lua_State *L)		/** decode(s) */
 //   "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
 static int lz_b58encode(lua_State *L) {
+	// lua api:  b58encode(str) => encoded | (nil, error msg)
+	// prereq:  #str <= 256  (defined as B58MAXLN)
 	size_t bln, eln;
+	unsigned char buf[B58MAXENCLN]; 	// buffer to receive encoded string
 	const char *b = luaL_checklstring(L,1,&bln);	
 	if (bln == 0) { // empty string special case (not ok with b58enc)
 		lua_pushliteral (L, ""); 
 		return 1;
+	} else if (bln > B58MAXLN) {  
+		LERR("string too long");
 	}
-	unsigned char * buf = malloc(bln * 2); // more than enough!
-	eln = bln * 2; // eln must be set to buffer size before calling b58enc
+	eln = B58MAXENCLN; // eln must be set to buffer size before calling b58enc
 	bool r = b58enc(buf, &eln, b, bln);
-	if (!r) { 
-		free(buf); 
-		lua_pushnil (L);
-		lua_pushfstring(L, "b58encode error");
-		return 2;         
-	} 
+	if (!r) LERR("b58encode error");
 	eln = eln - 1;  // b58enc add \0 at the end of the encode string
 	lua_pushlstring (L, buf, eln); 
-	free(buf);
 	return 1;
 }
 
+
 static int lz_b58decode(lua_State *L) {
-	size_t bufsz, bln, eln;
+	// lua api: b58decode(encstr) => str | (nil, error msg)
+	size_t bln, eln;
+	unsigned char buf[B58MAXENCLN]; 	// buffer to receive decoded string
 	const char *e = luaL_checklstring(L,1,&eln); // encoded data
 	if (eln == 0) { // empty string special case 
 		lua_pushliteral (L, ""); 
 		return 1;
+	} else if (eln > B58MAXENCLN) {
+		lua_pushnil (L);
+		lua_pushfstring(L, "string too long");
+		return 2;
 	}
-	bufsz = eln; // more than enough!
-	unsigned char *buf = malloc(bufsz); 
-	bln = bufsz; // give the result buffer size to b58tobin
+	bln = B58MAXENCLN; // give the result buffer size to b58tobin
 	bool r = b58tobin(buf, &bln, e, eln);
 	if (!r) { 
-		free(buf); 
 		lua_pushnil (L);
 		lua_pushfstring(L, "b58decode error");
 		return 2;         
 	} 
 	// b58tobin returns its result at the _end_ of buf!!!
-	lua_pushlstring (L, buf+bufsz-bln, bln); 
-	free(buf);
+	lua_pushlstring (L, buf+B58MAXENCLN-bln, bln); 
 	return 1;
 }
 
@@ -787,6 +841,10 @@ static const struct luaL_Reg lzlib[] = {
 #endif
 	//
 	{"xor", lz_xor},
+	// brieflz compression 
+	{"blz", lz_blz},
+	{"unblz", lz_unblz},
+	// lzf compression
 	{"lzf", lz_lzf},
 	{"unlzf", lz_unlzf},
 #ifndef NOLEGACY

@@ -42,14 +42,14 @@ Then it is enough to:
 	cat some_code.lua >> my_program
 ```
 
-If some_code.lua does not start with the magic string, it is easy to add it. For example let's build a standalone program that runs the nacl test (in test/) and exits:
+If some_code.lua does not start with the magic string, it is easy to add it. For example let's build a standalone program that runs the luazen test (in test/) and exits:
 ```
-	cp slua my_nacl_test
-	echo "--slua appended code" >>my_nacl_test
-	cat test/test_nacl.lua >> my_nacl_test
-	echo "os.exit()" >>my_nacl_test
+	cp slua my_luazen_test
+	echo "--slua appended code" >>my_luazen_test
+	cat test/test_luazen.lua >> my_luazen_test
+	echo "os.exit()" >>my_luazen_test
 ```
-Then `./my_nacl_test`  will just run the test.
+Then `./my_luazen_test`  will just run the test.
 
 The append code mechanism within slua is itself written in Lua (see src/sluacode.c).  It is invoked in src/slua.c (after comment "/// slua embedded Lua code").
 

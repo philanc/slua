@@ -63,3 +63,13 @@ char *slua_embedded_buffer =
 	
 //~ #include <stdio.h>
 //~ void main() {printf("size: %d\n", sizeof(slua_embedded_buffer));}
+
+static int do_slua_embedded_code(lua_State *L) {
+	char *ecode = slua_embedded_buffer + 8;
+	if ( *((long long *)ecode) != 0x2020202020202020 ) {
+		return dochunk(L, luaL_loadstring(L, ecode));
+	}
+	/// if the embedded code buffer looks empty, just ignore it
+	return LUA_OK;
+}
+

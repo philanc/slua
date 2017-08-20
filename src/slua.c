@@ -1,7 +1,19 @@
 /// slua.c  
 /// this is a copy of the regular 'lua.c' file 
-/// the only modification is the replacement of readline 
-/// with linenoise for interactive input
+/// All slua-specific modifications are flagged 
+/// with comments starting with '///' 
+/// Modifications are:
+///   - use of linenoise for interactive input, 
+///   - mechanism to load append an appended Lua extension
+///
+/// To build slua from a new Lua version,
+///   - comment out all the "#if !defined(lua_readline)" block
+///   - insert the "add linenoise support" block there
+///   - insert "#include "sluacode.h" " after the do_chunk() definition
+///   - in function pmain(), 
+///     insert  "if (do_slua_embedded_code(L) != LUA_OK) return 0; "
+///     after the call to createargtable()
+///
 /// --------------------------------------------------------------------
 /*
 ** $Id: lua.c,v 1.225 2015/03/30 15:42:59 roberto Exp $
@@ -79,7 +91,7 @@
 ** lua_freeline defines how to free a line read by lua_readline.
 */
 
-///ph 150619 add linenoise support (readline replacement)
+/// add linenoise support (readline replacement) - ph 150619 
 /// lua_saveline macro has changed since lua 5.2:
 /// argument no longer L,idx, but L,line
 #include "linenoise.h"
@@ -268,17 +280,8 @@ static int dostring (lua_State *L, const char *s, const char *name) {
 }
 
 /// --------------------------------------------------------
-/// slua embedded Lua code buffer
-extern char *slua_embedded_buffer;
-
-static int do_slua_embedded_code(lua_State *L) {
-	char *ecode = slua_embedded_buffer + 8;
-	if ( *((long long *)ecode) != 0x2020202020202020 ) {
-		return dochunk(L, luaL_loadstring(L, ecode));
-	}
-	/// if the embedded code buffer looks empty, just ignore it
-	return LUA_OK;
-}
+/// slua mechanism to load embedded Lua code 
+#include "sluacode.h"
 /// ------------------------------------------------------
 
 /*
@@ -604,10 +607,13 @@ static int pmain (lua_State *L) {
   
   createargtable(L, argv, argc, script);  /* create table 'arg' */
   
+  ///-------------------------------
   ///slua - run embedded code if any  (run after createargtable() 
   ///       so that arg[0] is available for the embedded code)
   if (do_slua_embedded_code(L) != LUA_OK)
 	  return 0; ///error running slua embedded code
+  ///slua - end of run embedded code
+  ///-------------------------------
   
   if (!(args & has_E)) {  /* no option '-E'? */
     if (handle_luainit(L) != LUA_OK)  /* run LUA_INIT */

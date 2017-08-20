@@ -51,7 +51,7 @@ If some_code.lua does not start with the magic string, it is easy to add it. For
 ```
 Then `./my_luazen_test`  will just run the test.
 
-The append code mechanism within slua is itself written in Lua (see src/sluacode.c).  It is invoked in src/slua.c (after comment "/// slua embedded Lua code").
+The append code mechanism within slua is itself written in Lua (see src/slua.c and src/sluacode.h). 
 
 It can be easily modified --in Lua!-- to, for example, load compressed or encrypted code. Or for anything else.
 
@@ -94,11 +94,9 @@ To build sglua:
 
 ### Package versions
 
-Lua 5.3.3 - http://www.lua.org/ftp/lua-5.3.3.tar.gz
+Lua 5.3.4 - http://www.lua.org/ftp/lua-5.3.4.tar.gz
 
 LuaFileSystem 1.6.3  - commit 6d039ff385 - https://github.com/keplerproject/luafilesystem
-
-Luaproc 1.0.4 - commit 990ecf6, Oct 20, 2015 - https://github.com/askyrme/luaproc
 
 The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
 

@@ -75,11 +75,11 @@ To build slua:
     make
 ```
 		
-Binary versions of slua may be provided here for convenience.
+Binary versions of slua are provided here for convenience. These are standalone executables, statically compiled with musl-1.1.18, for x86_64, i586 and armhf.
 
 *Musl libc* - A script is provided to fetch and build musl libc and the required Linux headers. See tools/build_musl.sh and comments at the beginning of the script.
 
-*Dynamic linking version* - A makefile to build 'sglua', a dynamic version of slua, with the same additional libraries statically linked and preloaded.  'sglua' has the same functions as slua (built-in linenoise line-editing, execution of appended lua code). It is intended to be built with the regular glibc (so the only runtime dependencies are libc, libm, libpthread and libdl). Additional C libraries can be loaded with 'require()'.
+*Dynamic linking version* - A makefile is provided to build 'sglua', a dynamic version of slua, with the same additional libraries statically linked and preloaded.  'sglua' has the same functions as slua (built-in linenoise line-editing, execution of appended lua code). It is intended to be built with the regular glibc (so the only runtime dependencies are libc, libm, libpthread and libdl). Additional C libraries can be loaded with 'require()'.
 
 For 'sglua', the default Lua paths are slightly different:
 * `package.path:  "lua;./?/init.lua" `
@@ -100,7 +100,7 @@ LuaFileSystem 1.6.3  - commit 6d039ff385 - https://github.com/keplerproject/luaf
 
 The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
 
-Musl libc - slua has been built against musl-1.1.10, .14 and .16 on x86, and musl-1.1.12 on arm.
+Musl libc - slua has been built against musl-1.1.10,  .16, and .18 on x86, and musl-1.1.12, .18 on arm.
 
 ### Modifications of the vanilla Lua
 
@@ -116,7 +116,10 @@ src/lua/lua.c - not used. It is replaced with src/slua.c
 
 ### Pre-built binaries
 
-The Linux x86 binary version of  slua has been built on a x86_64 (64-bit) platform with the Musl C library (version 1.1.14)
+The Linux binary versions of  slua have been built on a x86_64 (64-bit) platform with the Musl C library (version 1.1.18)
+
+The i586 and armhf versions have been cross-compiled with [musl-cross-make]
+(https://github.com/richfelker/musl-cross-make), a toolchain setup designed by Rich Felker.
 
 
 ### Related projects
@@ -136,14 +139,14 @@ Other related projects
 
 Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent). See LICENSE files in directories lua, and luafilesystem.
 
-The lz library includes some code from various authors (see src/lz):
+The luazen library includes some code from various authors (see src/luazen):
 - Norx encryption from the Norx submission to Caesar - http://norx.io
 - curve25519, ed25519, blake2b, argon2i from Loup Vaillant's Monocypher - http://loup-vaillant.fr/projects/monocypher/
 - base64 functions by Luiz Henrique de Figueiredo (public domain)
 - base58 functions by Luke Dashjr (MIT)
 - md5 by Cameron Rich (BSD)
 
-Lz and minisock are distributed under the MIT License (see file LICENSE)
+Luazen and minisock are distributed under the MIT License (see file LICENSE)
 
 Copyright (c) 2017  Phil Leblanc 
 

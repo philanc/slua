@@ -81,10 +81,6 @@ minisock.a:  lua.a src/minisock/*.c
 clean:
 	rm -f slua sluac sglua *.o *.a *.so
 
-setbin:
-	md5sum sglua >bin/sglua.md5	
-	cp sglua bin/
-
 test: sglua
 	./sglua test/test_luazen.lua
 	

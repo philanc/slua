@@ -116,10 +116,10 @@ src/lua/lua.c - not used. It is replaced with src/slua.c
 
 ### Pre-built binaries
 
-The Linux binary versions of  slua have been built on a x86_64 (64-bit) platform with the Musl C library (version 1.1.18)
+The Linux binary versions of  slua have been built on a x86_64 (64-bit) platform with GCC 5.3.0 and the Musl C library (version 1.1.18)
 
-The i586 and armhf versions have been cross-compiled with [musl-cross-make]
-(https://github.com/richfelker/musl-cross-make), a toolchain setup designed by Rich Felker.
+The i586 and armhf versions have been cross-compiled with [musl-cross-make](https://github.com/richfelker/musl-cross-make), 
+a toolchain setup designed by Rich Felker.
 
 
 ### Related projects

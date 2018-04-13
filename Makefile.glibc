@@ -34,9 +34,9 @@ LUA_O=       \
 	lstring.o ltm.o lzio.o
 LINENOISE_O= linenoise.o 
 LFS_O=       lfs.o
-LUAZEN_O=    luazen.o lzf_c.o lzf_d.o md5.o rc4.o base58.o \
-             norx.o mono.o randombytes.o \
-			 brieflz.o depacks.o 
+LUAZEN_O=    \
+	base58.o base64.o blake2b.o blz.o chacha.o gimli.o luazen.o \
+	lzf.o md5.o norx.o random.o rc4.o x25519.o xor.o 
 
 MINISOCK_O=      minisock.o
 

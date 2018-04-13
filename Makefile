@@ -18,11 +18,6 @@
 # note: to build with glibc or uClibc, must add " -lpthread -lm " at 
 # the end of the link lines for slua and sluac.
 #
-# Compile options (CFLAGS):
-#
-#    -DNOLEGACY  - do not include the md5 and rc4 legacy functions
-#    -DNOARGON   - do not include the (somewhat large) argon2i
-#                  password derivation function
 #
 # ----------------------------------------------------------------------
 
@@ -31,8 +26,8 @@ AR= ar
 CFLAGS= -Os -Isrc/lua/ \
 		-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
         -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG \
-##	-DNOARGON -DNOLEGACY
-	
+
+
 LDFLAGS= 
 
 

@@ -46,8 +46,8 @@ LUA_O=       \
 LINENOISE_O= linenoise.o 
 LFS_O=       lfs.o
 LUAZEN_O=    \
-	base58.o base64.o blake2b.o blz.o chacha.o gimli.o luazen.o \
-	lzf.o md5.o norx.o random.o rc4.o x25519.o xor.o 
+	base58.o base64.o blake2b.o blz.o chacha.o luazen.o \
+	lzf.o md5.o morus.o norx.o random.o rc4.o x25519.o xor.o 
 			 
 MINISOCK_O=  minisock.o
 

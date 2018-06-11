@@ -1,75 +1,43 @@
 /// slua embedded code loader module
 ///
-/// The content of the string 'slua_embedded_buffer' is loaded as Lua
+/// The content of 'embedded[]' is loaded as Lua
 /// code and executed by slua before the regular REPL.
-/// The default code provided is intended to look if some Lua code
-/// has been appended to the slua executable file. If so, the appended
-/// Lua code is loaded and executed in turn before entering the REPL
-/// (see Lua code in 'slua_embedded_buffer' below).
-/// A (unique) marker is added at the beginning and the end of 
-/// 'slua_embedded_buffer' to allow the replacement of the content
-/// of the buffer without recompiling slua.
 ///
-/// The embedded loader Lua code is executed only if the first
-/// 8 bytes after the "++slua++ marker in 'slua_embedded_buffer'
-/// are different from 0x20 (space) - see slua.c.
-/// If the embedded code loader overhead is too high, it can be
-/// deactivated without recompiling by replacing in the slua executable
-/// the first 8 bytes after the ++slua++" marker by 8 spaces.
-/// That is, in the code below:
-///   replace "++slua++-- slua " with "++slua++        "
+/// The embedded loader Lua code is executed only if the 4 bytes 
+/// starting at embedded[4] are not (0, 0, 0, 0)
 ///
-/// Some extra space is available in 'slua_embedded_buffer' to allow
-/// patching slua with a different implementation of the loader (eg. 
-/// with compression or encryption) or even with some arbitrary code
-/// without recompiling.
+/// The embedded code can be Lua source code or bytecode.
 ///
-/// beware of double quotes within slua_embedded_buffer - use 
-/// single quotes to delimit Lua strings!
-///
-/// Test appending Lua code to slua: append first the append marker
-/// '--slua appended code\n', then append the Lua code:
-///   echo "--slua appended code" >> slua
-///   echo "print('Hello slua')" >> slua
-///   ./slua  <-- will display 'Hello slua' before the Lua banner.
 
-char *slua_embedded_buffer = 
-	"++slua++" // start of embedded code marker - must be 8 bytes
-	// "print[["  // uncomment this line and ']]' below to display the code
-	"-- slua embedded loader                                    \n"
-	"local asep = '%-%-slua appended code\\r?\\n'               \n"
-	"local f = assert(io.open('/proc/self/exe', 'rb'))          \n"
-	"local s = f:read('*a')                                     \n"
-	"f:close()                                                  \n"
-	"local i,j = s:find(asep, 1)                                \n"
-	"if i then                                                  \n"
-	"  local ac = s:sub(j+1);                                   \n"
-	"  local f, msg = load(ac)                                  \n"
-	"  if f then f()                                            \n"
-	"  else                                                     \n"
-	"    print('slua: cannot load appended code'                \n"
-	"         ..'(maybe a syntax error)')                       \n"
-	"  end                                                      \n"
-	"end                                                        \n"
-	// "]]"  // uncomment "print[[" above and this line to display the code
-	"                                                           \n" 
-	"                                                           \n" 
-	"                                                           \n" 
-	"                                                           \n" 
-	"                                                           \n" 
-	"                                                           \n" 
-	"\0"        // ensure the embedded Lua code will be null terminated
-	"++slua++"; // same marker than at beginning of buffer (8 bytes)
-	
-//~ #include <stdio.h>
-//~ void main() {printf("size: %d\n", sizeof(slua_embedded_buffer));}
+#ifndef EMBSIZE
+#define EMBSIZE 4096
+#endif
+
+unsigned char embedded[EMBSIZE] = {
+	// first 4 bytes are EMBSIZE (as uint32, little endian)
+	EMBSIZE & 0xff,	
+	(EMBSIZE >> 8) & 0xff,
+	(EMBSIZE >> 16) & 0xff,
+	(EMBSIZE >> 24) & 0xff,
+	// next 32 bytes are a marker (32 * '#') for binary patching
+	35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35, // marker
+	35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35, // marker
+	// next 4 bytes are the size of embedded code as an uint32, 
+	// little endian -- or (0,0,0,0) if there is no embedded code
+	0, 0, 0, 0, 	
+	0  // the embedded code (if any) starts here.
+};
 
 static int do_slua_embedded_code(lua_State *L) {
-	char *ecode = slua_embedded_buffer + 8;
-	if ( *((long long *)ecode) != 0x2020202020202020 ) {
-		return dochunk(L, luaL_loadstring(L, ecode));
+	size_t buflen = embedded[36]
+		| (embedded[37] << 8)
+		| (embedded[38] << 16)
+		| (embedded[39] << 24);
+	if (buflen != 0 ) {
+		return dochunk(L, 
+			luaL_loadbuffer(L, embedded+40, buflen, ""));
 	}
-	/// if the embedded code buffer looks empty, just ignore it
+	/// if the embedded code buffer is empty, just ignore it
 	return LUA_OK;
 }
 

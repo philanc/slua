@@ -29,31 +29,12 @@ On the other end, obviously, slua cannot load dynamic C libraries. It is *not* i
 
 ### Extension mechanism
 
-It is possible to append Lua code to the slua executable. The appended code will  be run by slua before entering the Lua REPL  (this is similar to 'lua -i somecode.lua'). 
+It is possible to embed Lua source code or Lua compiled bytecode in the slua executable. The embedded code is run by slua before entering the Lua REPL  (this is similar to 'lua -i somecode.lua'). 
 
-If entering the REPL is not wanted, the appended 
-code can just be ended with "os.exit()".
+If entering the REPL is not wanted, the embedded code can just be ended with "os.exit()".
 
-The appended code must start with the following exact string:  "`--slua appended code`", ending with a newline.
+The embedded code is placed in an unsigned char array (see embed[] definition in src/sluacode.h).  It can be placed  at compile time or can be directly written into the slua executable after compilation (see test/embed_lua.lua)
 
-Then it is enough to:
-```
-	cp slua my_program
-	cat some_code.lua >> my_program
-```
-
-If some_code.lua does not start with the magic string, it is easy to add it. For example let's build a standalone program that runs the luazen test (in test/) and exits:
-```
-	cp slua my_luazen_test
-	echo "--slua appended code" >>my_luazen_test
-	cat test/test_luazen.lua >> my_luazen_test
-	echo "os.exit()" >>my_luazen_test
-```
-Then `./my_luazen_test`  will just run the test.
-
-The append code mechanism within slua is itself written in Lua (see src/slua.c and src/sluacode.h). 
-
-It can be easily modified --in Lua!-- to, for example, load compressed or encrypted code. Or for anything else.
 
 ### Installation
 

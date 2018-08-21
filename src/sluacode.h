@@ -4,7 +4,7 @@
 /// code and executed by slua before the regular REPL.
 ///
 /// The embedded loader Lua code is executed only if the 4 bytes 
-/// starting at embedded[4] are not (0, 0, 0, 0)
+/// starting at embedded[36] are not (0, 0, 0, 0)
 ///
 /// The embedded code can be Lua source code or bytecode.
 ///

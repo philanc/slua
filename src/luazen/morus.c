@@ -15,6 +15,13 @@
 // this code is a slightly modified version of the C reference code v2
 // submitted to CAESAR (see NTU link above)
 //
+//---
+//
+// NOTE: I have added an experimental hash / XOF function based on the 
+// Morus permutation. It is NOT part of the Morus submission and has NOT 
+// been analyzed / reviewed. The design is certainly not final.  
+// => DON'T USE THE HASH FUNCTION for any serious purpose.
+//
 // ---------------------------------------------------------------------
 
 
@@ -493,15 +500,16 @@ static int morus_aead_decrypt(
 
 
 int ll_morus_encrypt(lua_State *L) {
-	// Lua API: encrypt(k, n, m [, aad [, ninc ]])  return c
-	//  k: key string (32 bytes)
-	//  n: nonce string (32 bytes)
-	//	m: message (plain text) string 
-	//  aad: additional data (not encrypted, prepended to the 
+	// Lua API: encrypt(k, n, m [, ninc [, aad ]])  return c
+	//  k: key string (16 or 32 bytes)
+	//  n: nonce string (16 bytes)
+	//  m: message (plain text) string 
+	//  aad: additional data prefix  (not encrypted, prepended to the 
 	//       encrypted message). default to the empty string
-	//  ninc: optional nonce increment (useful when encrypting a long message
-	//       as a sequence of block). The same parameter n can be used for 
-	//       the sequence. ninc is added to n for each block, so the actual
+	//  ninc: optional nonce increment (useful when encrypting a 
+	//       long message as a sequence of block). 
+	//       The same nonce n can be used for the sequence. 
+	//       ninc is added to n for each block, so the actual
 	//       nonce used for each block encryption is distinct.
 	//       ninc defaults to 0 (the nonce n is used as-is)
 	//  return encrypted text string c with aad prefix 
@@ -511,8 +519,8 @@ int ll_morus_encrypt(lua_State *L) {
 	const char *k = luaL_checklstring(L,1,&kln);
 	const char *n = luaL_checklstring(L,2,&nln);	
 	const char *m = luaL_checklstring(L,3,&mln);	
-	const char *aad = luaL_optlstring(L,4,"",&aadln);
-	uint64_t ninc = luaL_optinteger(L, 5, 0);	
+	uint64_t ninc = luaL_optinteger(L, 4, 0);	
+	const char *aad = luaL_optlstring(L,5,"",&aadln);
 //~ if (m == 0) {  printf("@@@ m=NULL \n"); }
 //~ printf("@@@ m=%x \n", m);
 	if (nln != 16) LERR("bad nonce size");
@@ -543,19 +551,19 @@ int ll_morus_encrypt(lua_State *L) {
 int ll_morus_decrypt(lua_State *L) {
 	// Lua API: decrypt(k, n, c [, ninc [, aadln]]) 
 	//     return m | (nil, msg)
-	//  k: key string (32 bytes)
+	//  k: key string (16 or 32 bytes)
 	//  n: nonce string (16 bytes)
-	//	c: encrypted message string 
-	//  aadln: length of the AD prefix (default to 0)
+	//  c: encrypted message string 
 	//  ninc: optional nonce increment (see above. defaults to 0)
+	//  aadln: length of the AD prefix (default to 0)
 	//  return plain text or (nil, errmsg) if MAC is not valid
 	int r = 0;
 	size_t cln, nln, kln, boxln, mln;
 	const char *k = luaL_checklstring(L, 1, &kln);
 	const char *n = luaL_checklstring(L, 2, &nln);	
 	const char *c = luaL_checklstring(L, 3, &cln);	
-	size_t aadln = luaL_optinteger(L, 4, 0);	
-	uint64_t ninc = luaL_optinteger(L, 5, 0);	
+	uint64_t ninc = luaL_optinteger(L, 4, 0);	
+	size_t aadln = luaL_optinteger(L, 5, 0);	
 	if (nln != 16) LERR("bad nonce size");
 	if ((kln != 32) && (kln != 16)) LERR("bad key size");
 	// allocate buffer for decrypted text
@@ -577,4 +585,64 @@ int ll_morus_decrypt(lua_State *L) {
 	return 1;
 	
 } // ll_morus_decrypt()
+
+int ll_morus_hash(lua_State *L) {
+	//
+	// !! EXPERIMENTAL - NOT DESIGNED BY THE MORUS AUTHORS !! 
+	// !! => DON'T USE IT FOR ANYTHING !! 
+	//
+	// Lua API: hash(m, [diglen [, k]])  return dig
+	//  m: message string to hash
+	//  diglen: optional digest length in bytes (defaults to 32)
+	//  k: optional key string (32 bytes)
+	//  return digest string dig
+	//  (#dig == diglen)
+	int i, r;
+	size_t mln, kln, n;
+	uint64_t *pu64;
+	const char *m = luaL_checklstring(L,1,&mln);	
+	size_t diglen = luaL_optinteger(L, 2, 32);	
+	const char *k = luaL_optlstring(L,3,"",&kln);
+	//if (kln != 32) LERR("bad key size");
+	
+	char *p; 
+	char *dig = lua_newuserdata(L, diglen);
+	uint8_t iv[16] = {0};  
+	uint8_t kb[32] = {0};  
+	uint8_t blk[32] = {0}; 
+	uint64_t st[5][4];
+	
+	// initialize the state
+	if (kln > 32) kln = 32;
+	if (kln > 0) memcpy(kb, k, kln);
+	pu64 = (uint64_t *)iv;
+	*pu64 = diglen;
+	morus_initialization(kb, 32, iv, st);
+	// absorb m
+	while (mln >= 32) {
+		morus_stateupdate((uint64_t*)m, st);
+		m += 32;
+		mln -= 32; 
+	}
+	// absorb last partial block (if any) and pad
+	memcpy(blk, m, mln);
+	blk[mln] = 0x01;
+	blk[31] ^= 0x80;
+	morus_stateupdate((uint64_t*)blk, st);
+	// mix state
+	memset(blk, 0, 32);
+	for (i=0; i<16; i++) { morus_stateupdate((uint64_t*)blk, st); }
+	// squeeze digest
+	p = dig;
+	n = diglen;
+	while (n > 32) {
+		memcpy(p, (char *)st[0], 32);
+		p += 32; 
+		n -= 32;
+		morus_stateupdate((uint64_t*)blk, st);
+	}
+	memcpy(p, (char *)st[0], n);
+	lua_pushlstring (L, dig, diglen); 
+	return 1;
+} // ll_morus_hash()
 

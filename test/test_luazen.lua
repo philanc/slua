@@ -68,7 +68,7 @@ print("------------------------------------------------------------")
 print(_VERSION, lz.VERSION )
 print("------------------------------------------------------------")
 
-assert(lz.VERSION == "luazen-0.10")
+assert(lz.VERSION == "luazen-0.11")
 
 ------------------------------------------------------------------------
 if lz.lzf then do
@@ -298,47 +298,22 @@ if lz.blake2b then do
 	local e, t, dig, ctx, dig51, dig52, dig53, dig54, dig55
 	t = "The quick brown fox jumps over the lazy dog"
 	e = hextos(
-		"A8ADD4BDDDFD93E4877D2746E62817B116364A1FA7BC148D95090BC7333B3673" ..
-		"F82401CF7AA2E4CB1ECD90296E3F14CB5413F8ED77BE73045B13914CDCD6A918")
+	"A8ADD4BDDDFD93E4877D2746E62817B116364A1FA7BC148D95090BC7333B3673"
+	.."F82401CF7AA2E4CB1ECD90296E3F14CB5413F8ED77BE73045B13914CDCD6A918"
+	)
 		
-	-- test convenience function
+	-- test default
 	dig = lz.blake2b(t)
 	assert(e == dig)
 
-	-- test chunked interface
-	ctx = lz.blake2b_init()
-	lz.blake2b_update(ctx, "The q")
-	lz.blake2b_update(ctx, "uick brown fox jumps over the lazy dog")
-	dig = lz.blake2b_final(ctx)
+	dig = lz.blake2b(t, 64, "")
 	assert(e == dig)
+	
+	-- need test vectors for shorter, and keyed digests 
+	
+	dig = lz.blake2b(t, 64, "aaa")
+	assert(e ~= dig)
 
-	-- test shorter digests
-	ctx = lz.blake2b_init(5)
-	lz.blake2b_update(ctx, "The q")
-	lz.blake2b_update(ctx, "uick brown fox jumps over the lazy dog")
-	dig51 = lz.blake2b_final(ctx)
-	ctx = lz.blake2b_init(5)
-	lz.blake2b_update(ctx, "The quick b")
-	lz.blake2b_update(ctx, "rown fox jumps over the lazy dog")
-	dig52 = lz.blake2b_final(ctx)
-	assert(#dig51 == 5 and dig51 == dig52)
-
-	-- same, with a key
-	ctx = lz.blake2b_init(5, "somekey")
-	lz.blake2b_update(ctx, "The q")
-	lz.blake2b_update(ctx, "uick brown fox jumps over the lazy dog")
-	dig53 = lz.blake2b_final(ctx)
-	ctx = lz.blake2b_init(5, "somekey")
-	lz.blake2b_update(ctx, "The quick b")
-	lz.blake2b_update(ctx, "rown fox jumps over the lazy dog")
-	dig54 = lz.blake2b_final(ctx)
-	assert(#dig53 == 5 and dig53 == dig54)
-
-	ctx = lz.blake2b_init(5, ("\0"):rep(0)) -- is it same as no key??
-	lz.blake2b_update(ctx, "The q")
-	lz.blake2b_update(ctx, "uick brown fox jumps over the lazy dog")
-	dig55 = lz.blake2b_final(ctx)
-	assert(dig51==dig55)
 	end--do
 end
 
@@ -387,75 +362,122 @@ if lz.x25519_sign then do
 	assert(lz.x25519_sha512(t) == h)
 	
 	end--do
-end--if
+end--if x25519_sign
 
+	
 ------------------------------------------------------------------------
-if lz.gimli_encrypt then do
-	print("testing gimli...")
-	local k, n, a, z, m, m2, err, c, ninc, h, eh, t
-	local encrypt, decrypt, hash = 
-	      lz.gimli_encrypt, lz.gimli_decrypt, lz.gimli_hash
-	k = ('k'):rep(32)  -- key
-	n = ('n'):rep(16)  -- nonce
-	m = ('\0'):rep(83) -- plain text
---~ 	m = ('m'):rep(3) -- plain text
---~ 	m = ('\0'):rep(35) -- plain text
---~ 	print(lz.gimli_test())
-	pfx = ('a'):rep(16)  -- (61 61 ...)
-	c = encrypt(k, n, m, pfx)
-	assert(#c == #m + 16 + #pfx)
-	m2, err = decrypt(k, n, c, #pfx)
+if lz.morus_encrypt then do
+	print("testing morus...")
+	local k, iv, m, c, e, m2, err, tag, ad
+	local encrypt, decrypt = lz.morus_encrypt, lz.morus_decrypt
+	--
+	-- 16-byte key -- 1280_128 -----------------------------------------
+	k = xts'00000000000000000000000000000000'
+	iv = xts'00000000000000000000000000000000'
+	m = ""; ad = ""
+	e = encrypt(k, iv, m, 0, ad)
+	assert(#e == #ad + #m + 16)
+	assert(e == xts"5bd2cba68ea7e72f6b3d0c155f39f962")
+	m2, err = decrypt(k, iv, e, 0, #ad)
 	assert(m2 == m)
-	h = hash(m, 16)
-	assert(#h == 16)
-	-- fixed test vectors from
-	-- https://crypto.stackexchange.com/questions/51025/ 
-	--   ("Doubt about published test vectors for gimli hash")
-	-- t1
-	assert(hash(
-	"There's plenty for the both of us, may the best Dwarf win."
-	, 32) == xts[[
-	4afb3ff784c7ad6943d49cf5da79facfa7c4434e1ce44f5dd4b28f91a84d22c8
-	]])
-	-- t2
-	assert(hash(xts[[
-	49662061 6e796f6e 65207761 7320746f 2061736b 20666f72 206d7920
-	6f70696e 696f6e2c 20776869 63682049 206e6f74 65207468 65792772
-	65206e6f 742c2049 27642073 61792077 65207765 72652074 616b696e
-	67207468 65206c6f 6e672077 61792061 726f756e 642e
-	]], 32) == xts[[
-	ba82a16a7b224c15bed8e8bdc88903a4006bc7beda78297d96029203ef08e07c
-	]])
-	-- t3
-	assert(hash(xts[[
-	53706561 6b20776f 72647320 77652063 616e2061 6c6c2075 6e646572
-	7374616e 6421
-	]], 32) == xts[[
-	8dd4d132059b72f8e8493f9afb86c6d86263e7439fc64cbb361fcbccf8b01267
-	]])
-	-- t4
-	assert(hash(xts[[
-	49742773 20747275 6520796f 7520646f 6e277420 73656520 6d616e79
-	20447761 72662d77 6f6d656e 2e20416e 6420696e 20666163 742c2074
-	68657920 61726520 736f2061 6c696b65 20696e20 766f6963 6520616e
-	64206170 70656172 616e6365 2c207468 61742074 68657920 61726520
-	6f667465 6e206d69 7374616b 656e2066 6f722044 77617266 2d6d656e
-	2e20416e 64207468 69732069 6e207475 726e2068 61732067 6976656e
-	20726973 6520746f 20746865 2062656c 69656620 74686174 20746865
-	72652061 7265206e 6f204477 6172662d 776f6d65 6e2c2061 6e642074
-	68617420 44776172 76657320 6a757374 20737072 696e6720 6f757420
-	6f662068 6f6c6573 20696e20 74686520 67726f75 6e642120 57686963
-	68206973 2c206f66 20636f75 7273652c 20726964 6963756c 6f75732e
-	]], 32) == xts[[
-	8887a5367d961d6734ee1a0d4aee09caca7fd6b606096ff69d8ce7b9a496cd2f
-	]])
-	-- t5
-	assert(hash("", 32) == xts[[
-	b0634b2c0b082aedc5c0a2fe4ee3adcfc989ec05de6f00addb04b3aaac271f67]])
+	--
+	m = "\x01"; ad = ""
+	e = encrypt(k, iv, m, 0, ad)
+	assert(e == xts"ba ec1942a315a84695432a1255e6197878")
+	m2, err = decrypt(k, iv, e, 0, #ad)
+	assert(m2 == m)
+	--
+	m = ""; ad = "\x01"
+	e = encrypt(k, iv, m, 0, ad)
+--~ 	print(stx(e))
+	assert(e == xts"01 590caa148b848d7614315685377a0d42") --ad,tag
+	m2, err = decrypt(k, iv, e, 0, #ad)
+	assert(m2 == m)
+	--
+	k = xts'01000000000000000000000000000000'
+	m = "\x00"; ad = "\x00"
+	e = encrypt(k, iv, m, 0, ad)
+	assert(#e == #ad + #m + 16)
+	assert(e == xts"00 cf f9f0a331e3de3293b9dd2e65ba820009")--ad,c,tag
+	m2, err = decrypt(k, iv, e, 0, #ad)
+	assert(m2 == m)
+	--
+	k =  xts'00000000000000000000000000000000'
+	iv = xts'01000000000000000000000000000000'
+	m = "\x00"; ad = "\x00"
+	e = encrypt(k, iv, m, 0, ad)
+	assert(#e == #ad + #m + 16)
+	assert(e == xts"00 09 c957f9ca617876b5205155cd936eb9bb")--ad,c,tag
+	m2, err = decrypt(k, iv, e, 0, #ad)
+	assert(m2 == m)
+	--
+	k =  xts'000102030405060708090a0b0c0d0e0f'
+	iv = xts'000306090c0f1215181b1e2124272a2d'
+	m = xts'01010101010101010101010101010101'
+	ad = xts'01010101010101010101010101010101'
+	e = encrypt(k, iv, m, 0, ad)
+--~ 	print(stx(e))
+	assert(#e == #ad + #m + 16)
+	assert(e == xts[[
+		01010101010101010101010101010101
+		b64ee39fc045475e97b41bd08277b4cb
+		e989740eb075f75bd57a43a250f53765
+		]])--ad,c,tag
+	m2, err = decrypt(k, iv, e, 0, #ad)
+	assert(m2 == m)
+	--
+	k =  xts'000102030405060708090a0b0c0d0e0f'
+	iv = xts'000306090c0f1215181b1e2124272a2d'
+	m = xts[[
+	00070e151c232a31383f464d545b626970777e858c939aa1a8afb6bdc4cbd2d9
+	e0e7eef5fc030a11181f262d343b424950575e656c737a81888f969da4abb2b9
+	c0c7ced5dce3eaf1f8 ]]
+	ad = xts[[
+	00050a0f14191e23282d32373c41464b50555a5f64696e73787d82878c91969b
+	a0a5aaafb4b9be ]]
+	e = encrypt(k, iv, m, 0, ad)
+--~ 	print(stx(e))
+	assert(#e == #ad + #m + 16)
+	assert(e == ad .. xts[[
+	0861b4924850e8a945e60ec08a1b04f3c77dd2b05ccb05c05c567be8cdfd4582
+	28a390c4117b66d71fade7f89902e4d500389a275cb0ce5685f3a21beb6d6519
+	f465b96f1eaf9eeea2   5e43f30fa0adb318083a795fc23df52c ]])
+	m2, err = decrypt(k, iv, e, 0, #ad)
+	assert(m2 == m)
+	--
+	-- 32-byte key -- 1280_256 -----------------------------------------
+	--
+	k = xts'000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f'
+	iv = xts'000306090c0f1215181b1e2124272a2d'
+	m = xts[[ 01010101010101010101010101010101  ]]
+	ad = xts[[ 01010101010101010101010101010101 ]]
+	e = encrypt(k, iv, m, 0, ad)
+	assert(#e == #ad + #m + 16)
+	assert(e == ad .. xts[[ 
+	aecb6f5991a11746831740e4d45b6c26  c3107488470f05e6828472ac0264045d ]])
+	m2, err = decrypt(k, iv, e, 0, #ad)
+	assert(m2 == m)
+	--
+	k = xts'000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f'
+	iv = xts'000306090c0f1215181b1e2124272a2d'
+	m = xts[[
+	00070e151c232a31383f464d545b626970777e858c939aa1a8afb6bdc4cbd2d9
+	e0e7eef5fc030a11181f262d343b424950575e656c737a81888f969da4abb2b9
+	c0c7ced5dce3eaf1f8  ]]
+	ad = xts[[
+	00050a0f14191e23282d32373c41464b50555a5f64696e73787d82878c91969b
+	a0a5aaafb4b9be ]]
+	e = encrypt(k, iv, m, 0, ad)
+	assert(#e == #ad + #m + 16)
+	assert(e == ad .. xts[[ 
+	3e440c73993c55074d4749d6cd8ceddebb95ea8d2387062237349123c75959bf
+	a3ff44b18395a0bfc834d5f2de24845bffdba576afab00e798ad5a1666892883
+	73f84ead85eb77aa2d      f3166bbf6f94a1932b4b2471e8437206	]])
+	m2, err = decrypt(k, iv, e, 0, #ad)
+	assert(m2 == m)
 	--
 	end--do
-end--if
-	
+end--morus
 ------------------------------------------------------------------------
 if lz.argon2i then do
 	print("testing argon kdf...")
@@ -467,7 +489,7 @@ if lz.argon2i then do
 	assert(#k == 32)
 	print("argon2i (100MB, 10 iter) Execution time (sec): ", os.clock()-c0)
 	end--do
-end
+end--argon2i
 
 
 ------------------------------------------------------------------------

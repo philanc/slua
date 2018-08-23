@@ -61,7 +61,9 @@ Makefiles are also provided to build slua for armhf and Intel i586 (32-bit) arch
 
 Binary versions of slua are provided here for convenience. These are standalone executables, statically compiled with musl-1.1.18, for x86_64, i586 and armhf.
 
-*Dynamic linking version* - A makefile is provided to build 'sglua', a dynamic version of slua, with the same additional libraries statically linked and preloaded.  'sglua' has the same functions as slua (built-in linenoise line-editing, execution of appended lua code). It is intended to be built with the regular glibc (so the only runtime dependencies are libc, libm, libpthread and libdl). Additional C libraries can be loaded with 'require()'.
+### Dynamic linking version
+
+A makefile is provided to build 'sglua', a dynamic version of slua, with the same additional libraries statically linked and preloaded.  'sglua' is built with Glibc. It has the same functions as slua (built-in linenoise line-editing, execution of appended lua code). It is intended to be built with the regular glibc (so the only runtime dependencies are libc, libm, libpthread and libdl). Additional C libraries can be loaded with 'require()'.
 
 For 'sglua', the default Lua paths are slightly different:
 * `package.path:  "lua;./?/init.lua" `

@@ -27,16 +27,12 @@ It can be dropped and run from any directory, without interference or dynamic li
 
 On the other end, obviously, slua cannot load dynamic C libraries. It is *not* intended to be a replacement for a full fledged Lua installation.
 
-The default Lua paths ('package.path' and 'package.cpath') have been modified: 
-
-The default Lua path points only to the current directory, to minimize the risk of "catching" Lua files at the standard locations, intended to be used by a regular, installed Lua.
-
-The unused Lua cpath is empty.
+The default Lua paths ('package.path' and 'package.cpath') have been modified. They point only to the current directory, to minimize the risk of "catching" Lua files at the standard locations, intended to be used by a regular, installed Lua.
 
 * `package.path:  "./?.lua;./?/init.lua" `
-* `package.cpath: "" `
+* `package.cpath: "./?.so" ` (unused by slua)
 
-slua still respects the environment variable LUA_PATH.
+slua still respects the environment variables LUA_PATH and LUA_CPATH.
 
 ### Extension mechanism
 

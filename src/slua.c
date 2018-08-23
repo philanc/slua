@@ -11,7 +11,7 @@
 ///   - insert the "add linenoise support" block there
 ///   - insert "#include "sluacode.h" " after the do_chunk() definition
 ///   - in function pmain(), 
-///     insert  "if (do_slua_embedded_code(L) != LUA_OK) return 0; "
+///     insert  "if (do_slua_appended_code(L) != LUA_OK) return 0; "
 ///     after the call to createargtable()
 ///
 /// --------------------------------------------------------------------
@@ -272,7 +272,7 @@ static int dochunk (lua_State *L, int status) {
 
 
 /// --------------------------------------------------------
-/// slua mechanism to load embedded Lua code 
+/// slua mechanism to load appended Lua code 
 /// insert this block after dochunk() definition
 #include "sluacode.h"
 /// ------------------------------------------------------
@@ -609,11 +609,11 @@ static int pmain (lua_State *L) {
   createargtable(L, argv, argc, script);  /* create table 'arg' */
   
   ///-------------------------------
-  ///slua - run embedded code if any  (run after createargtable() 
-  ///       so that arg[0] is available for the embedded code)
-  if (do_slua_embedded_code(L) != LUA_OK)
-	  return 0; ///error running slua embedded code
-  ///slua - end of run embedded code
+  ///slua - run appended code if any  (run after createargtable() 
+  ///       so that arg[0] is available for the appended code)
+  if (do_slua_appended_code(L) != LUA_OK)
+	  return 0; ///error running slua appended code
+  ///slua - end of run appended code
   ///-------------------------------
   
   if (!(args & has_E)) {  /* no option '-E'? */

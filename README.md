@@ -23,9 +23,20 @@ slua is linked completely statically. It uses no dynamic library, not even libc.
 
 It can be used anywhere, whatever the platform dynamic linker. The Linux x86 version is built with the Musl C library which allows a very compact executable. If built in a x86 (32-bit) environment, it can be run on any Linux system (x86 or x86_64)
 
-It can be dropped and run from any directory, without interference or dynamic library incompatibilities.  Defaults paths ("package.path") are limited to the current directory to minimize the risk of "catching" Lua files at the standard locations, intended to be used by a regular, installed Lua.
+It can be dropped and run from any directory, without interference or dynamic library incompatibilities.  
 
 On the other end, obviously, slua cannot load dynamic C libraries. It is *not* intended to be a replacement for a full fledged Lua installation.
+
+The default Lua paths ('package.path' and 'package.cpath') have been modified: 
+
+The default Lua path points only to the current directory, to minimize the risk of "catching" Lua files at the standard locations, intended to be used by a regular, installed Lua.
+
+The unused Lua cpath is empty.
+
+* `package.path:  "./?.lua;./?/init.lua" `
+* `package.cpath: "" `
+
+slua still respects the environment variable LUA_PATH.
 
 ### Extension mechanism
 
@@ -38,27 +49,17 @@ The appended code can be written into the slua executable after compilation (see
 
 ### Installation
 
-To build slua on Linux, just adjust the 'Makefile' (eg. to compile with Musl libc, the CC variable must be set to the path of the 'musl-gcc' wrapper), run 'make' at the root of the source tree. 
+There is no installation. The slua executable is static. It can be placed and executed anywhere. 
 
-To build slua with the default glibc, do `make -f Makefile.glibc`. This builds a `sglua` executable dynamically linked with glibc, but with all the lua modules statically linked.
-
-There is no installation. The slua binary can be placed and executed anywhere. 
-
-The default Lua paths ('package.path' and 'package.cpath') have been modified. The default Lua path points only to the current directory, and the (unused) Lua cpath is empty.
-* `package.path:  "./?.lua;./?/init.lua" `
-* `package.cpath: "" `
-
-slua still respects the environment variable LUA_PATH.
-
-To build slua:
+To build slua on Linux, just adjust the 'Makefile' (eg. to compile with Musl libc, the CC variable must be set to the path of the 'musl-gcc' wrapper), run 'make' at the root of the source tree:
 ```
   # adjust the CC variable in the Makefile, then:
   make
 ```
-		
-Binary versions of slua are provided here for convenience. These are standalone executables, statically compiled with musl-1.1.18, for x86_64, i586 and armhf.
 
-*Musl libc* - A script is provided to fetch and build musl libc and the required Linux headers. See tools/build_musl.sh and comments at the beginning of the script.
+Makefiles are also provided to build slua for armhf and Intel i586 (32-bit) architectures. They use cross-compilation environments based on gcc-5.3.0, built with 'musl-cross-make' by Rich Felker (see https://github.com/richfelker/musl-cross-make)
+
+Binary versions of slua are provided here for convenience. These are standalone executables, statically compiled with musl-1.1.18, for x86_64, i586 and armhf.
 
 *Dynamic linking version* - A makefile is provided to build 'sglua', a dynamic version of slua, with the same additional libraries statically linked and preloaded.  'sglua' has the same functions as slua (built-in linenoise line-editing, execution of appended lua code). It is intended to be built with the regular glibc (so the only runtime dependencies are libc, libm, libpthread and libdl). Additional C libraries can be loaded with 'require()'.
 
@@ -71,17 +72,17 @@ To build sglua:
     make -f Makefile.glibc
 ```
 
-
-
 ### Package versions
 
 Lua 5.3.4 - http://www.lua.org/ftp/lua-5.3.4.tar.gz
 
-LuaFileSystem 1.6.3  - commit 6d039ff385 - https://github.com/keplerproject/luafilesystem
+LuaFileSystem 1.7.0 - https://github.com/keplerproject/luafilesystem
 
-The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
+Luazen 0.11 - https://github.com/philanc/luazen
 
-Musl libc - slua has been built against musl-1.1.10,  .16, and .18 on x86, and musl-1.1.12, .18 on arm.
+Linenoise - The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
+
+Musl libc - slua has been built against musl-1.1.18
 
 ### Modifications of the vanilla Lua
 
@@ -116,13 +117,18 @@ Other related projects
 - Luastatic -  https://github.com/ers35/luastatic
 - Omnia (based on Luastatic) - https://github.com/tongson/omnia
 
-### License
+### License and credits
 
 Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent). See LICENSE files in directories lua, and luafilesystem.
 
 The luazen library includes some code from various authors (see src/luazen):
-- Norx encryption from the Norx submission to Caesar - http://norx.io
-- curve25519, ed25519, blake2b, argon2i from Loup Vaillant's Monocypher - http://loup-vaillant.fr/projects/monocypher/
+- linenoise by Salvatore Sanfilippo - https://github.com/antirez/linenoise
+- lzf compression by Marc Alexander Lehmann - http://software.schmorp.de/pkg/liblzf.html
+- brieflz compression by Joergen Ibsen - https://github.com/jibsen/brieflz
+- norx encryption from the Caesar submission - http://norx.io
+- morus encryption from the Caesar submission - http://www3.ntu.edu.sg/home/wuhj/research/caesar/caesar.html
+- xchacha20/poly1305, blake2b, argon2i from Loup Vaillant's Monocypher - http://loup-vaillant.fr/projects/monocypher/
+- x25519, ed25519 and sha512 from tweetnacl - http://nacl.cr.yp.to/ 
 - base64 functions by Luiz Henrique de Figueiredo (public domain)
 - base58 functions by Luke Dashjr (MIT)
 - md5 by Cameron Rich (BSD)

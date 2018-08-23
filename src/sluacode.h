@@ -30,7 +30,9 @@ static int do_slua_appended_code(lua_State *L) {
 	unsigned char *slua_appended;
 	size_t r;
 	int lstatus;
-	char *name = "/proc/self/exe";
+	// char *name = "/proc/self/exe"; 
+	// use 'progname' already set here to argv[0]
+	char *name = (char *) progname;
 	size_t slua_append_offset = slua_append_indicator[20]
 			| (slua_append_indicator[21] << 8)
 			| (slua_append_indicator[22] << 16)
@@ -52,7 +54,8 @@ static int do_slua_appended_code(lua_State *L) {
 	r = fseek(f,slua_append_offset,SEEK_SET); 
 	if (r != 0) exiterr("cannot seek", name);
 	r = fread(slua_appended, 1, slua_append_length, f); 
-	// fprintf(stderr,"slua: read %d  expected %d\n", r, slua_append_length);
+	// fprintf(stderr,"slua: read %d  expected %d\n",
+	//	r, slua_append_length);
 	if (r != slua_append_length) exiterr("cannot read", name);
 	fclose(f); 
 	lstatus = dochunk(L, 

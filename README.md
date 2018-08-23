@@ -29,11 +29,11 @@ On the other end, obviously, slua cannot load dynamic C libraries. It is *not* i
 
 ### Extension mechanism
 
-It is possible to embed Lua source code or Lua compiled bytecode in the slua executable. The embedded code is run by slua before entering the Lua REPL  (this is similar to 'lua -i somecode.lua'). 
+It is possible to append Lua source code or Lua compiled bytecode to the slua executable. The appended code is run by slua before entering the Lua REPL and before processing the '-l' and '-e' options.
 
-If entering the REPL is not wanted, the embedded code can just be ended with "os.exit()".
+If entering the REPL is not wanted, the embedded code can just be ended with `os.exit()`.
 
-The embedded code is placed in an unsigned char array (see embed[] definition in src/sluacode.h).  It can be placed  at compile time or can be directly written into the slua executable after compilation (see test/embed_lua.lua)
+The appended code can be written into the slua executable after compilation (see test/append.lua). The loading mechanism is in src/sluacode.h. 
 
 
 ### Installation
@@ -48,12 +48,12 @@ The default Lua paths ('package.path' and 'package.cpath') have been modified. T
 * `package.path:  "./?.lua;./?/init.lua" `
 * `package.cpath: "" `
 
-slua still respects the environment variables LUA_PATH and LUA_CPATH.
+slua still respects the environment variable LUA_PATH.
 
 To build slua:
 ```
-	# adjust the CC variable in the Makefile, then:
-    make
+  # adjust the CC variable in the Makefile, then:
+  make
 ```
 		
 Binary versions of slua are provided here for convenience. These are standalone executables, statically compiled with musl-1.1.18, for x86_64, i586 and armhf.

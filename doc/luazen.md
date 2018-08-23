@@ -176,10 +176,10 @@ x25519_public_key(sk) => pk
 
 keypair() has been removed to eliminate hard dependency to 
 the included randombyte() function. It can be replaced with:
-		function keypair()
-			local sk = luazen.randombytes(32)
-			return luazen.ec25519_public_key(sk), sk
-		end
+	function keypair()
+		local sk = luazen.randombytes(32)
+		return luazen.ec25519_public_key(sk), sk
+	end
 
 x25519_shared_secret(sk, pk) => ss
 	DH key exchange. Return a common shared secret ss.
@@ -202,10 +202,10 @@ x25519_sign_public_key(sk) => pk
 
 sign_keypair() has been removed to eliminate hard dependency to 
 the included randombyte() function. It can be replaced with:
-		function keypair()
-			local sk = luazen.randombytes(32)
-			return luazen.ed25519_public_key(sk), sk
-		end
+	function keypair()
+		local sk = luazen.randombytes(32)
+		return luazen.ed25519_public_key(sk), sk
+	end
 
 x25519_sign(sk, pk, text) => signed text
 	sign a text with a secret key
@@ -296,6 +296,7 @@ The luazen library includes some code from various authors (see src/):
 - brieflz compression by Joergen Ibsen, BSD-like - see https://github.com/jibsen/brieflz
 - lzf functions by  Marc Alexander Lehmann (BSD, see src/lzf* headers)
 - blake2b, argon2i and xchacha20-poly1305 from Loup Vaillant's Monocypher library. Code is public domain - see http://loup-vaillant.fr/projects/monocypher/
+- morus from the reference implementation by Hongjun Wu and Tao Huang - see http://www3.ntu.edu.sg/home/wuhj/research/caesar/caesar.html
 - norx from the reference implementation by Samuel Neves and Philipp Jovanovic (public domain or CC0) - see https://norx.io/
 - x25519 (ec25519 DH secret exchange and ed25519 signature from tweetnacl, by Dan Bernstein, Tanja Lange et al. (public domain) - see http://nacl.cr.yp.to/  
 - base64 functions by Luiz Henrique de Figueiredo (public domain)

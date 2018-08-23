@@ -33,7 +33,7 @@ read(fd [, timeout])
 	timeout: an integer number of milliseconds (defaults to 10,000 - see
 	  DEFAULT_TIMEOUT in minisock.c)
 	the function reads up to BUFSIZE bytes (read uses an internal buffer
-	which is BUFSIZE bytes large)
+	which is BUFSIZE bytes large - default BUFSIZE value is 4,096)
 	return the bytes read as a string, or (nil, error msg) on error or 
 	timeout. The error msg includes the value of 'errno'.
 	

@@ -159,11 +159,13 @@ int minisock_connect(lua_State *L) {
 	if (rp == NULL) {  /* No address succeeded */
 		lua_pushnil (L);
 		lua_pushfstring (L, "connect error: %d  %d", n, errno);
+		freeaddrinfo(result);
 		return 2;      
 	}
 	//success, return connection socket fd
 	lua_pushinteger (L, cfd);
 	lua_pushlstring(L, (const char *)rp->ai_addr, rp->ai_addrlen);
+	freeaddrinfo(result);
 	return 2;
 } //minisock_connect
 

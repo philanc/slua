@@ -172,10 +172,10 @@ int minisock_connect(lua_State *L) {
 int minisock_write(lua_State *L) {
 	// Lua args:
 	//   fd: integer - socket descriptor
-	//   s: string - string to send
-	//   idx: integer - 
+	//   s: string - string containing bytes to send
+	//   idx: integer - index of the first byte in s to send
 	//   sbytes: integer - number of bytes to send 
-	//		(adjusted to idx and string length if too large)
+	//	(adjusted to idx and string length if too large)
 	int fd;
 	int n;
 	const char *s;
@@ -208,7 +208,7 @@ int minisock_read(lua_State *L) {
 	// Lua args:  
 	//    socket fd: integer
 	//    timeout: integer (in milliseconds)
-	//				(optional - defaults to DEFAULT_TIMEOUT)
+	//		(optional - defaults to DEFAULT_TIMEOUT)
 	// reads at most BUFSIZE bytes. 
 	// return the bytes read as a string, or (nil, error msg) 
 	// on error or timeout
@@ -270,7 +270,7 @@ int minisock_close(lua_State *L) {
 } //minisock_close
 
 int minisock_getpeername(lua_State *L) {
-	// get the address the peer a socket is connected to
+	// get the address of the peer connected to socket fd
 	// Lua args: socket file descriptor (as integer)
 	// returns the raw client address as a string,  or nil, errmsg	
 	int fd;
@@ -399,7 +399,7 @@ int minisock_msleep(lua_State *L) {
 		lua_pushfstring (L, "nanosleep error: %d", errno);
 		return 2;
 	}
-	//success, return socket addr
+	//success, return true
 	lua_pushboolean (L, 1);
 	return 1;
 } //minisock_msleep

@@ -1,4 +1,4 @@
-// Copyright (c) 2015  Phil Leblanc  -- see LICENSE file
+// Copyright (c) 2018  Phil Leblanc  -- see LICENSE file
 // ---------------------------------------------------------------------
 /* 
 
@@ -45,7 +45,7 @@ It can also easily be parsed with string.unpack:  eg. for a IPv4 address:
 #include "lualib.h"
 
 // ---------------------------------------------------------------------
-#define minisock_VERSION "0.3"
+#define minisock_VERSION "0.4"
 #define BUFSIZE 4096
 #define BACKLOG 32
 
@@ -86,17 +86,20 @@ int minisock_bind(lua_State *L) {
 	if (rp == NULL) {  /* No address succeeded */
 		lua_pushnil (L);
 		lua_pushfstring (L, "bind error: %d  %d", n, errno);
+		freeaddrinfo(result);
 		return 2;      
 	}
 	n = listen(sfd, BACKLOG);
 	if (n) {
 		lua_pushnil (L);
 		lua_pushfstring (L, "listen error: %d  %d", n, errno);
+		freeaddrinfo(result);
 		return 2;      
 	}
 	// success, return server socket fd
 	lua_pushinteger (L, sfd);
 	lua_pushlstring(L, (const char *)rp->ai_addr, rp->ai_addrlen);
+	freeaddrinfo(result);
 	return 2;
 } //minisock_bind
 
@@ -337,6 +340,8 @@ int minisock_getaddrinfo(lua_State *L) {
 		lua_settable(L, -3);
 		n += 1;
 	}	
+	// free the address list
+	freeaddrinfo(result);
 	// return the address table
 	return 1;
 } //minisock_getaddrinfo

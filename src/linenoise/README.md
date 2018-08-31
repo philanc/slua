@@ -1,10 +1,13 @@
-### linenoise
+# linenoise
 
-*"A minimal, zero-config, BSD licensed, readline replacement used in Redis, MongoDB, and Android."* - https://github.com/antirez/linenoise
+Linenoise is *"A minimal, zero-config, BSD licensed, readline replacement used in Redis, MongoDB, and Android."* - https://github.com/antirez/linenoise
+
+This is a Lua wrapper for the Linenoise library. It also includes some tty-related functions (get and set tty mode, test if a file descriptor is a tty, test if a key has been pressed).
 
 The version of linenoise included here has been both simplified (no support for multi-line edition and tab completion) and extended with a small Lua binding. It includes all the functions used by the regular Lua interpreter (see lua.c)
 
-Usage in Lua programs:
+### API
+
 ```
 --- Linenoise functions
 
@@ -22,6 +25,7 @@ gethistory()
 
 clearhistory()
 	empties the current history. return nothing
+
 
 --- Other tty functions
 

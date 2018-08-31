@@ -6,11 +6,11 @@
 
 ### linenoise
 
-See [linenoise.md](linenoise.md)
+A Lua wrapper for the Linenoise library (a lightweight alternative to readline). The Linenoise library itself is included and is used by this Lua. A few tty control functions have been added. See [linenoise.md](linenoise.md)
 
 ### luazen
 
-A small library with various encoding, compression and cryptographic functions. See [luazen.md](luazen.md)
+A small library with various encoding, compression and cryptographic functions. See [luazen README](../src/luazen/README.md)
 
 ### minisock
 

@@ -1,28 +1,66 @@
-### luazen
 
-*(Note that luazen is available as a standalone C module for Lua at https://github.com/philanc/luazen)*
-
+# luazen
 
 Luazen is a small library with various encoding, compression and 
 cryptographic functions. All the functions work on strings, there is no stream or chunked more complex interfaces.
 
+
+### Recent changes
+
+August-2018
+
+* Version 0.11 (hopefully the last API modification before v1.0).
+
+    - Blake2b API: removed the chunked interface ('init', 
+'update' and 'final' functions are combined in one 'blake2b' function).
+
+    - Morus API: switched parameters 'ad' and 'ninc' (homogenized API with Norx and XChacha).
+
+
+April-2018:  
+
+* The current version is now v0.10. Please note that the library has undergone significant modifications since version 0.9, both implementation and API. Moving toward a good and hopefully stable API before tagging the v1.0.
+
+    - The former version v0.9 is available [here](https://github.com/philanc/luazen/tree/v0.9) or can be installed with  	luazen-0.9-1.rockspec.
+
+* Added *Morus*, a finalist (round 4) in the CAESAR competition for authenticated encryption.
+
+* The Gimli functions which briefly appeared here have been removed.
+
+March-2018: moving toward v0.10 - some significant changes:
+
+* The code has been reorganized to make it easier to build variants of the library with an "a la carte" selection of modules
+
+* Some functions have been renamed (see API below)
+
+* Added  (X)Chacha20-Poly1305 authenticated encryption with additional data (AEAD)
+
+* all the curve25519 functions are based on the tweetnacl implementation
+
+* The ed25519 signature functions use sha512 instead of blake2b hash
+
+
+August-2017
+
+* Added the amazing *BriefLZ* compression functions.  
+
 ### Functions
 
-The compression functions are based on the tiny **LZF** library (see references in the readme). It is not as efficient as gzip, but much smaller and very fast.
+Compression functions include:
+- The tiny **LZF** library by  Marc Alexander Lehmann. It is not as efficient as gzip, but much smaller and very fast.
+- The amazing **BriefLZ** algorithm by Joergen Ibsen. It is a bit slower than LZF, but the code is even smaller and it achieves a much better compression ratio (better than gzip on some workloads).  It could completely replace LZF in future versions of luazen.
 
-Compression functions based on the amazing **BriefLZ** algorithm by Joergen Ibsen are also included. They are half as fast as LZF, but even smaller and with a much better compression ratio (better than gzip).  They could completely replace LZF in future versions of luazen.
-
-Endoding and decoding functions are provided for **base64** and **base58** (for base58, the BitCoin encoding alphabet is used)
+Endoding and decoding functions are provided for **base64** and **base58** (for base58, the BitCoin encoding alphabet is used).
 
 Cryptographic functions include:
 - **Morus**, a fast authenticated encryption algorithm with associated data (AEAD). Morus is a finalist (round 4) in the [CAESAR](http://competitions.cr.yp.to/caesar-submissions.html) competition. This is the Morus-1280 variant (160-byte state, 256 and 128-bit key, 128-bit nonce, optimized for 64-bit architectures). Its structure also makes it a very good fit for a [pure Lua implmentation](https://github.com/philanc/plc). 
 - **(X)Chacha20-Poly1305** authenticated encryption with additional data (AEAD). 
 - **Norx** authenticated encryption with additional data (AEAD) - this is the default 64-4-1 variant (256-bit key and nonce, 4 rounds)
 - **Blake2b**, **Sha512** cryptographic hash functions,
-- **Argon2i**, a modern key derivation function based on Blake2. Like 
+- **Argon2i**, a modern key derivation function based on Blake2b. Like 
 scrypt, it is designed to be expensive in both CPU and memory.
 - **Curve25519**-based key exchange and public key encryption,
-- **Ed25519**-based signature function.
+- **Ed25519**-based signature function
 
 Legacy cryptographic functions include **md5**,  and **rc4** (a config option allows to build luazen without the legacy functions)
 
@@ -287,6 +325,7 @@ randombytes(n)
 
 
 ```
+
 
 ### License and credits
 

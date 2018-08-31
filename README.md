@@ -9,8 +9,8 @@ Additional libraries are *pre-loaded*. They must be require()'d before use (see 
 
 - [lfs](https://keplerproject.github.io/luafilesystem/) - LuaFileSystem complements the set of file system functions offered by the standard Lua distribution.
 - [luazen](src/luazen/README.md), a small library with compression, encoding and encryption functions.
-- [minisock](../src/minisock/README.md),  a minimal socket library for tcp connections.
-- [linenoise](../src/linenoise/README.md) - slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications.
+- [minisock](src/minisock/README.md),  a minimal socket library for tcp connections.
+- [linenoise](src/linenoise/README.md) - slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications.
 
 (Note: the old luazen and tweetnacl libraries have been replaced by the new luazen library. The last slua version with the old luazen and tweetnacl is slua v0.6)
 

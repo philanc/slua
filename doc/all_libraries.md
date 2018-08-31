@@ -15,7 +15,7 @@ A small library with various encoding, compression and cryptographic functions. 
 ### minisock
 
 A minimal wrapper over sockets for tcp connections. 
-See [minisock.md](minisock.md)
+See [minisock README](../src/minisock/README.md)
 
 
 

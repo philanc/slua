@@ -1,6 +1,6 @@
 # Minisock
 
-A **minimal** Lua socket library for unix / tcp / udp connections, written and tested on Linux.
+[Minisock](https://github.com/philanc/minisock) is a **minimal** Lua socket library for unix / tcp / udp connections, written and tested on Linux.
 
 The level of functionality is sufficient for some simple applications, but is definitely more primitive than, for example, socket.core in LuaSocket. The API is very close to the standard Unix system calls.
 
@@ -83,7 +83,8 @@ close(fd)
 --- UDP sockets
 
 udpsocket([addr])
-	create a UDP socket. Optionnally bind it if an address is provided.
+	create a UDP Datagram socket. Optionnally bind it if an address 
+	is provided.
 	addr: the server sockaddr as a binary string. 
 	addr is optional. if addr is null or empty, an AF_INET socket 
 	is created and not bound. if addr is "\x0a", an AF_INET6 

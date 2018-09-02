@@ -94,8 +94,16 @@ minisock.a:  lua.a src/minisock/*.c
 clean:
 	rm -f slua sluac sglua *.o *.a *.so
 
+allbin:
+	make -f Makefile.armhf  clean
+	make -f Makefile.armhf 
+	make -f Makefile.i586 clean
+	make -f Makefile.i586
+	make clean
+	make 
+
 test:  slua
 	./slua test/test_luazen.lua
 	
-.PHONY: clean setbin smoketest test
+.PHONY: clean setbin smoketest test allbin
 

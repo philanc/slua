@@ -91,7 +91,7 @@ minisock.a:  lua.a src/minisock/*.c
 	rm -f *.o
 
 clean:
-	rm -f $(SLUAEXE) $(SLUACEXE) sglua *.o *.a *.so
+	rm -f $(SLUAEXE) $(SLUACEXE) *.o *.a
 
 setbin:
 	md5sum slua >bin/slua.md5	

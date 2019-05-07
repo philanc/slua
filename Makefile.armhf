@@ -1,21 +1,21 @@
-# Makefile.armhf
 #
 # Build a completely static 'slua' on Linux with the Musl C library 
-# for the armhf architecture
+# for target $ARCH (see below)
 #
-# This uses a cross-compilation environment based on gcc-5.3.0
+# This uses a cross-compilation environment 
 # built with 'musl-cross-make' by Rich Felker.
 # See https://github.com/richfelker/musl-cross-make
 #
-# The resulting slua is tested (smoketest.lua) with qemu-arm
+# The resulting slua is tested (smoketest.lua) 
 # on the x86_64 build platform
 #
 # ----------------------------------------------------------------------
 
-SLUAEXE=slua-armhf
-SLUACEXE=sluac-armhf
+ARCH=armhf
+SLUAEXE=slua-$(ARCH)
+SLUACEXE=sluac-$(ARCH)
 
-CROSS= /opt/cross-armhf/bin/arm-linux-musleabihf
+CROSS= /opt/cross/bin/arm-linux-musleabihf
 
 CC= $(CROSS)-gcc
 AR= $(CROSS)-ar
@@ -27,8 +27,7 @@ CFLAGS= -Os -Isrc/lua/ \
         -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG \
 ##	-DNOARGON -DNOLEGACY
 	
-LDFLAGS=
-
+LDFLAGS= 
 
 # list of additional libraries 
 # (lua, linenoise and slua are not included here)
@@ -48,6 +47,10 @@ LUAZEN_O=    \
 	lzf.o md5.o morus.o norx.o random.o rc4.o x25519.o xor.o 
 			 
 MINISOCK_O=  minisock.o
+
+# smoke test is performed with qemu-arm
+# to just build the slua executable, do:
+#   make -f Makefile.armhf slua
 
 smoketest:  slua
 	qemu-arm $(SLUAEXE) test/smoketest.lua
@@ -97,8 +100,8 @@ setbin:
 	md5sum slua >bin/slua.md5	
 	cp slua bin/
 	
-#test:  slua
-#	./slua test/test_luazen.lua
+test:  $(SLUAEXE)
+	./$(SLUAEXE) test/test_luazen.lua
 	
 .PHONY: clean setbin smoketest test
 

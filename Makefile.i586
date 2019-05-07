@@ -1,9 +1,8 @@
-# Makefile.i586
 #
 # Build a completely static 'slua' on Linux with the Musl C library 
-# for the intel i586 architecture (ELF 32-bit)
+# for target $ARCH (see below)
 #
-# This uses a cross-compilation environment based on gcc-5.3.0
+# This uses a cross-compilation environment 
 # built with 'musl-cross-make' by Rich Felker.
 # See https://github.com/richfelker/musl-cross-make
 #
@@ -12,10 +11,11 @@
 #
 # ----------------------------------------------------------------------
 
-SLUAEXE=slua-i586
-SLUACEXE=sluac-i586
+ARCH=i586
+SLUAEXE=slua-$(ARCH)
+SLUACEXE=sluac-$(ARCH)
 
-CROSS= /opt/cross-i586/bin/i586-linux-musl
+CROSS= /opt/cross/bin/$(ARCH)-linux-musl
 
 CC= $(CROSS)-gcc
 AR= $(CROSS)-ar

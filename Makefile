@@ -18,6 +18,9 @@
 # note: to build with glibc or uClibc, must add " -lpthread -lm " at 
 # the end of the link lines for slua and sluac.
 #
+# to build statically with all extension modules but dynamically 
+# with glibc, do:   make -f Makefile.glibc
+# the resulting executable is named 'sglua'
 #
 # ----------------------------------------------------------------------
 

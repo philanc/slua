@@ -51,9 +51,9 @@ To build slua on Linux, just adjust the 'Makefile' (eg. to compile with Musl lib
   make
 ```
 
-Makefiles are also provided to build slua for armhf and Intel i586 (32-bit) architectures. They use cross-compilation environments based on gcc-5.3.0, built with 'musl-cross-make' by Rich Felker (see https://github.com/richfelker/musl-cross-make)
+Makefiles are also provided to build slua for armhf and Intel i586 (32-bit) architectures. They use cross-compilation environments based on gcc-6.4.0, built with 'musl-cross-make' by Rich Felker (see https://github.com/richfelker/musl-cross-make)
 
-Binary versions of slua are provided here for convenience. These are standalone executables, statically compiled with musl-1.1.18, for x86_64, i586 and armhf.
+Binary versions of slua are provided here for convenience. These are standalone executables, statically compiled with musl-1.1.22, for x86_64, i586 and armhf.
 
 ### Dynamic linking version
 

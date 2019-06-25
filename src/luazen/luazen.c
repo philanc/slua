@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Phil Leblanc  -- see LICENSE file
+// Copyright (c) 2019 Phil Leblanc  -- see LICENSE file
 // ---------------------------------------------------------------------
 // luazen crypto, encoding and compression library
 
@@ -6,7 +6,7 @@
 // lua binding
 
 #define LIBNAME luazen
-#define VERSION "luazen-0.11"
+#define VERSION "luazen-0.12"
 
 #include <assert.h>
 
@@ -71,6 +71,9 @@ static int llib_append(const char *fname, lua_CFunction func) {
 	llib_append(#NAME, ll_ ## NAME);
 
 static void llib_init() {
+	// must reinitialize llib_top each time llib_init is called
+	llib_top = 0;
+	
 	// luazen function declarations - comment APPEND lines to 
 	// remove functions from the luazen build
 	//
@@ -92,6 +95,10 @@ static void llib_init() {
 	// from lzf.c
 	APPEND(lzf)
 	APPEND(unlzf)
+	//
+	// from lzmaa.c
+	APPEND(lzma)
+	APPEND(unlzma)
 	//
 	// from norx.c
 	APPEND(norx_encrypt)
@@ -129,7 +136,11 @@ static void llib_init() {
 	// from morus.c
 	APPEND(morus_encrypt)
 	APPEND(morus_decrypt)
-	APPEND(morus_hash)
+	APPEND(morus_xof)
+	//
+	// from ascon.c
+	APPEND(ascon_encrypt)
+	APPEND(ascon_decrypt)
 	//
 
 	//

@@ -1,3 +1,4 @@
+
 #
 # Build a completely static 'slua' on Linux with the Musl C library 
 # for target $ARCH (see below)
@@ -7,11 +8,15 @@
 # See https://github.com/richfelker/musl-cross-make
 #
 # The resulting slua is tested (smoketest.lua) 
-# on the x86_64 build platform
+# on the x86_64 build platform with qemu-arm 
+# (qemu arm emulator in user mode)
 #
 # ----------------------------------------------------------------------
 
+LUA= lua-5.3.5
+
 ARCH=armhf
+
 SLUAEXE=slua-$(ARCH)
 SLUACEXE=sluac-$(ARCH)
 
@@ -22,86 +27,33 @@ AR= $(CROSS)-ar
 LD= $(CROSS)-ld
 STRIP= $(CROSS)-strip
 
-CFLAGS= -Os -Isrc/lua/ \
-		-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
-        -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG \
-##	-DNOARGON -DNOLEGACY
+CFLAGS= -Os -Isrc/$(LUA)/ \
+	-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
+        -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG
 	
 LDFLAGS= 
-
-# list of additional libraries 
-# (lua, linenoise and slua are not included here)
-SLUALIBS= lfs.a luazen.a minisock.a 
-
-SLUA_O=      slua.o linit.o 
-LUA_O=       \
-	lapi.o lcode.o ldebug.o lgc.o lmem.o loslib.o lstrlib.o lundump.o  \
-	lauxlib.o lcorolib.o ldo.o liolib.o loadlib.o lparser.o ltable.o   \
-	lutf8lib.o lbaselib.o lctype.o ldump.o llex.o lobject.o lstate.o   \
-	ltablib.o lvm.o lbitlib.o ldblib.o lfunc.o lmathlib.o lopcodes.o   \
-	lstring.o ltm.o lzio.o
-LINENOISE_O= linenoise.o 
-LFS_O=       lfs.o
-LUAZEN_O=    \
-	base58.o base64.o blake2b.o blz.o chacha.o luazen.o \
-	lzf.o md5.o morus.o norx.o random.o rc4.o x25519.o xor.o 
 			 
-MINISOCK_O=  minisock.o
-
-# smoke test is performed with qemu-arm
-# to just build the slua executable, do:
-#   make -f Makefile.armhf slua
-
 smoketest:  slua
-	qemu-arm $(SLUAEXE) test/smoketest.lua
+	qemu-arm  ./slua  test/smoketest.lua
 
-slua:  slua.a lua.a linenoise.a $(SLUALIBS)
-	$(CC) -static -o $(SLUAEXE) $(LDFLAGS) slua.a linenoise.a $(SLUALIBS) lua.a
-	$(STRIP) $(SLUAEXE)
-
-slua.a:  lua.a linenoise.a src/slua.c src/linit.c  
-	$(CC) -c $(CFLAGS) -Isrc/linenoise/ src/*.c
-	$(AR) rc slua.a $(SLUA_O)
-	rm -f *.o
-
-lua.a:  src/lua/*.c src/lua/*.h
-	$(CC) -c $(CFLAGS) src/lua/*.c
-	$(AR) rc lua.a $(LUA_O)
-	# build also the lua compiler before removing the .o files
-	$(CC) -static -o $(SLUACEXE) luac.o lua.a
-	$(STRIP) $(SLUACEXE)
-	
-	rm -f *.o
-
-linenoise.a:  lua.a src/linenoise/*.c src/linenoise/*.h
-	$(CC) -c $(CFLAGS) src/linenoise/*.c
-	$(AR) rc linenoise.a $(LINENOISE_O)
-	rm -f *.o
-
-lfs.a:  lua.a src/lfs/*.c src/lfs/*.h
-	$(CC) -c $(CFLAGS) src/lfs/*.c
-	$(AR) rc lfs.a $(LFS_O)
-	rm -f *.o
-
-luazen.a:  lua.a src/luazen/*.c src/luazen/*.h
+slua:  src/$(LUA)/*.c src/$(LUA)/*.h  src/luazen/*.c src/*.c src/*.h
+	#~ $(CC) -c $(CFLAGS) src/$(LUA)/*.c
+	$(CC) -c $(CFLAGS) -DMAKE_LIB  src/*.c
 	$(CC) -c $(CFLAGS) src/luazen/*.c
-	$(AR) rc luazen.a $(LUAZEN_O)
+	$(AR) rcu slua.a *.o
+	$(CC) -static -o slua $(LDFLAGS) slua.o slua.a
+	$(STRIP) slua
 	rm -f *.o
 
-minisock.a:  lua.a src/minisock/*.c
-	$(CC) -c $(CFLAGS) src/minisock/*.c
-	$(AR) rc minisock.a $(MINISOCK_O)
-	rm -f *.o
+sluac:
+	$(CC) -static -o sluac -DMAKE_LUAC $(CFLAGS) $(LDFLAGS) src/one.c
+	$(STRIP) sluac
 
 clean:
-	rm -f $(SLUAEXE) $(SLUACEXE) *.o *.a
+	rm -f slua sluac sglua *.o *.a *.so
 
-setbin:
-	md5sum slua >bin/slua.md5	
-	cp slua bin/
+test:  slua
+	./slua test/test_luazen.lua
 	
-test:  $(SLUAEXE)
-	./$(SLUAEXE) test/test_luazen.lua
-	
-.PHONY: clean setbin smoketest test
+.PHONY: clean setbin smoketest test allbin
 

@@ -1,23 +1,5 @@
-/// slua.c  
-/// this is a copy of the regular 'lua.c' file 
-/// All slua-specific modifications are flagged 
-/// with comments starting with '///' 
-/// Modifications are:
-///   - use of linenoise for interactive input, 
-///   - mechanism to load append an appended Lua extension
-///
-/// To build slua from a new Lua version,
-///   - comment out all the "#if !defined(lua_readline)" block
-///   - insert the "add linenoise support" block there
-///   - insert "#include "sluacode.h" " after the do_chunk() definition
-///   - in function pmain(), 
-///     insert  "if (do_slua_appended_code(L) != LUA_OK) return 0; "
-///     after the call to createargtable()
-///
-/// --------------------------------------------------------------------
-
 /*
-** $Id: lua.c,v 1.230 2017/01/12 17:14:26 roberto Exp $
+** $Id: lua.c,v 1.230.1.1 2017/04/19 17:29:57 roberto Exp $
 ** Lua stand-alone interpreter
 ** See Copyright Notice in lua.h
 */
@@ -167,7 +149,7 @@ static void print_usage (const char *badoption) {
   "Available options are:\n"
   "  -e stat  execute string 'stat'\n"
   "  -i       enter interactive mode after executing 'script'\n"
-  "  -l name  require library 'name'\n"
+  "  -l name  require library 'name' into global 'name'\n"
   "  -v       show version information\n"
   "  -E       ignore environment variables\n"
   "  --       stop handling options\n"
@@ -269,14 +251,6 @@ static int dochunk (lua_State *L, int status) {
   if (status == LUA_OK) status = docall(L, 0, 0);
   return report(L, status);
 }
-
-
-/// --------------------------------------------------------
-/// slua mechanism to load appended Lua code 
-/// insert this block after dochunk() definition
-#include "sluacode.h"
-/// ------------------------------------------------------
-
 
 
 static int dofile (lua_State *L, const char *name) {
@@ -606,16 +580,28 @@ static int pmain (lua_State *L) {
     lua_setfield(L, LUA_REGISTRYINDEX, "LUA_NOENV");
   }
   luaL_openlibs(L);  /* open standard libraries */
+  
+  	/// preload libraries
+	luaL_getsubtable(L, LUA_REGISTRYINDEX, "_PRELOAD");
+	/// l5
+	int luaopen_l5(lua_State *L); 
+	lua_pushcfunction(L, luaopen_l5);
+	lua_setfield(L, -2, "l5");
+	/// luazen
+	int luaopen_luazen(lua_State *L); 
+	lua_pushcfunction(L, luaopen_luazen);
+	lua_setfield(L, -2, "luazen");
+	/// linenoise
+	int luaopen_linenoise(lua_State *L); 
+	lua_pushcfunction(L, luaopen_linenoise);
+	lua_setfield(L, -2, "linenoise");
+	///
+	/// remove _PRELOAD table
+	lua_pop(L, 1);
+  
+  
+  
   createargtable(L, argv, argc, script);  /* create table 'arg' */
-  
-  ///-------------------------------
-  ///slua - run appended code if any  (run after createargtable() 
-  ///       so that arg[0] is available for the appended code)
-  if (do_slua_appended_code(L) != LUA_OK)
-	  return 0; ///error running slua appended code
-  ///slua - end of run appended code
-  ///-------------------------------
-  
   if (!(args & has_E)) {  /* no option '-E'? */
     if (handle_luainit(L) != LUA_OK)  /* run LUA_INIT */
       return 0;  /* error running LUA_INIT */

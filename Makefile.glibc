@@ -1,88 +1,69 @@
 
-# Build sglua - a slua with its extension libraries statically linked,
-# dynamically linked with glibc. sglua supports dynamic loading
-# of other libraries as .so files.
+# Build a completely static 'slua' on Linux with the Musl C library 
+# (with the 'musl-gcc' wrapper provided with Musl C)
 #
+# This build requires only
+#   - the musl libc installed with the linux headers
+#   - make, gcc and associated tools
 #
+# A script building the musl libc and its gcc wrapper is available
+# in directory 'tools'. Check it before using it! :-)
+#
+# Building statically with Glibc:  TL;DR: Don't do it.  :-)
+# The l5 library requires functions that cannot be linked 
+# statically (getaddrinfo, gethostbyaddr, gesthostbyname). 
+# In addition, the executable would be _much_ larger with Glibc,
+# eg.  988KB with glibc vs 326KB with musl libc.
 # 
-# note: to build with glibc or uClibc, must add " -lpthread -lm -ldl " at 
+# note: to build with glibc or uClibc, must add " -lpthread -lm " at 
 # the end of the link lines for slua and sluac.
+#
 #
 # ----------------------------------------------------------------------
 
-CC= gcc
+CC= /opt/musl/bin/musl-gcc
 AR= ar
 
-# note: don't use  -DSLUA_DYNLINK to link statically the extension libs
-CFLAGS= -Os -Isrc/lua/ -DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
-         -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG  \
-		 -DLUA_USE_DLOPEN
+LUA= lua-5.3.5
+
+CFLAGS= -Os -Isrc/$(LUA)/ \
+		-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
+        -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG \
+
+
 LDFLAGS= 
 
 
-# list of additional libraries 
-# (lua, linenoise and slua are not included here)
-SLUALIBS= lfs.a luazen.a minisock.a
+			 
+smoketest:  slua
+	./slua  test/smoketest.lua
 
-
-SLUA_O=      slua.o linit.o 
-LUA_O=       \
-	lapi.o lcode.o ldebug.o lgc.o lmem.o loslib.o lstrlib.o lundump.o  \
-	lauxlib.o lcorolib.o ldo.o liolib.o loadlib.o lparser.o ltable.o   \
-	lutf8lib.o lbaselib.o lctype.o ldump.o llex.o lobject.o lstate.o   \
-	ltablib.o lvm.o lbitlib.o ldblib.o lfunc.o lmathlib.o lopcodes.o   \
-	lstring.o ltm.o lzio.o
-LINENOISE_O= linenoise.o 
-LFS_O=       lfs.o
-LUAZEN_O=    \
-	base58.o base64.o blake2b.o blz.o chacha.o luazen.o \
-	lzf.o md5.o morus.o norx.o random.o rc4.o x25519.o xor.o 
-
-MINISOCK_O=      minisock.o
-
-smoketest:  sglua
-	./sglua  test/smoketest_g.lua
-
-sglua:  slua.a lua.a linenoise.a $(SLUALIBS)
-	$(CC)  -o sglua $(LDFLAGS) slua.a linenoise.a $(SLUALIBS) lua.a \
-	   -Wl,-E -lpthread -lm -ldl
-	strip sglua
-
-slua.a:  lua.a linenoise.a src/slua.c src/linit.c 
-	$(CC) -c $(CFLAGS) -Isrc/linenoise/ src/*.c
-	$(AR) rcu slua.a $(SLUA_O)
-	rm -f *.o
-
-lua.a:  src/lua/*.c src/lua/*.h
-	$(CC) -c $(CFLAGS) src/lua/*.c
-	$(AR) rcu lua.a $(LUA_O)
-	rm -f *.o
-
-linenoise.a:  lua.a src/linenoise/*.c src/linenoise/*.h
-	$(CC) -c $(CFLAGS) src/linenoise/*.c
-	$(AR) rcu linenoise.a $(LINENOISE_O)
-	rm -f *.o
-
-lfs.a:  lua.a src/lfs/*.c src/lfs/*.h
-	$(CC) -c $(CFLAGS) src/lfs/*.c
-	$(AR) rcu lfs.a $(LFS_O)
-	rm -f *.o
-
-luazen.a:  lua.a src/luazen/*.c src/luazen/*.h
+slua:  src/$(LUA)/*.c src/$(LUA)/*.h  src/luazen/*.c src/*.c src/*.h
+	#~ $(CC) -c $(CFLAGS) src/$(LUA)/*.c
+	$(CC) -c $(CFLAGS) -DMAKE_LIB  src/*.c
 	$(CC) -c $(CFLAGS) src/luazen/*.c
-	$(AR) rcu luazen.a $(LUAZEN_O)
+	$(AR) rcu slua.a *.o
+	$(CC) -static -o slua $(LDFLAGS) slua.o slua.a
+	strip slua
 	rm -f *.o
 
-minisock.a:  lua.a src/minisock/*.c
-	$(CC) -c $(CFLAGS) src/minisock/*.c
-	$(AR) rcu minisock.a $(MINISOCK_O)
-	rm -f *.o
+sluac:
+	$(CC) -static -o sluac -DMAKE_LUAC $(CFLAGS) $(LDFLAGS) src/one.c
+	strip sluac
 
 clean:
 	rm -f slua sluac sglua *.o *.a *.so
 
-test: sglua
-	./sglua test/test_luazen.lua
+allbin:
+	make -f Makefile.armhf  clean
+	make -f Makefile.armhf 
+	make -f Makefile.i586 clean
+	make -f Makefile.i586
+	make clean
+	make 
+
+test:  slua
+	./slua test/test_luazen.lua
 	
-.PHONY: clean setbin smoketest test
+.PHONY: clean setbin smoketest test allbin
 

@@ -1,14 +1,5 @@
 #!/bin/sh
 
-#
-# The script below is left for reference.
-# the simplest way to build slua with musl libc for several targets
-# is to use Rich Felker's "musl-cross-make" solution.
-#
-# see  https://github.com/richfelker/musl-cross-make
-#
-
-
 # build musl-1.1.14
 #
 # tested 2016-04-15 on a i386 32-bit linux with gcc 4.7.1

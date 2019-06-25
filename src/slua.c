@@ -580,8 +580,10 @@ static int pmain (lua_State *L) {
     lua_setfield(L, LUA_REGISTRYINDEX, "LUA_NOENV");
   }
   luaL_openlibs(L);  /* open standard libraries */
-  
-  	/// preload libraries
+
+
+/// ==================================================================  
+/// preloaded libraries
 	luaL_getsubtable(L, LUA_REGISTRYINDEX, "_PRELOAD");
 	/// l5
 	int luaopen_l5(lua_State *L); 
@@ -599,6 +601,8 @@ static int pmain (lua_State *L) {
 	/// remove _PRELOAD table
 	lua_pop(L, 1);
   
+  /// end of preloaded libraries
+  /// ==================================================================
   
   
   createargtable(L, argv, argc, script);  /* create table 'arg' */

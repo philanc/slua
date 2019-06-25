@@ -1,0 +1,59 @@
+
+#
+# Build a completely static 'slua' on Linux with the Musl C library 
+# for target $ARCH (see below)
+#
+# This uses a cross-compilation environment 
+# built with 'musl-cross-make' by Rich Felker.
+# See https://github.com/richfelker/musl-cross-make
+#
+# The resulting slua is tested (smoketest.lua) 
+# on the x86_64 build platform
+#
+#
+# ----------------------------------------------------------------------
+
+LUA= lua-5.3.5
+
+ARCH=x86_64
+
+SLUAEXE=slua-$(ARCH)
+SLUACEXE=sluac-$(ARCH)
+
+CROSS= /opt/cross/bin/$(ARCH)-linux-musl
+
+CC= $(CROSS)-gcc
+AR= $(CROSS)-ar
+LD= $(CROSS)-ld
+STRIP= $(CROSS)-strip
+
+CFLAGS= -Os -Isrc/$(LUA)/ \
+	-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
+        -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG
+	
+LDFLAGS= 
+			 
+smoketest:  slua
+	./slua  test/smoketest.lua
+
+slua:  src/$(LUA)/*.c src/$(LUA)/*.h  src/luazen/*.c src/*.c src/*.h
+	#~ $(CC) -c $(CFLAGS) src/$(LUA)/*.c
+	$(CC) -c $(CFLAGS) -DMAKE_LIB  src/*.c
+	$(CC) -c $(CFLAGS) src/luazen/*.c
+	$(AR) rcu slua.a *.o
+	$(CC) -static -o slua $(LDFLAGS) slua.o slua.a
+	$(STRIP) slua
+	rm -f *.o
+
+sluac:
+	$(CC) -static -o sluac -DMAKE_LUAC $(CFLAGS) $(LDFLAGS) src/one.c
+	$(STRIP) sluac
+
+clean:
+	rm -f slua sluac sglua *.o *.a *.so
+
+test:  slua
+	./slua test/test_luazen.lua
+	
+.PHONY: clean setbin smoketest test allbin
+

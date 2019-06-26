@@ -21,13 +21,22 @@
 #
 # ----------------------------------------------------------------------
 
-CC= /opt/musl/bin/musl-gcc
-AR= ar
+# if GCC is the musl wrapper, CROSS must be empty; else GCC=gcc
+GCC= /opt/musl/bin/musl-gcc
+CROSS=
+
+CC= $(CROSS)$(GCC)
+AR= $(CROSS)ar
+LD= $(CROSS)ld
+STRIP= $(CROSS)strip
+
+# is used to run the test (empty for x86, or e.g. qemu-arm for arm)
+RUN=
 
 LUA= lua-5.3.5
 
 CFLAGS= -Os -Isrc/$(LUA)/ \
-		-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
+	-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
         -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG \
 
 
@@ -65,7 +74,7 @@ LZFUNCS= -DBASE64 -DLZMA -DBLAKE -DX25519 -DMORUS
 # ----------------------------------------------------------------------
 
 smoketest:  slua
-	./slua  test/smoketest.lua
+	$(RUN) ./slua  test/smoketest.lua
 
 slua:  src/$(LUA)/*.c src/$(LUA)/*.h  src/luazen/*.c src/*.c src/*.h
 	#~ $(CC) -c $(CFLAGS) src/$(LUA)/*.c
@@ -73,23 +82,25 @@ slua:  src/$(LUA)/*.c src/$(LUA)/*.h  src/luazen/*.c src/*.c src/*.h
 	$(CC) -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
 	$(AR) rcu slua.a *.o
 	$(CC) -static -o slua $(LDFLAGS) slua.o slua.a
-	strip slua
+	$(STRIP) slua
 	rm -f *.o
 
 sluac:
 	$(CC) -static -o sluac -DMAKE_LUAC $(CFLAGS) $(LDFLAGS) src/one.c
-	strip sluac
+	$(STRIP) sluac
 
 clean:
 	rm -f slua sluac sglua *.o *.a *.so
 
 allbin:
-	make -f Makefile.armhf  clean
-	make -f Makefile.armhf smoketest sluac
+	make clean 
+	make smoketest sluac RUN=qemu-arm \
+		GCC=gcc CROSS=/opt/cross/bin/arm-linux-musleabihf-
 	mv slua bin/slua-armhf
 	mv sluac bin/sluac-armhf
-	make -f Makefile.i586 clean
-	make -f Makefile.i586 smoketest sluac
+	make clean
+	make smoketest sluac \
+		GCC=gcc CROSS=/opt/cross/bin/i586-linux-musl-
 	mv slua bin/slua-i586
 	mv sluac bin/sluac-i586
 	make clean
@@ -98,7 +109,7 @@ allbin:
 	cp sluac bin/sluac
 
 test:  slua
-	./slua test/test_luazen.lua
+	$(RUN)./slua test/test_luazen.lua
 	
 .PHONY: clean setbin smoketest test allbin
 

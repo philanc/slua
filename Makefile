@@ -92,17 +92,24 @@ sluac:
 clean:
 	rm -f slua sluac sglua *.o *.a *.so
 
-allbin:
-	make clean 
-	make smoketest sluac RUN=qemu-arm \
-		GCC=gcc CROSS=/opt/cross/bin/arm-linux-musleabihf-
-	mv slua bin/slua-armhf
-	mv sluac bin/sluac-armhf
+i586:
 	make clean
 	make smoketest sluac \
 		GCC=gcc CROSS=/opt/cross/bin/i586-linux-musl-
 	mv slua bin/slua-i586
 	mv sluac bin/sluac-i586
+
+arm:
+	make clean 
+	make smoketest sluac \
+		RUN=qemu-arm \
+		GCC=gcc CROSS=/opt/cross/bin/arm-linux-musleabihf-
+	mv slua bin/slua-armhf
+	mv sluac bin/sluac-armhf
+
+allbin: 
+	make i586
+	make arm
 	make clean
 	make smoketest sluac
 	cp slua bin/slua
@@ -111,5 +118,5 @@ allbin:
 test:  slua
 	$(RUN)./slua test/test_luazen.lua
 	
-.PHONY: clean setbin smoketest test allbin
+.PHONY: clean setbin smoketest test i586 arm allbin
 

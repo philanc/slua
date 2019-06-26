@@ -20,14 +20,42 @@ CFLAGS= -Os -Isrc/$(LUA)/ \
 
 LDFLAGS= 
 
+# ----------------------------------------------------------------------
+# luazen modular build: 
+# the following constants can be defined to include
+# the corresponding functions in the luazen library:
+#
+#   BASE64     Base64 encode/decode
+#   BASE58     Base58 encode/decode
+#   BLZ        BriefLZ compress/uncompress
+#   LZF        LZF compress/uncompress
+#   LZMA       LZMA compress/uncompress
+#   NORX       Norx AEAD encrypt/decrypt
+#   CHACHA     Xchacha20 AEAD encrypt/decrypt
+#   RC4        RC4 encrypt/decrypt
+#   MD5        MD5 hash
+#   BLAKE      Blake2b hash, Argon2i key derivation
+#   SHA2       SHA2-512 hash
+#   X25519     Ec25519 key exchange and ed25519 signature functions
+#   MORUS      Morus AEAD encrypt/decrypt
+#   ASCON      Ascon128a AEAD encrypt/decrypt
+#
+# the list of functions for the default build:
 
-			 
+LZFUNCS= -DBASE64 -DLZMA -DBLAKE -DX25519 -DMORUS
+       
+# not included by default: 
+#	-DBASE58 -DBLZ -DLZF 
+#	-DNORX -DCHACHA -DRC4 -DMD5 -DSHA2 -DASCON 
+#       
+# ----------------------------------------------------------------------
+
 smoketest:  sglua
 	./sglua  test/smoketest.lua
 
 sglua:  src/$(LUA)/*.c src/$(LUA)/*.h  src/luazen/*.c src/*.c src/*.h
 	$(CC) -c $(CFLAGS) -DMAKE_LIB  src/*.c
-	$(CC) -c $(CFLAGS) src/luazen/*.c
+	$(CC) -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
 	$(AR) rcu slua.a *.o
 	$(CC) -o sglua $(LDFLAGS) slua.o slua.a  -Wl,-E -lpthread -lm -ldl
 	strip ./sglua

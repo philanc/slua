@@ -42,6 +42,10 @@ To build slua on Linux, just adjust the 'Makefile' (eg. to compile with Musl lib
   make
 ```
 
+The Makefile supports luazen modular build:  Constants can be defined at compile time to include the corresponding functions in the luazen library. Check the Makefile and src.luazen/luazen.c.
+
+Default build includes only the following luazen functions: base64 encode/decode, LZMA compress/uncompress, blake2b hash, argon2i key derivation, morus AEAD encrypt/decrypt, ec25519 key exchange and ed25519 signature functions. Change variable LZFUNCS in the makefiles to add or remove more functions.
+
 Makefiles are also provided to build slua for armhf and Intel i586 (32-bit) architectures. They use cross-compilation environments based on gcc-6.4.0, built with 'musl-cross-make' by Rich Felker (see https://github.com/richfelker/musl-cross-make)
 
 Binary versions of slua (and sluac, the Lua bytecode compiler) are provided here for convenience. These are standalone executables, statically compiled with musl-1.1.22, for x86_64, i586 and armhf.

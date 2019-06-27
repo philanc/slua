@@ -17,7 +17,7 @@ slua is linked completely statically. It uses no dynamic library, not even libc.
 
 It can be used anywhere, whatever the platform dynamic linker. The Linux x86 version is built with the Musl C library which allows a very compact executable. If the i586 version is built, it can be run on any Linux system (x86 or x86_64)
 
-It can be dropped and run from any directory, without interference or dynamic library incompatibilities.  
+It can be dropped and run from any directory, without interference with the local dynamic libraries and linker.  
 
 On the other end, obviously, slua cannot load dynamic C libraries. It is *not* intended to be a replacement for a full fledged Lua installation.
 
@@ -52,7 +52,6 @@ The makefile also allows to build slua for armhf and Intel i586 (32-bit) archite
   make arm
   make i586
 ```
-
 
 Binary versions of slua (and sluac, the Lua bytecode compiler) are provided here for convenience. These are standalone executables, statically compiled with musl-1.1.22, for x86_64, i586 and armhf. They are built with cross-compilation environments based on gcc-6.4.0, setup with 'musl-cross-make' by Rich Felker (see https://github.com/richfelker/musl-cross-make)
 
@@ -110,14 +109,16 @@ Other related projects
 
 ### License and credits
 
-Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent). See LICENSE files in directories lua, and luafilesystem.
+Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent). See LICENSE files in the ./src directory.
 
 The luazen library includes some code from various authors (see src/luazen):
 - linenoise by Salvatore Sanfilippo - https://github.com/antirez/linenoise
 - lzf compression by Marc Alexander Lehmann - http://software.schmorp.de/pkg/liblzf.html
 - brieflz compression by Joergen Ibsen - https://github.com/jibsen/brieflz
+- lzma compression by Igor Pavlov - https://www.7-zip.org/sdk.html
 - norx encryption from the Caesar submission - http://norx.io
 - morus encryption from the Caesar submission - http://www3.ntu.edu.sg/home/wuhj/research/caesar/caesar.html
+- ascon encryption from the Caesar submission - https://ascon.iaik.tugraz.at/
 - xchacha20/poly1305, blake2b, argon2i from Loup Vaillant's Monocypher - http://loup-vaillant.fr/projects/monocypher/
 - x25519, ed25519 and sha512 from tweetnacl - http://nacl.cr.yp.to/ 
 - base64 functions by Luiz Henrique de Figueiredo (public domain)

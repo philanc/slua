@@ -74,7 +74,7 @@ Luazen 0.12 - https://github.com/philanc/luazen
 
 L5 0.2 - https://github.com/philanc/l5
 
-Linenoise - The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
+Linenoise - The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been simplified to keep only functions used by Lua and extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
 
 Musl libc - slua has been built against musl-1.1.22
 
@@ -83,7 +83,7 @@ Musl libc - slua has been built against musl-1.1.22
 src/lua/luaconf.h:
 - modification of LUA_PATH_DEFAULT and LUA_CPATH_DEFAULT
 
-- lua.c is not used. It is replaced with src/slua.c. The only differences between lua.c and slua.c are the replacement of the readline interface with linoise, and the addition of the preloaded libraries (look for "preloaded libraries", close to the end of the slua.c)
+- lua.c is not used. It is replaced with src/slua.c. The only differences between lua.c and slua.c are the replacement of the readline interface with linenoise, and the addition of the preloaded libraries (look for "preloaded libraries", close to the end of the slua.c)
 
 - replacement of readline with linenoise
 

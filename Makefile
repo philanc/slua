@@ -106,7 +106,17 @@ arm:
 		GCC=gcc CROSS=/opt/cross/bin/arm-linux-musleabihf-
 	mv slua bin/slua-armhf
 	mv sluac bin/sluac-armhf
-
+	
+sglua:
+	rm -f slua sluac sglua *.o *.a *.so
+	gcc -c $(CFLAGS) -DLUA_USE_DLOPEN -DMAKE_LIB  src/*.c
+	gcc -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
+	ar rcu slua.a *.o
+	gcc -o sglua $(LDFLAGS) slua.o slua.a  -Wl,-E -lpthread -lm -ldl
+	strip ./sglua
+	$(RUN) ./sglua  test/smoketest_g.lua
+	rm -f *.o *.a	
+	
 allbin: 
 	make i586
 	make arm
@@ -118,5 +128,5 @@ allbin:
 test:  slua
 	$(RUN)./slua test/test_luazen.lua
 	
-.PHONY: clean setbin smoketest test i586 arm allbin
+.PHONY: clean smoketest test i586 arm sglua allbin
 

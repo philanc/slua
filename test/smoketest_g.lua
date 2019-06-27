@@ -8,9 +8,11 @@ end
 
 print("\nsglua - a dynamic build of Lua 5.3 with some preloaded libraries:")
 for i, lib in ipairs(keys(package.preload)) do
-	kl = keys(require(lib))
-	print(string.format("%-15s %3d functions and constants", lib, #kl))
---~  	print("...", table.concat(keys(require(lib)), ", "))
+	l = require(lib)
+	kl = keys(l)
+	print(string.format(
+		"%-15s %3d functions and constants (version: %s)", 
+		lib, #kl, (l.VERSION or l._VERSION)))
 end
 
 

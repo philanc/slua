@@ -60,21 +60,32 @@ static void store32_le(uint8_t out[4], uint32_t in) {
 int ll_lzma(lua_State *L) {
 	// Lua API:  compress(s) => c
 	// compress string s, return compressed string c
-	// or nil, error msg in case of error
+	// or nil, error msg, lzma error number -- in case of error
 	//
 	size_t sln, cln, bufln, propssize;
 	int r;
 	const char *s = luaL_checklstring(L, 1, &sln);	
 	assert(sln < 0xffffffff); // fit a uint32
-	// bufln is arbitrary. plan for very short input (+32),
-	// uncompressible input (+12.5% -- sln>>3 ie div 8)
-	// uncompressed size (+4)
-	// lzma_props_size (+5)
-	bufln = sln + (sln >> 3) + 1024; 
-	char * buf = lua_newuserdata(L, bufln);
-	r = LzmaCompress(buf+4+LZMA_PROPS_SIZE, &cln, s, sln,
-		buf+4, &propssize,
-		5, // level -- default values for all following params
+	
+	// allocate compression buffer:
+	// bufln is buffer length. suggested value is input size + 11% +16kb
+	// (we use 'sln + sln>>3', ie input length +12.5%)
+	bufln = sln + (sln >> 3) + 16384; 
+	unsigned char * buf = lua_newuserdata(L, bufln);
+
+	// propssize _MUST_ be initialized before calling LzmaCompress
+	propssize = LZMA_PROPS_SIZE; // = 5
+	
+	// input buffer contains:
+	//	- input string length stored little endian (4 bytes)
+	//	- LZMA props: LZMA_PROPS_SIZE bytes (ie 5 bytes)
+	//	- compressed output (at offset = 4 + LZMA_PROPS_SIZE)
+	//
+	r = LzmaCompress(
+		buf+4+LZMA_PROPS_SIZE, &cln,  // dest, destlen
+		s, sln, // src, srclen
+		buf+4, &propssize, // props, propslen
+		5, // level -- default values for this and following params
 		(1<<24), // dict size
 		3, 	// lc
 		0, 	// lp
@@ -82,13 +93,15 @@ int ll_lzma(lua_State *L) {
 		32, 	// fb
 		1	// numthreads
 		);
+	
 	if (r != 0) {
 		lua_pushnil (L);
 		lua_pushliteral(L, "lzma error");
 		lua_pushinteger(L, r);
 		return 3;         
 	}
-	// prefix compressed string with original s length (stored as LE)
+	
+	// prefix compressed string with original s length (little endian)
 	store32_le(buf, sln);
 	lua_pushlstring (L, buf, cln + 4 + LZMA_PROPS_SIZE); 	
 	return 1;

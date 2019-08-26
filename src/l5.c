@@ -24,6 +24,7 @@ This is for Lua 5.3+ only, built with default 64-bit integers
 #include <sys/ioctl.h>	// ioctl
 #include <poll.h>	// poll
 #include <time.h>	// nanosleep
+#include <utime.h>	// utime
 #include <sys/socket.h>	// socket..
 #include <netdb.h>	// getaddrinfo
 #include <signal.h>	// kill
@@ -366,21 +367,29 @@ static int ll_lstat3(lua_State *L) {
 }
 
 static int ll_lstat(lua_State *L) {
-	// lua api: lstatraw(path, tbl, [,statflag:int])
-	// tbl is a table that is to be filled with stat values
-	// indices in tbl: dev=1 ino=2 mode=3 nlink=4 uid=5 gid=6
-	// rdev=7 size=8 blksize=9 blocks=10 atime=11 mtime=12 ctime=13
-	// if statflag=1: do stat(). default: do lstat
+	// lua api: lstat(path, what, [,statflag:int])
+	// what is either a table that is to be filled with stat values,
+	// or the id of an attribute to be returned
+	// indices in tbl or attribute ids are:
+	// dev=1 ino=2 mode=3 nlink=4 uid=5 gid=6 rdev=7 
+	// size=8 blksize=9 blocks=10 atime=11 mtime=12 ctime=13
+	// if statflag=1: use stat(). default: use lstat
 	// return tbl
 	struct stat buf;
 	int r;
+	lua_Integer what = 0;
 	const char *pname = luaL_checkstring(L, 1);
-	// ensure second arg is a table (LUA_TTABLE=5, see lua.h)
-	luaL_checktype(L, 2, 5);
+	if (lua_isinteger(L, 2)) {
+		what = luaL_checkinteger(L, 2);
+	} else {
+		// here, ensure second arg is a table
+		luaL_checktype(L, 2, LUA_TTABLE);
+	}
 	lua_Integer statflag = luaL_optinteger(L, 3, 0);
 	if (statflag != 0) r = stat(pname, &buf);
 	else r = lstat(pname, &buf);
 	if (r == -1) return nil_errno(L); 
+	if (what > 0) goto one_attr;
 	lua_pushvalue(L, 2); // ensure tbl is top of stack - set values:
 	lua_pushinteger(L, buf.st_dev); lua_rawseti(L, -2, 1);
 	lua_pushinteger(L, buf.st_ino); lua_rawseti(L, -2, 2);
@@ -396,6 +405,36 @@ static int ll_lstat(lua_State *L) {
 	lua_pushinteger(L, buf.st_mtim.tv_sec); lua_rawseti(L, -2, 12);
 	lua_pushinteger(L, buf.st_ctim.tv_sec); lua_rawseti(L, -2, 13);
 	return 1;
+	one_attr:  
+	switch(what) {
+		case 1: lua_pushinteger(L, buf.st_dev); break;
+		case 2: lua_pushinteger(L, buf.st_ino); break;
+		case 3: lua_pushinteger(L, buf.st_mode); break;
+		case 4: lua_pushinteger(L, buf.st_nlink); break;
+		case 5: lua_pushinteger(L, buf.st_uid); break;
+		case 6: lua_pushinteger(L, buf.st_gid); break;
+		case 7: lua_pushinteger(L, buf.st_rdev); break;
+		case 8: lua_pushinteger(L, buf.st_size); break;
+		case 9: lua_pushinteger(L, buf.st_blksize); break;
+		case 10: lua_pushinteger(L, buf.st_blocks); break;
+		case 11: lua_pushinteger(L, buf.st_atim.tv_sec); break;
+		case 12: lua_pushinteger(L, buf.st_mtim.tv_sec); break;
+		case 13: lua_pushinteger(L, buf.st_ctim.tv_sec); break;
+	}
+	return 1;
+}//ll_lstat
+
+static int ll_utime(lua_State *L) {
+	// lua api:  utime(pathname, time) => true | nil, errno
+	// set file atime and mtime
+	// time is optional (defaults to current time)
+	//
+	const char *pname = luaL_checkstring(L, 1);
+	long long time = luaL_optinteger(L, 2, -1);
+	struct utimbuf times;
+	times.actime = time;
+	times.modtime = time;
+	return int_or_errno(L, utime(pname, (time==-1) ? NULL : &times));
 }
 
 static int ll_chown(lua_State *L) {
@@ -823,6 +862,7 @@ static const struct luaL_Reg l5lib[] = {
 	{"readlink", ll_readlink},
 	{"lstat3", ll_lstat3},
 	{"lstat", ll_lstat},
+	{"utime", ll_utime},
 	{"chown", ll_chown},
 	{"chmod", ll_chmod},
 	{"symlink", ll_symlink},

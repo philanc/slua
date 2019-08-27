@@ -15,29 +15,10 @@
 #include "lua.h"
 #include "lauxlib.h"
 
-
-/// include LzmaLib source (from lzma/C)
-
+// single thread (no multi-thread support)
 #define _7ZIP_ST
 
-#include "lzma/7zTypes.h"
-#include "lzma/Compiler.h"
-#include "lzma/Alloc.h"
-#include "lzma/Alloc.c"
-#include "lzma/LzHash.h"
-#include "lzma/LzFind.h"
-#include "lzma/LzFind.c"
-
-// MOVE_POS is defined in LzFind.c _and_ in LzmaEnc.c
-#undef MOVE_POS
-
-#include "lzma/LzmaDec.h"
-#include "lzma/LzmaEnc.h"
-#include "lzma/LzmaDec.c"
-#include "lzma/LzmaEnc.c"
 #include "lzma/LzmaLib.h"
-#include "lzma/LzmaLib.c"
-
 
 
 //----------------------------------------------------------------------
@@ -73,8 +54,9 @@ int ll_lzma(lua_State *L) {
 	bufln = sln + (sln >> 3) + 16384; 
 	unsigned char * buf = lua_newuserdata(L, bufln);
 
-	// propssize _MUST_ be initialized before calling LzmaCompress
+	// cln, propssize _MUST_ be initialized before calling LzmaCompress
 	propssize = LZMA_PROPS_SIZE; // = 5
+	cln = bufln - 4 - LZMA_PROPS_SIZE; // max available space in buf
 	
 	// input buffer contains:
 	//	- input string length stored little endian (4 bytes)

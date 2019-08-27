@@ -80,6 +80,7 @@ slua:  src/$(LUA)/*.c src/$(LUA)/*.h  src/luazen/*.c src/*.c src/*.h
 	#~ $(CC) -c $(CFLAGS) src/$(LUA)/*.c
 	$(CC) -c $(CFLAGS) -DMAKE_LIB  src/*.c
 	$(CC) -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
+	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/luazen/lzma/*.c
 	$(AR) rcu slua.a *.o
 	$(CC) -static -o slua $(LDFLAGS) slua.o slua.a
 	$(STRIP) slua

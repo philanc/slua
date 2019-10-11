@@ -1,38 +1,55 @@
 
-# Build a completely static 'slua' on Linux with the Musl C library 
-# (with the 'musl-gcc' wrapper provided with Musl C)
+# slua build makefile
+
+# To build musl libc-based executables on your current platform, 
+# with the default gcc compiler, use instructions for 
+# the _musl-gcc wrapper_ at https://www.musl-libc.org/how.html
 #
-# This build requires only
-#   - the musl libc installed with the linux headers
-#   - make, gcc and associated tools
+# To build a complete gcc-based cross-compile toolchain, the easiest
+# solution is to use 'musl-cross-make' by Rich Felker at
+# https://github.com/richfelker/musl-cross-make
 #
-# A script building the musl libc and its gcc wrapper is available
-# in directory 'tools'. Check it before using it! :-)
+# The binaries provided here are built with 'musl-cross-make'-based
+# toolchains for x86_64, i586 and armhf
 #
-# Building statically with Glibc:  TL;DR: Don't do it.  :-)
-# The l5 library requires functions that cannot be linked 
-# statically (getaddrinfo, gethostbyaddr, gesthostbyname). 
-# In addition, the executable would be _much_ larger with Glibc,
-# eg.  988KB with glibc vs 326KB with musl libc.
-# 
-# note: to build with glibc or uClibc, must add " -lpthread -lm " at 
-# the end of the link lines for slua and sluac.
-#
-#
+
+
+# note: to build with glibc (or uClibc), must add " -lpthread -lm " at 
+# the end of the link lines for slua and sluac (see the sglua target)
+
+
 # ----------------------------------------------------------------------
 
-# if GCC is the musl wrapper, CROSS must be empty; else GCC=gcc
+# the following variables contain the prefix for the toolchain tools
+# built with 'musl-cross-make' (see above).
+# they are used repectively in x64, i586, arm targets
+#
+CROSS_X64=/opt/cross/bin/x86_64-linux-musl-
+CROSS_I586=/opt/cross/bin/i586-linux-musl-
+CROSS_ARM=/opt/cross/bin/arm-linux-musleabihf-
+
+# the following variables indicate how to invoke the slua executable 
+# for tests. They assume that make is run on a x86_64 platform, so
+# x64 an i586 can be run natively, and arm is run through Qemu
+#
+RUN_X64=
+RUN_I586=
+RUN_ARM=qemu-arm
+
+# if the default compiler is used with the musl-gcc wrapper,
+# CROSS and RUN must be empty, and GCC is the path to the wrapper script
+# else GCC=gcc
+#
 GCC= /opt/musl/bin/musl-gcc
 CROSS=
+RUN=
 
 CC= $(CROSS)$(GCC)
 AR= $(CROSS)ar
 LD= $(CROSS)ld
 STRIP= $(CROSS)strip
 
-# is used to run the test (empty for x86, or e.g. qemu-arm for arm)
-RUN=
-
+# LUA is the src/ subdirectory where Lua sources can be found
 LUA= lua-5.3.5
 
 CFLAGS= -Os -Isrc/$(LUA)/ \
@@ -44,9 +61,9 @@ LDFLAGS=
 
 
 # ----------------------------------------------------------------------
-# luazen modular build: 
+# luazen modular build (see luazen at https://github.com/philanc/luazen)
 # the following constants can be defined to include
-# the corresponding functions in the luazen library:
+# the corresponding functions in the builtin luazen library:
 #
 #   BASE64     Base64 encode/decode
 #   BASE58     Base58 encode/decode
@@ -67,17 +84,17 @@ LDFLAGS=
 
 LZFUNCS= -DBASE64 -DLZMA -DBLAKE -DX25519 -DMORUS
        
-# not included by default: 
+# not included in the default build: 
 #	-DBASE58 -DBLZ -DLZF 
 #	-DNORX -DCHACHA -DRC4 -DMD5 -DSHA2 -DASCON 
 #       
+
 # ----------------------------------------------------------------------
 
 smoketest:  slua
 	$(RUN) ./slua  test/smoketest.lua
 
 slua:  src/$(LUA)/*.c src/$(LUA)/*.h  src/luazen/*.c src/*.c src/*.h
-	#~ $(CC) -c $(CFLAGS) src/$(LUA)/*.c
 	$(CC) -c $(CFLAGS) -DMAKE_LIB  src/*.c
 	$(CC) -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
 	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/luazen/lzma/*.c
@@ -93,41 +110,42 @@ sluac:
 clean:
 	rm -f slua sluac sglua *.o *.a *.so
 
+x64:
+	make clean
+	make smoketest sluac \
+		GCC=gcc CROSS=$(CROSS_X64) RUN=$(RUN_X64)
+	mv slua bin/slua-x64
+	mv sluac bin/sluac-x64
+
 i586:
 	make clean
 	make smoketest sluac \
-		GCC=gcc CROSS=/opt/cross/bin/i586-linux-musl-
+		GCC=gcc CROSS=$(CROSS_I586) RUN=$(RUN_I586)
 	mv slua bin/slua-i586
 	mv sluac bin/sluac-i586
 
 arm:
 	make clean 
 	make smoketest sluac \
-		RUN=qemu-arm \
-		GCC=gcc CROSS=/opt/cross/bin/arm-linux-musleabihf-
+		GCC=gcc CROSS=$(CROSS_ARM) RUN=$(RUN_ARM)
 	mv slua bin/slua-armhf
 	mv sluac bin/sluac-armhf
-	
+
 sglua:
 	rm -f slua sluac sglua *.o *.a *.so
 	gcc -c $(CFLAGS) -DLUA_USE_DLOPEN -DMAKE_LIB  src/*.c
 	gcc -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
+	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/luazen/lzma/*.c
 	ar rcu slua.a *.o
 	gcc -o sglua $(LDFLAGS) slua.o slua.a  -Wl,-E -lpthread -lm -ldl
 	strip ./sglua
 	$(RUN) ./sglua  test/smoketest_g.lua
 	rm -f *.o *.a	
 	
-allbin: 
-	make i586
-	make arm
-	make clean
-	make smoketest sluac
-	cp slua bin/slua
-	cp sluac bin/sluac
+allbin: x64 i586 arm clean
 
 test:  slua
 	$(RUN)./slua test/test_luazen.lua
 	
-.PHONY: clean smoketest test i586 arm sglua allbin
+.PHONY: clean smoketest test x64 i586 arm sglua allbin
 

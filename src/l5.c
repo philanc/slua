@@ -8,7 +8,7 @@ This is for Lua 5.3+ only, built with default 64-bit integers
 
 */
 
-#define L5_VERSION "L5-0.2"
+#define L5_VERSION "l5-0.3"
 
 // _GNU_SOURCE needed in glibc to declare accept4() in sys/socket.h
 #define _GNU_SOURCE  	

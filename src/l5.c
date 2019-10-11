@@ -10,6 +10,9 @@ This is for Lua 5.3+ only, built with default 64-bit integers
 
 #define L5_VERSION "L5-0.2"
 
+// _GNU_SOURCE needed in glibc to declare accept4() in sys/socket.h
+#define _GNU_SOURCE  	
+
 #include <stdlib.h>	// setenv
 #include <stdio.h>
 #include <string.h>
@@ -25,6 +28,8 @@ This is for Lua 5.3+ only, built with default 64-bit integers
 #include <poll.h>	// poll
 #include <time.h>	// nanosleep
 #include <utime.h>	// utime
+
+ 
 #include <sys/socket.h>	// socket..
 #include <netdb.h>	// getaddrinfo
 #include <signal.h>	// kill
@@ -227,6 +232,11 @@ static int ll_close(lua_State *L) {
 	return int_or_errno(L, close(fd));
 }
 
+static int ll_fsync(lua_State *L) {
+	int fd = luaL_checkinteger(L, 1);
+	return int_or_errno(L, fsync(fd));
+}
+
 static int ll_read(lua_State *L) { 
 	// lua api:  read(fd [, cnt]) => str
 	// attempt to read cnt bytes 
@@ -249,7 +259,7 @@ static int ll_write(lua_State *L) {
 	// so write(fd, str) attempts to write all bytes in str.
 	// return number of bytes actually written, or nil, errno
 	int fd = luaL_checkinteger(L, 1);
-	int64_t len, idx, count;
+	size_t len, idx, count;
 	const char *str = luaL_checklstring(L, 2, &len);	
 	idx = luaL_optinteger(L, 3, 1);
 	count = len + idx - 1;
@@ -642,11 +652,19 @@ static int ll_listen(lua_State *L) {
 }
 
 static int ll_accept(lua_State *L) {
-	// lua_api: accept(fd) => cfd
+	// lua_api: accept(fd, flags) => cfd
+	// this uses the accept4() variant of accept(), allowing to pass
+	// flags for the new socket creation. flags defaults to 0.
+	// return (client fd, client sockaddr), or (nil, errmsg)
 	int fd = luaL_checkinteger(L, 1);
+	int flags = luaL_optinteger(L, 2, 0);
 	struct sockaddr addr;
 	socklen_t len = sizeof(addr); //enough for ip4&6 addr
-	return int_or_errno(L, accept(fd, &addr, &len));
+	int cfd = accept4(fd, &addr, &len, flags);
+	if (cfd == -1) return nil_errno(L);
+	lua_pushinteger(L, cfd);
+	lua_pushlstring(L, (const char *)&addr, len);
+	return 2;
 }
 
 static int ll_connect(lua_State *L) {
@@ -700,7 +718,7 @@ static int ll_sendto(lua_State *L) {
 	// of remaining bytes in string.
 	// flags is an OR of all the MSG_* flags defined in sys/socket.h
 	// return number of bytes actually sent, or nil, errno
-	int64_t len, idx, count, salen;
+	size_t len, idx, count, salen;
 	int n;
 	struct sockaddr *sa;
 	int fd = luaL_checkinteger(L, 1);
@@ -723,7 +741,7 @@ static int ll_send(lua_State *L) {
 	// of remaining bytes in string.
 	// flags is an OR of all the MSG_* flags defined in sys/socket.h
 	// return number of bytes actually sent, or nil, errno
-	int64_t len, idx, count;
+	size_t len, idx, count;
 	int n;
 	int fd = luaL_checkinteger(L, 1);
 	const char *str = luaL_checklstring(L, 2, &len);	
@@ -849,6 +867,7 @@ static const struct luaL_Reg l5lib[] = {
 	//
 	{"open", ll_open},
 	{"close", ll_close},
+	{"fsync", ll_fsync},
 	{"read", ll_read},
 	{"write", ll_write},
 	{"dup2", ll_dup2},

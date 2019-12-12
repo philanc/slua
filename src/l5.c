@@ -772,7 +772,7 @@ static int ll_getpeername(lua_State *L) {
 	int fd = luaL_checkinteger(L, 1);
 	struct sockaddr addr;
 	socklen_t len = sizeof(addr); //enough for ip4&6 addr
-	int n = getsockname(fd, &addr, &len);
+	int n = getpeername(fd, &addr, &len);
 	if (n == -1) return nil_errno(L);
 	RET_STRN((char *)&addr, len);
 }

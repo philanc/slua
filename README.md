@@ -8,7 +8,7 @@ Additional libraries are *pre-loaded*. They must be require()'d before use.
 ### Preloaded libraries
 
 - [luazen](https://github.com/philanc/luazen), a small library with compression, encoding and cryptographic functions.
-- [l5](https://github.com/philanc/l5), a minimal binding to low-level OS function for Linux (mostly basic Linux system calls, eg. open(2), ioctl(2), poll(2), socket I/O, etc.)
+- [l5](https://github.com/philanc/l5), a minimal binding to low-level OS function for Linux (mostly basic Linux system calls, eg. open(2), ioctl(2), poll(2), socket I/O, etc. -- see a list of [l5 available functions](https://github.com/philanc/l5#available-functions))
 - [linenoise](src/linenoise.md) - slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications.
 
 ### Static build

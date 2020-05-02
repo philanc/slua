@@ -1,7 +1,7 @@
 
 # slua
 
-A static build of [Lua](http://www.lua.org/) 5.3 for Linux, with a few extension libraries.
+A static build of [Lua](http://www.lua.org/) 5.4 for Linux, with a few extension libraries.
 
 Additional libraries are *pre-loaded*. They must be require()'d before use.
 
@@ -67,11 +67,11 @@ To build sglua:
 
 ### Package versions
 
-Lua 5.3.5 - http://www.lua.org/ftp/lua-5.3.5.tar.gz
+Lua 5.4.0-rc2 - http://www.lua.org/work/lua-5.4.0-rc2.tar.gz
 
-Luazen 0.12 - https://github.com/philanc/luazen
+Luazen 0.15 - https://github.com/philanc/luazen
 
-L5 0.2 - https://github.com/philanc/l5
+L5 0.5 - https://github.com/philanc/l5
 
 Linenoise - The full *readline* library is not used. It is replaced by the much smaller *linenoise* library.  The linenoise implementation included here has been simplified to keep only functions used by Lua and extended to include a Lua binding. It is derived from Linenoise v1.0 - commit 027dbce - https://github.com/antirez/linenoise
 

@@ -53,7 +53,7 @@ STRIP= $(CROSS)strip
 #LUA= lua-5.3.5
 LUA= lua-5.4.0rc2
 
-CFLAGS= -Os -Isrc/$(LUA)/  -DLUA_USE_LINUX
+CFLAGS= -Os -Isrc/$(LUA)/src  -DLUA_USE_LINUX
 
 
 LDFLAGS= 
@@ -93,8 +93,8 @@ LZFUNCS= -DBASE64 -DLZMA -DBLAKE -DX25519 -DMORUS
 smoketest:  slua
 	$(RUN) ./slua  test/smoketest.lua
 
-slua:  src/$(LUA)/*.c src/$(LUA)/*.h  src/luazen/*.c src/*.c src/*.h
-	$(CC) -c $(CFLAGS)  src/$(LUA)/*.c
+slua:  src/$(LUA)/src/*.c src/$(LUA)/src/*.h src/$(LUA)/*.c src/luazen/*.c src/*.c src/*.h
+	$(CC) -c $(CFLAGS)  src/$(LUA)/src/*.c
 	$(CC) -c $(CFLAGS) src/l5.c src/linenoise.c 
 	$(CC) -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
 	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/luazen/lzma/*.c
@@ -103,8 +103,8 @@ slua:  src/$(LUA)/*.c src/$(LUA)/*.h  src/luazen/*.c src/*.c src/*.h
 	$(STRIP) slua
 	rm -f *.o
 
-sluac:
-	$(CC) -static -o sluac $(CFLAGS) $(LDFLAGS) src/luac.c slua.a
+sluac: slua
+	$(CC) -static -o sluac $(CFLAGS) $(LDFLAGS) src/$(LUA)/luac.c slua.a
 	$(STRIP) sluac
 
 clean:
@@ -133,12 +133,13 @@ arm:
 
 sglua:
 	rm -f slua sluac sglua *.o *.a *.so
-	gcc -c $(CFLAGS) src/$(LUA)/*.c
+	gcc -c $(CFLAGS) src/$(LUA)/src/*.c
 	gcc -c $(CFLAGS) src/l5.c src/linenoise.c
 	gcc -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
 	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/luazen/lzma/*.c
 	ar rcu slua.a *.o
-	gcc -o sglua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a  -Wl,-E -lpthread -lm -ldl
+	gcc -o sglua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a  \
+		-Wl,-E -lpthread -lm -ldl
 	strip ./sglua
 	$(RUN) ./sglua  test/smoketest_g.lua
 	rm -f *.o *.a	

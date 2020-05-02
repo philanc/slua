@@ -6,7 +6,8 @@ local function keys(t)
 	return st
 end
 
-print("\nslua - a static build of Lua 5.3 with some preloaded libraries:")
+print("\nslua - a static build of " ..
+		_VERSION .. " with some preloaded libraries:")
 for i, lib in ipairs(keys(package.preload)) do
 	l = require(lib)
 	kl = keys(l)

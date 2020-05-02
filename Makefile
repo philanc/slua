@@ -50,11 +50,10 @@ LD= $(CROSS)ld
 STRIP= $(CROSS)strip
 
 # LUA is the src/ subdirectory where Lua sources can be found
-LUA= lua-5.3.5
+#LUA= lua-5.3.5
+LUA= lua-5.4.0rc2
 
-CFLAGS= -Os -Isrc/$(LUA)/ \
-	-DLUA_USE_POSIX -DLUA_USE_STRTODHEX \
-        -DLUA_USE_AFORMAT -DLUA_USE_LONGLONG \
+CFLAGS= -Os -Isrc/$(LUA)/  -DLUA_USE_LINUX
 
 
 LDFLAGS= 
@@ -95,16 +94,17 @@ smoketest:  slua
 	$(RUN) ./slua  test/smoketest.lua
 
 slua:  src/$(LUA)/*.c src/$(LUA)/*.h  src/luazen/*.c src/*.c src/*.h
-	$(CC) -c $(CFLAGS) -DMAKE_LIB  src/*.c
+	$(CC) -c $(CFLAGS)  src/$(LUA)/*.c
+	$(CC) -c $(CFLAGS) src/l5.c src/linenoise.c 
 	$(CC) -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
 	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/luazen/lzma/*.c
 	$(AR) rcu slua.a *.o
-	$(CC) -static -o slua $(LDFLAGS) slua.o slua.a
+	$(CC) -static -o slua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a
 	$(STRIP) slua
 	rm -f *.o
 
 sluac:
-	$(CC) -static -o sluac -DMAKE_LUAC $(CFLAGS) $(LDFLAGS) src/one.c
+	$(CC) -static -o sluac $(CFLAGS) $(LDFLAGS) src/luac.c slua.a
 	$(STRIP) sluac
 
 clean:
@@ -133,11 +133,12 @@ arm:
 
 sglua:
 	rm -f slua sluac sglua *.o *.a *.so
-	gcc -c $(CFLAGS) -DLUA_USE_DLOPEN -DMAKE_LIB  src/*.c
+	gcc -c $(CFLAGS) src/$(LUA)/*.c
+	gcc -c $(CFLAGS) src/l5.c src/linenoise.c
 	gcc -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
 	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/luazen/lzma/*.c
 	ar rcu slua.a *.o
-	gcc -o sglua $(LDFLAGS) slua.o slua.a  -Wl,-E -lpthread -lm -ldl
+	gcc -o sglua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a  -Wl,-E -lpthread -lm -ldl
 	strip ./sglua
 	$(RUN) ./sglua  test/smoketest_g.lua
 	rm -f *.o *.a	

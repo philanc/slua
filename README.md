@@ -1,11 +1,13 @@
 
 # slua
 
-A static build of [Lua](http://www.lua.org/) 5.4 for Linux, with a few extension libraries.
+A static build of [Lua](http://www.lua.org/) 5.4 for Linux, with a few extension libraries. Binaries are provided for x86_64, i586 and armhf.
 
-Additional libraries are *pre-loaded*. They must be require()'d before use.
+A static build with Lua 5.3.5 is also available. Check out branch "5.3.5".
 
 ### Preloaded libraries
+
+Additional libraries are *pre-loaded*. They must be require()'d before use.
 
 - [luazen](https://github.com/philanc/luazen), a small library with compression, encoding and cryptographic functions.
 - [l5](https://github.com/philanc/l5), a minimal binding to low-level OS function for Linux (mostly basic Linux system calls, eg. open(2), ioctl(2), poll(2), socket I/O, etc. -- see a list of [l5 available functions](https://github.com/philanc/l5#available-functions))

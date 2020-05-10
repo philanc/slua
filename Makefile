@@ -51,7 +51,7 @@ STRIP= $(CROSS)strip
 
 # LUA is the src/ subdirectory where Lua sources can be found
 #LUA= lua-5.3.5
-LUA= lua-5.4.0rc2
+LUA= lua-5.4.0rc3
 
 CFLAGS= -Os -Isrc/$(LUA)/src  -DLUA_USE_LINUX
 

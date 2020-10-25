@@ -237,6 +237,19 @@ static int ll_fsync(lua_State *L) {
 	return int_or_errno(L, fsync(fd));
 }
 
+static int ll_fcntl(lua_State *L) {
+	// lua api: fcntl(fd, cmd, arg) 
+	// fd, cmd and arg are integers
+	// return int or nil, errno
+	// this binding is not complete. It is enough to support
+	// get/set file descriptor flags 
+	//   (cmds F_GETFL, F_SETFL, F_GETFD, F_GETFD)
+	int fd = luaL_checkinteger(L, 1);
+	int cmd = luaL_checkinteger(L, 2);
+	int arg = luaL_optinteger(L, 3, 0);
+	return int_or_errno(L, fcntl(fd, cmd, arg));
+}
+
 static int ll_read(lua_State *L) { 
 	// lua api:  read(fd [, cnt]) => str
 	// attempt to read cnt bytes 
@@ -306,6 +319,17 @@ static int ll_fdopen(lua_State *L) {
 	ls->closef = closef; // local helper function. see above.
 	if (ls->f == NULL) return nil_errno(L);
 	return 1;
+}
+
+static int ll_pipe2(lua_State *L) {
+	// lua api: pipe2([flags]) => fd_read, fd_write or nil, errno
+	int flags  = luaL_optinteger(L, 1, 0);
+	int pipefd[2];
+	int r = pipe2(pipefd, flags);
+	if (r < 0) return nil_errno(L);
+	lua_pushinteger(L, pipefd[0]);
+	lua_pushinteger(L, pipefd[1]);
+	return 2;
 }
 
 static int ll_ftruncate(lua_State *L) {
@@ -867,10 +891,12 @@ static const struct luaL_Reg l5lib[] = {
 	//
 	{"open", ll_open},
 	{"close", ll_close},
+	{"fcntl", ll_fcntl},
 	{"fsync", ll_fsync},
 	{"read", ll_read},
 	{"write", ll_write},
 	{"dup2", ll_dup2},
+	{"pipe2", ll_pipe2},
 	{"fileno", ll_fileno},
 	{"fdopen", ll_fdopen},
 	{"ftruncate", ll_ftruncate},

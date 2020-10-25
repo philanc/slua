@@ -51,7 +51,10 @@ STRIP= $(CROSS)strip
 
 # LUA is the src/ subdirectory where Lua sources can be found
 #LUA= lua-5.3.5
-LUA= lua-5.4.0rc5
+LUA= lua-5.4.1
+
+# LUA is the src/ subdirectory where luazen sources can be found
+LUAZEN=luazen-0.16
 
 CFLAGS= -Os -Isrc/$(LUA)/src  -DLUA_USE_LINUX
 
@@ -93,11 +96,11 @@ LZFUNCS= -DBASE64 -DLZMA -DBLAKE -DX25519 -DMORUS
 smoketest:  slua
 	$(RUN) ./slua  test/smoketest.lua
 
-slua:  src/$(LUA)/src/*.c src/$(LUA)/src/*.h src/$(LUA)/*.c src/luazen/*.c src/*.c src/*.h
+slua:  src/$(LUA)/src/*.c src/$(LUA)/src/*.h src/$(LUA)/*.c src/$(LUAZEN)/*.c src/*.c src/*.h
 	$(CC) -c $(CFLAGS)  src/$(LUA)/src/*.c
 	$(CC) -c $(CFLAGS) src/l5.c src/linenoise.c 
-	$(CC) -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
-	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/luazen/lzma/*.c
+	$(CC) -c $(CFLAGS) $(LZFUNCS) src/$(LUAZEN)/*.c
+	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
 	$(AR) rcu slua.a *.o
 	$(CC) -static -o slua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a
 	$(STRIP) slua

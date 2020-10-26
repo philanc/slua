@@ -66,12 +66,11 @@ To build sglua:
   make sglua
 ```
 
-
 ### Package versions
 
-Lua 5.4.0-rc2 - http://www.lua.org/work/lua-5.4.0-rc2.tar.gz
+Lua 5.4.1 (2020-09-30) - http://www.lua.org/ftp/lua-5.4.1.tar.gz
 
-Luazen 0.15 - https://github.com/philanc/luazen
+Luazen 0.16 - https://github.com/philanc/luazen
 
 L5 0.5 - https://github.com/philanc/l5
 
@@ -90,10 +89,10 @@ src/lua/luaconf.h:
 
 ### Pre-built binaries
 
-The Linux binary versions of  slua have been built on a x86_64 (64-bit) platform with GCC 5.3.0 and the Musl C library (version 1.1.18)
+The Linux  x64_86, i586 and armhf binary versions of  slua have been built with the Musl C library (version 1.1.18).
 
-The i586 and armhf versions have been cross-compiled with [musl-cross-make](https://github.com/richfelker/musl-cross-make), 
-a toolchain setup designed by Rich Felker.
+They have been cross-compiled with [musl-cross-make](https://github.com/richfelker/musl-cross-make), 
+a toolchain setup designed by Rich Felker (the author and maintainer of the Musl libc).
 
 
 ### Related projects
@@ -127,9 +126,9 @@ The luazen library includes some code from various authors (see src/luazen):
 - base58 functions by Luke Dashjr (MIT)
 - md5 by Cameron Rich (BSD)
 
-Luazen and minisock are distributed under the MIT License (see file LICENSE)
+slua, luazen, l5 and the linenoise binding are distributed under the MIT License (see file LICENSE)
 
-Copyright (c) 2017  Phil Leblanc 
+Copyright (c) 2020  Phil Leblanc 
 
 
 

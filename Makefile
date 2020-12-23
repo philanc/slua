@@ -51,7 +51,7 @@ STRIP= $(CROSS)strip
 
 # LUA is the src/ subdirectory where Lua sources can be found
 #LUA= lua-5.3.5
-LUA= lua-5.4.1
+LUA= lua-5.4.2
 
 # LUA is the src/ subdirectory where luazen sources can be found
 LUAZEN=luazen-0.16
@@ -110,8 +110,15 @@ sluac: slua
 	$(CC) -static -o sluac $(CFLAGS) $(LDFLAGS) src/$(LUA)/luac.c slua.a
 	$(STRIP) sluac
 
+sluarun: slua
+	$(CC) -static -o sluarun $(CFLAGS) $(LDFLAGS) src/srlua-102/srlua.c slua.a
+	$(STRIP) sluarun
+	$(CC) -static -o srglue $(CFLAGS) $(LDFLAGS) src/srlua-102/srglue.c slua.a
+	$(STRIP) sluarun
+
 clean:
 	rm -f slua sluac sglua *.o *.a *.so
+	rm -f sluarun srglue
 
 x64:
 	make clean

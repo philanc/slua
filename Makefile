@@ -153,8 +153,8 @@ sglua:
 	rm -f slua sluac sglua *.o *.a *.so
 	gcc -c $(CFLAGS) src/$(LUA)/src/*.c
 	gcc -c $(CFLAGS) src/l5.c src/linenoise.c
-	gcc -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
-	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/luazen/lzma/*.c
+	gcc -c $(CFLAGS) $(LZFUNCS) src/$(LUAZEN)/*.c
+	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
 	ar rcu slua.a *.o
 	gcc -o sglua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a  \
 		-Wl,-E -lpthread -lm -ldl

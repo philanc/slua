@@ -30,20 +30,6 @@ The default Lua paths ('package.path' and 'package.cpath') have been modified. T
 
 slua still respects the environment variables LUA_PATH and LUA_CPATH.
 
-### Extension mechanism
-
-`srlua` by Luiz Henrique de Figueiredo (lhf@tecgraf.puc-rio.br) is included. As put by its author, this is a self-running Lua interpreter.  It is meant to be combined with
-a Lua program  into a single, stand-alone program that  will execute the
-given Lua program when it is run.
-
-It has been slightly modified:
-
-* The executable `srlua` has been renamed `sluarun` to prevent any confusion with the original.
-
-* It is statically built (do `make sluarun`). It is used exactly as the original `srlua`. See the target `sluarun` in the Makefile.
-
-* The additional slua libraries are also built in `sluarun`.
-
 ### Installation
 
 There is no installation. The slua executable is static. It can be placed and executed anywhere. 
@@ -66,6 +52,20 @@ The makefile also allows to build slua for armhf and Intel i586 (32-bit) archite
 ```
 
 Binary versions of slua (and sluac, the Lua bytecode compiler) are provided here for convenience. These are standalone executables, statically compiled with musl-1.1.22, for x86_64, i586 and armhf. They are built with cross-compilation environments based on gcc-6.4.0, setup with 'musl-cross-make' by Rich Felker (see https://github.com/richfelker/musl-cross-make)
+
+### Extension mechanism
+
+[`srlua`](https://webserver2.tecgraf.puc-rio.br/~lhf/ftp/lua/#srlua) by Luiz Henrique de Figueiredo (lhf@tecgraf.puc-rio.br) is included. As put by its author, this is a self-running Lua interpreter.  It is meant to be combined with
+a Lua program  into a single, stand-alone program that  will execute the
+given Lua program when it is run.
+
+It has been slightly modified:
+
+* The executable `srlua` has been renamed `sluarun` to prevent any confusion with the original.
+
+* It is statically built (do `make sluarun`). It is used exactly as the original `srlua`. See the target `sluarun` in the Makefile.
+
+* The additional slua libraries are also built in `sluarun`.
 
 ### Dynamic linking version ('sglua')
 

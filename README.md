@@ -63,7 +63,7 @@ It has been slightly modified:
 
 * The executable `srlua` has been renamed `sluarun` to prevent any confusion with the original.
 
-* It is statically built (do `make sluarun`). It is used exactly as the original `srlua`. See the target `sluarun` in the Makefile.
+* `sluarun` and its companion program `srglue` are statically built (do `make sluarun`). They are used exactly as the original `srlua` and `srglue`. See for example the target `sluarun` in the Makefile.
 
 * The additional slua libraries are also built in `sluarun`.
 

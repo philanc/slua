@@ -119,7 +119,7 @@ sluarun: slua
 	$(STRIP) sluarun
 	$(CC) -static -o srglue -Isrc/$(SRLUA) -Isrc $(CFLAGS) $(LDFLAGS) \
 	   src/$(SRLUA)/srglue.c slua.a
-	$(STRIP) sluarun
+	$(STRIP) srglue
 	./srglue ./sluarun src/$(SRLUA)/test.lua srtest
 	chmod +x ./srtest 
 	./srtest

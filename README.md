@@ -55,7 +55,7 @@ Binary versions of slua (and sluac, the Lua bytecode compiler) are provided here
 
 ### Extension mechanism
 
-[`srlua`](https://webserver2.tecgraf.puc-rio.br/~lhf/ftp/lua/#srlua) by Luiz Henrique de Figueiredo (lhf@tecgraf.puc-rio.br) is included. As put by its author, this is a self-running Lua interpreter.  It is meant to be combined with
+[srlua](https://webserver2.tecgraf.puc-rio.br/~lhf/ftp/lua/#srlua) by Luiz Henrique de Figueiredo (lhf@tecgraf.puc-rio.br) is included. As put by its author, this is a self-running Lua interpreter.  It is meant to be combined with
 a Lua program  into a single, stand-alone program that  will execute the
 given Lua program when it is run.
 

@@ -97,8 +97,8 @@ smoketest:  slua
 	$(RUN) ./slua  test/smoketest.lua
 
 slua:  src/$(LUA)/src/*.c src/$(LUA)/src/*.h src/$(LUA)/*.c src/$(LUAZEN)/*.c src/*.c src/*.h
-	$(CC) -c $(CFLAGS)  src/$(LUA)/src/*.c
-	$(CC) -c $(CFLAGS) src/l5.c src/linenoise.c 
+	$(CC) -c $(CFLAGS) src/$(LUA)/src/*.c
+	$(CC) -c $(CFLAGS) src/vl5core.c src/l5.c src/linenoise.c 
 	$(CC) -c $(CFLAGS) $(LZFUNCS) src/$(LUAZEN)/*.c
 	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
 	$(AR) rcu slua.a *.o

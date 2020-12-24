@@ -611,6 +611,10 @@ static int pmain (lua_State *L) {
 	int luaopen_l5(lua_State *L); 
 	lua_pushcfunction(L, luaopen_l5);
 	lua_setfield(L, -2, "l5");
+	/// vl5
+	int luaopen_vl5core(lua_State *L); 
+	lua_pushcfunction(L, luaopen_vl5core);
+	lua_setfield(L, -2, "vl5core");
 	/// luazen
 	int luaopen_luazen(lua_State *L); 
 	lua_pushcfunction(L, luaopen_luazen);

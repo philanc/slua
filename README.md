@@ -32,7 +32,17 @@ slua still respects the environment variables LUA_PATH and LUA_CPATH.
 
 ### Extension mechanism
 
-The possibility to append Lua source code or Lua compiled bytecode to the slua executable has been removed. 
+`srlua` by Luiz Henrique de Figueiredo (lhf@tecgraf.puc-rio.br) is included. As put by its author, this is a self-running Lua interpreter.  It is meant to be combined with
+a Lua program  into a single, stand-alone program that  will execute the
+given Lua program when it is run.
+
+It has been slightly modified:
+
+* The executable `srlua` has been renamed `sluarun` to prevent any confusion with the original.
+
+* It is statically built (do `make sluarun`). It is used exactly as the original `srlua`. See the target `sluarun` in the Makefile.
+
+* The additional slua libraries are also built in `sluarun`.
 
 ### Installation
 
@@ -68,7 +78,7 @@ To build sglua:
 
 ### Package versions
 
-Lua 5.4.1 (2020-09-30) - http://www.lua.org/ftp/lua-5.4.1.tar.gz
+Lua 5.4.2 (2020-12-23) - http://www.lua.org/ftp/lua-5.4.2.tar.gz
 
 Luazen 0.16 - https://github.com/philanc/luazen
 
@@ -89,7 +99,7 @@ src/lua/luaconf.h:
 
 ### Pre-built binaries
 
-The Linux  x64_86, i586 and armhf binary versions of  slua have been built with the Musl C library (version 1.1.18).
+The Linux  x64_86, i586 and armhf binary versions of  slua have been built with the Musl C library (version 1.1.22).
 
 They have been cross-compiled with [musl-cross-make](https://github.com/richfelker/musl-cross-make), 
 a toolchain setup designed by Rich Felker (the author and maintainer of the Musl libc).
@@ -125,6 +135,7 @@ The luazen library includes some code from various authors (see src/luazen):
 - base64 functions by Luiz Henrique de Figueiredo (public domain)
 - base58 functions by Luke Dashjr (MIT)
 - md5 by Cameron Rich (BSD)
+- srlua by Luiz Henrique de Figueiredo (public domain)
 
 slua, luazen, l5 and the linenoise binding are distributed under the MIT License (see file LICENSE)
 

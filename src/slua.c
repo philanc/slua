@@ -606,25 +606,11 @@ static int pmain (lua_State *L) {
  
 /// ==================================================================  
 /// slua: preloaded libraries
-	luaL_getsubtable(L, LUA_REGISTRYINDEX, "_PRELOAD");
-	/// l5
-	int luaopen_l5(lua_State *L); 
-	lua_pushcfunction(L, luaopen_l5);
-	lua_setfield(L, -2, "l5");
-	/// luazen
-	int luaopen_luazen(lua_State *L); 
-	lua_pushcfunction(L, luaopen_luazen);
-	lua_setfield(L, -2, "luazen");
-	/// linenoise
-	int luaopen_linenoise(lua_State *L); 
-	lua_pushcfunction(L, luaopen_linenoise);
-	lua_setfield(L, -2, "linenoise");
-	///
-	/// remove _PRELOAD table
-	lua_pop(L, 1);
+
+#include "slualibs.h"
   
-  /// slua: end of preloaded libraries
-  /// ==================================================================
+/// slua: end of preloaded libraries
+/// ==================================================================
    
   createargtable(L, argv, argc, script);  /* create table 'arg' */
   lua_gc(L, LUA_GCGEN, 0, 0);  /* GC in generational mode */

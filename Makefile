@@ -98,7 +98,7 @@ smoketest:  slua
 
 slua:  src/$(LUA)/src/*.c src/$(LUA)/src/*.h src/$(LUA)/*.c src/$(LUAZEN)/*.c src/*.c src/*.h
 	$(CC) -c $(CFLAGS) src/$(LUA)/src/*.c
-	$(CC) -c $(CFLAGS) src/vl5core.c src/l5.c src/linenoise.c 
+	$(CC) -c $(CFLAGS) src/vl5core.c src/linenoise.c 
 	$(CC) -c $(CFLAGS) $(LZFUNCS) src/$(LUAZEN)/*.c
 	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
 	$(AR) rcu slua.a *.o
@@ -144,7 +144,7 @@ arm:
 sglua:
 	rm -f slua sluac sglua *.o *.a *.so
 	gcc -c $(CFLAGS) src/$(LUA)/src/*.c
-	gcc -c $(CFLAGS) src/l5.c src/linenoise.c
+	gcc -c $(CFLAGS) src/vl5.c src/linenoise.c
 	gcc -c $(CFLAGS) $(LZFUNCS) src/luazen/*.c
 	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/luazen/lzma/*.c
 	ar rcu slua.a *.o

@@ -607,10 +607,6 @@ static int pmain (lua_State *L) {
 /// ==================================================================  
 /// slua: preloaded libraries
 	luaL_getsubtable(L, LUA_REGISTRYINDEX, "_PRELOAD");
-	/// l5
-	int luaopen_l5(lua_State *L); 
-	lua_pushcfunction(L, luaopen_l5);
-	lua_setfield(L, -2, "l5");
 	/// vl5
 	int luaopen_vl5core(lua_State *L); 
 	lua_pushcfunction(L, luaopen_vl5core);

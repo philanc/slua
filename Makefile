@@ -154,12 +154,12 @@ sglua:
 	gcc -c $(CFLAGS) src/$(LUA)/src/*.c
 	gcc -c $(CFLAGS) src/l5.c src/linenoise.c
 	gcc -c $(CFLAGS) $(LZFUNCS) src/$(LUAZEN)/*.c
-	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
+	gcc -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
 	ar rcu slua.a *.o
 	gcc -o sglua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a  \
 		-Wl,-E -lpthread -lm -ldl
 	strip ./sglua
-	$(RUN) ./sglua  test/smoketest_g.lua
+	./sglua  test/smoketest_g.lua
 	rm -f *.o *.a	
 	
 allbin: x64 i586 arm clean

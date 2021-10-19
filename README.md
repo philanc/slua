@@ -1,7 +1,9 @@
 
 # slua
 
-A static build of [Lua](http://www.lua.org/) 5.4 for Linux, with a few extension libraries. Binaries are provided for x86_64, i586 and armhf.
+A static build of [Lua](http://www.lua.org/) 5.4 for Linux, with a few extension libraries.
+
+For convenience, binaries are provided for x86_64, i586 and armhf.
 
 A static build with Lua 5.3.5 is also available. Check out branch "5.3.5".
 
@@ -17,7 +19,7 @@ Additional libraries are *pre-loaded*. They must be require()'d before use.
 
 slua is linked completely statically. It uses no dynamic library, not even libc.  
 
-It can be used anywhere, whatever the platform dynamic linker. The Linux x86 version is built with the Musl C library which allows a very compact executable. If the i586 version is built, it can be run on any Linux system (x86 or x86_64)
+It can be used anywhere, whatever the platform dynamic linker. It is built with the Musl C library which allows a very compact executable. If the i586 version is built, it can be run on any Linux system (x86 or x86_64)
 
 It can be dropped and run from any directory, without interference with the local dynamic libraries and linker.  
 
@@ -34,24 +36,20 @@ slua still respects the environment variables LUA_PATH and LUA_CPATH.
 
 There is no installation. The slua executable is static. It can be placed and executed anywhere. 
 
-To build slua on Linux, just adjust the 'Makefile' (eg. to compile with Musl libc, the CC variable must be set to the path of the 'musl-gcc' wrapper, or a complete cross-compile toolchain can be used), run 'make' at the root of the project tree:
+To build slua on Linux, adjust the 'Makefile'. To compile with a locally installed Musl libc, the CC variable must be set to the path of the 'musl-gcc' wrapper. Then run 'make' at the root of the project tree:
 ```
-  # adjust the GCC variable in the Makefile, then:
+  # adjust the CC variable in the Makefile, then:
   make
 ```
 
+Installing the Musl libc and the musl-gcc wrapper very is simple in most recent linux distributions. In a recent Debian (or Ubuntu, Mint, ...) just do:
+```
+ sudo apt install  musl  musl-dev musl-tools
+ ```
+ 
 The Makefile supports luazen modular build:  Constants can be defined at compile time to include the corresponding functions in the luazen library. Check the Makefile and src.luazen/luazen.c.
 
 Default build includes only the following luazen functions: base64 encode/decode, LZMA compress/uncompress, blake2b hash, argon2i key derivation, morus AEAD encrypt/decrypt, ec25519 key exchange and ed25519 signature functions. Change variable LZFUNCS in the makefile to add or remove more functions.
-
-The makefile also allows to build slua for armhf and Intel i586 (32-bit) architectures:
-```
-  # adjust the CROSS and GCC variables in the Makefile, then:
-  make arm
-  make i586
-```
-
-Binary versions of slua (and sluac, the Lua bytecode compiler) are provided here for convenience. These are standalone executables, statically compiled with musl-1.1.22, for x86_64, i586 and armhf. They are built with cross-compilation environments based on gcc-6.4.0, setup with 'musl-cross-make' by Rich Felker (see https://github.com/richfelker/musl-cross-make)
 
 ### Extension mechanism
 
@@ -61,20 +59,22 @@ given Lua program when it is run.
 
 It has been slightly modified:
 
-* The executable `srlua` has been renamed `sluarun` to prevent any confusion with the original.
+* `srlua` and its companion program `srglue` are statically built (do `make srlua`). They are used exactly as the original `srlua` and `srglue`. See for example the target `srlua` in the Makefile.
 
-* `sluarun` and its companion program `srglue` are statically built (do `make sluarun`). They are used exactly as the original `srlua` and `srglue`. See for example the target `sluarun` in the Makefile.
-
-* The additional slua libraries are also built in `sluarun`.
+* The additional slua libraries are also built in `srlua`.
 
 ### Dynamic linking version ('sglua')
 
-A makefile target is provided to build 'sglua', a dynamic version of slua, with the same additional libraries statically linked and preloaded.  'sglua' is built with Glibc. It has the same functions as slua (built-in linenoise line-editing, preloaded libraries). It is intended to be built with the regular glibc (so the only runtime dependencies are libc, libm, libpthread and libdl). Additional C libraries can be loaded with 'require()'.
+A makefile target is provided to build 'sglua', a dynamic version of slua, with the same additional libraries statically linked and preloaded.  'sglua' is built with Glibc. It has the same functions as slua (built-in linenoise line-editing, preloaded libraries). It is intended to be built with the regular glibc (so the only runtime dependencies are libc, libm, libpthread and libdl). 
 
 To build sglua:
 ```
   make sglua
 ```
+
+### Binary versions
+
+Binary versions of slua (and sluac, the Lua bytecode compiler) are provided here for convenience. These are standalone executables, statically compiled with musl-1.1.22, for x86_64, i586 and armhf. They are built with cross-compilation environments based on gcc-6.4.0, setup with 'musl-cross-make' by Rich Felker (see https://github.com/richfelker/musl-cross-make)
 
 ### Package versions
 

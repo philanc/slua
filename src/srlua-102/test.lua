@@ -3,7 +3,7 @@
 -- test srlua
 
 print("================================================")
-print("== sluarun  test\n")
+print("== srlua  test\n")
 
 print("This is",_VERSION,"running a script inside",arg[0])
 

@@ -4,13 +4,16 @@
 # To build musl libc-based executables on your current platform, 
 # with the default gcc compiler, use instructions for 
 # the _musl-gcc wrapper_ at https://www.musl-libc.org/how.html
+# or simply install musl libc:  with a recent Debian (or Ubuntu, Mint, ...)
+# do:
+#	sudo apt install  musl  musl-dev  musl-tools
 #
 # To build a complete gcc-based cross-compile toolchain, the easiest
 # solution is to use 'musl-cross-make' by Rich Felker at
 # https://github.com/richfelker/musl-cross-make
 #
-# The binaries provided here are built with 'musl-cross-make'-based
-# toolchains for x86_64, i586 and armhf
+# The binaries provided here for convenience are built with a 
+# 'musl-cross-make'-based  toolchains for x86_64, i586 and armhf
 #
 
 
@@ -20,37 +23,15 @@
 
 # ----------------------------------------------------------------------
 
-# the following variables contain the prefix for the toolchain tools
-# built with 'musl-cross-make' (see above).
-# they are used repectively in x64, i586, arm targets
-#
-CROSS_X64=/opt/cross/bin/x86_64-linux-musl-
-CROSS_I586=/opt/cross/bin/i586-linux-musl-
-CROSS_ARM=/opt/cross/bin/arm-linux-musleabihf-
 
-# the following variables indicate how to invoke the slua executable 
-# for tests. They assume that make is run on a x86_64 platform, so
-# x64 an i586 can be run natively, and arm is run through Qemu
-#
-RUN_X64=
-RUN_I586=
-RUN_ARM=qemu-arm
+# This makefile uses the standard gcc compiler and the musl-gcc wrapper
 
-# if the default compiler is used with the musl-gcc wrapper,
-# CROSS and RUN must be empty, and GCC is the path to the wrapper script
-# else GCC=gcc
-#
-GCC= /opt/musl/bin/musl-gcc
-CROSS=
-RUN=
-
-CC= $(CROSS)$(GCC)
-AR= $(CROSS)ar
-LD= $(CROSS)ld
-STRIP= $(CROSS)strip
+CC= musl-gcc
+AR= ar
+LD= ld
+STRIP= strip
 
 # LUA is the src/ subdirectory where Lua sources can be found
-#LUA= lua-5.3.5
 LUA= lua-5.4.2
 
 # LUAZEN is the src/ subdirectory where luazen sources can be found
@@ -60,8 +41,6 @@ LUAZEN=luazen-0.16
 SRLUA=srlua-102
 
 CFLAGS= -Os -Isrc/$(LUA)/src  -DLUA_USE_LINUX
-
-
 LDFLAGS= 
 
 
@@ -113,42 +92,22 @@ sluac: slua
 	$(CC) -static -o sluac $(CFLAGS) $(LDFLAGS) src/$(LUA)/luac.c slua.a
 	$(STRIP) sluac
 
-sluarun: slua
-	$(CC) -static -o sluarun -Isrc/$(SRLUA) -Isrc $(CFLAGS) $(LDFLAGS) \
+srlua: slua
+	$(CC) -static -o srlua -Isrc/$(SRLUA) -Isrc $(CFLAGS) $(LDFLAGS) \
 	   src/$(SRLUA)/srlua.c slua.a
-	$(STRIP) sluarun
+	$(STRIP) srlua
 	$(CC) -static -o srglue -Isrc/$(SRLUA) -Isrc $(CFLAGS) $(LDFLAGS) \
 	   src/$(SRLUA)/srglue.c slua.a
 	$(STRIP) srglue
-	./srglue ./sluarun src/$(SRLUA)/test.lua srtest
+	./srglue ./srlua src/$(SRLUA)/test.lua srtest
 	chmod +x ./srtest 
 	./srtest
 
 clean:
 	rm -f slua sluac sglua *.o *.a *.so
-	rm -f sluarun srglue srtest
+	rm -f srlua srglue srtest
 
-x64:
-	make clean
-	make smoketest sluac \
-		GCC=gcc CROSS=$(CROSS_X64) RUN=$(RUN_X64)
-	mv slua bin/slua-x64
-	mv sluac bin/sluac-x64
-
-i586:
-	make clean
-	make smoketest sluac \
-		GCC=gcc CROSS=$(CROSS_I586) RUN=$(RUN_I586)
-	mv slua bin/slua-i586
-	mv sluac bin/sluac-i586
-
-arm:
-	make clean 
-	make smoketest sluac \
-		GCC=gcc CROSS=$(CROSS_ARM) RUN=$(RUN_ARM)
-	mv slua bin/slua-armhf
-	mv sluac bin/sluac-armhf
-
+# sglua is built with the default compiler and glibc
 sglua:
 	rm -f slua sluac sglua *.o *.a *.so
 	gcc -c $(CFLAGS) src/$(LUA)/src/*.c
@@ -162,10 +121,8 @@ sglua:
 	./sglua  test/smoketest_g.lua
 	rm -f *.o *.a	
 	
-allbin: x64 i586 arm clean
-
 test:  slua
-	$(RUN)./slua test/test_luazen.lua
+	./slua test/test_luazen.lua
 	
-.PHONY: clean smoketest test x64 i586 arm sglua allbin
+.PHONY: clean smoketest test sglua 
 

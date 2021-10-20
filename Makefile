@@ -75,8 +75,10 @@ LZFUNCS= -DBASE64 -DLZMA -DBLAKE -DX25519 -DMORUS
 
 # ----------------------------------------------------------------------
 
+default: smoketest sluac srlua
+
 smoketest:  slua
-	$(RUN) ./slua  test/smoketest.lua
+	./slua  test/smoketest.lua
 
 slua:  src/$(LUA)/src/*.c src/$(LUA)/src/*.h src/$(LUA)/*.c src/$(LUAZEN)/*.c src/*.c src/*.h
 	$(CC) -c $(CFLAGS)  src/$(LUA)/src/*.c
@@ -101,7 +103,7 @@ srlua: slua
 	$(STRIP) srglue
 	./srglue ./srlua src/$(SRLUA)/test.lua srtest
 	chmod +x ./srtest 
-	./srtest
+	./srtest arg1 arg2 arg3 
 
 clean:
 	rm -f slua sluac sglua *.o *.a *.so
@@ -124,5 +126,5 @@ sglua:
 test:  slua
 	./slua test/test_luazen.lua
 	
-.PHONY: clean smoketest test sglua 
+.PHONY: clean smoketest test default sglua 
 

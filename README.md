@@ -73,7 +73,7 @@ To build sglua:
 
 ### Pre-built binary
 
-A binary version of slua (and sluac, the Lua bytecode compiler) is provided here for convenience. These are standalone executables, statically compiled with musl-1.2.2 for x86_64.
+A binary version of slua is provided here for convenience. This is a standalone executable, statically compiled with musl-1.2.2 for x86_64.
 
 ### Package versions
 

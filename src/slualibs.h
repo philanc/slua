@@ -9,10 +9,18 @@
 	int luaopen_l5(lua_State *L); 
 	lua_pushcfunction(L, luaopen_l5);
 	lua_setfield(L, -2, "l5");
-	/// luazen
-	int luaopen_luazen(lua_State *L); 
-	lua_pushcfunction(L, luaopen_luazen);
-	lua_setfield(L, -2, "luazen");
+	/// vl5core
+	int luaopen_vl5core(lua_State *L); 
+	lua_pushcfunction(L, luaopen_vl5core);
+	lua_setfield(L, -2, "vl5core");
+	/// luamonocypher
+	int luaopen_luamonocypher(lua_State *L); 
+	lua_pushcfunction(L, luaopen_luamonocypher);
+	lua_setfield(L, -2, "luamonocypher");
+	/// lualzma
+	int luaopen_lualzma(lua_State *L); 
+	lua_pushcfunction(L, luaopen_lualzma);
+	lua_setfield(L, -2, "lualzma");
 	/// linenoise
 	int luaopen_linenoise(lua_State *L); 
 	lua_pushcfunction(L, luaopen_linenoise);

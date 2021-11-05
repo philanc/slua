@@ -1,10 +1,3 @@
-///---------------------------------------------------------------------
-/// 211105 
-/// slua.c = lua.c from lua-5.4.3  
-///   + linenoise support (before "#if !defined(lua_readline) ")
-///   + preload slua libraries (after "luaL_openlibs(L);" 
-///---------------------------------------------------------------------
-
 /*
 ** $Id: lua.c $
 ** Lua stand-alone interpreter
@@ -417,19 +410,6 @@ static int handle_luainit (lua_State *L) {
 ** lua_saveline defines how to "save" a read line in a "history".
 ** lua_freeline defines how to free a line read by lua_readline.
 */
-
-/// ====================================================================
-/// slua: add linenoise support (readline replacement) 
-/// lua_saveline macro has changed since lua 5.2:
-/// argument no longer L,idx, but L,line
-#include "linenoise.h"
-#define lua_initreadline(L)	((void)L)
-#define lua_readline(L,b,p)	((void)L, ((b)=linenoise(p)) != NULL)
-#define lua_saveline(L,line)  ((void)L,  linenoiseHistoryAdd(line))
-#define lua_freeline(L,b)	((void)L, free(b))
-/// slua: end of linenoise support - link with linenoise.o.
-/// ====================================================================
-
 #if !defined(lua_readline)	/* { */
 
 #if defined(LUA_USE_READLINE)	/* { */
@@ -635,16 +615,6 @@ static int pmain (lua_State *L) {
     lua_setfield(L, LUA_REGISTRYINDEX, "LUA_NOENV");
   }
   luaL_openlibs(L);  /* open standard libraries */
-  
-/// ==================================================================  
-/// slua: preloaded libraries
-
-#include "slualibs.h"
-  
-/// slua: end of preloaded libraries
-/// ==================================================================
-   
-  
   createargtable(L, argv, argc, script);  /* create table 'arg' */
   lua_gc(L, LUA_GCGEN, 0, 0);  /* GC in generational mode */
   if (!(args & has_E)) {  /* no option '-E'? */

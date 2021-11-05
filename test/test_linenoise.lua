@@ -1,6 +1,6 @@
 ln = require'linenoise'
 
-ms = require'minisock' -- for msleep()
+l5 = require'l5' -- for msleep()
 
 strf = string.format
 printf = function(...) print(strf(...)) end
@@ -11,11 +11,13 @@ function t1()
 	i = 0
 	while not ln.kbhit() do
 		i = i + 1
-		print(i, "Press any key to stop")
-		ms.msleep(100) --  sleep 100 millisec
+		print(i, "Terminal is in raw mode. Press any key to stop")
+		l5.msleep(200) --  sleep 200 millisec
 	end
-	ch = io.read(1) -- we are still in raw mode so input is not buffered
-	print("restore mode", ln.setmode(curmode)) -- restore the terminal mode
+	-- we are still in raw mode so input is not buffered
+	ch = io.read(1) 
+	-- restore the terminal mode
+	print("restore normal mode", ln.setmode(curmode)) 
 	printf("stop key: %q", ch)
 end
 

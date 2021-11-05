@@ -12,11 +12,6 @@
 # solution is to use 'musl-cross-make' by Rich Felker at
 # https://github.com/richfelker/musl-cross-make
 #
-# The binaries provided here for convenience are built with a 
-# 'musl-cross-make'-based  toolchains for x86_64, i586 and armhf
-#
-
-
 # note: to build with glibc (or uClibc), must add " -lpthread -lm " at 
 # the end of the link lines for slua and sluac (see the sglua target)
 
@@ -31,61 +26,29 @@ AR= ar
 LD= ld
 STRIP= strip
 
-# LUA is the src/ subdirectory where Lua sources can be found
-LUA= lua-5.4.2
-
-# LUAZEN is the src/ subdirectory where luazen sources can be found
-LUAZEN=luazen-0.16
-
-# SRLUA is the src/ subdirectory where srlua sources can be found
+# Directories where the sources can be found
+LUA= lua-5.4.3
+LUALZMA= lualzma-0.16
+LUAMONO=luamonocypher-0.3
 SRLUA=srlua-102
 
 CFLAGS= -Os -Isrc/$(LUA)/src  -DLUA_USE_LINUX
 LDFLAGS= 
 
-
-# ----------------------------------------------------------------------
-# luazen modular build (see luazen at https://github.com/philanc/luazen)
-# the following constants can be defined to include
-# the corresponding functions in the builtin luazen library:
-#
-#   BASE64     Base64 encode/decode
-#   BASE58     Base58 encode/decode
-#   BLZ        BriefLZ compress/uncompress
-#   LZF        LZF compress/uncompress
-#   LZMA       LZMA compress/uncompress
-#   NORX       Norx AEAD encrypt/decrypt
-#   CHACHA     Xchacha20 AEAD encrypt/decrypt
-#   RC4        RC4 encrypt/decrypt
-#   MD5        MD5 hash
-#   BLAKE      Blake2b hash, Argon2i key derivation
-#   SHA2       SHA2-512 hash
-#   X25519     Ec25519 key exchange and ed25519 signature functions
-#   MORUS      Morus AEAD encrypt/decrypt
-#   ASCON      Ascon128a AEAD encrypt/decrypt
-#
-# the list of functions for the default build:
-
-LZFUNCS= -DBASE64 -DLZMA -DBLAKE -DX25519 -DMORUS
-       
-# not included in the default build: 
-#	-DBASE58 -DBLZ -DLZF 
-#	-DNORX -DCHACHA -DRC4 -DMD5 -DSHA2 -DASCON 
-#       
-
 # ----------------------------------------------------------------------
 
 default: smoketest sluac srlua
 
-smoketest:  slua
+smoketest:  ./slua
 	./slua  test/smoketest.lua
 
-slua:  src/$(LUA)/src/*.c src/$(LUA)/src/*.h src/$(LUA)/*.c src/$(LUAZEN)/*.c src/*.c src/*.h
+slua: 
 	$(CC) -c $(CFLAGS)  src/$(LUA)/src/*.c
-	$(CC) -c $(CFLAGS) src/l5.c src/linenoise.c 
-	$(CC) -c $(CFLAGS) $(LZFUNCS) src/$(LUAZEN)/*.c
-	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
-	$(AR) rcu slua.a *.o
+	$(CC) -c $(CFLAGS) src/l5.c src/vl5core.c src/linenoise.c 
+	$(CC) -c $(CFLAGS) src/$(LUAMONO)/*.c
+	$(CC) -c $(CFLAGS) src/$(LUALZMA)/*.c
+	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUALZMA)/lzma/*.c
+	$(AR) rc slua.a *.o
 	$(CC) -static -o slua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a
 	$(STRIP) slua
 	rm -f *.o
@@ -111,20 +74,25 @@ clean:
 
 # sglua is built with the default compiler and glibc
 sglua:
-	rm -f slua sluac sglua *.o *.a *.so
+	rm -f sglua *.o *.a *.so
 	gcc -c $(CFLAGS) src/$(LUA)/src/*.c
-	gcc -c $(CFLAGS) src/l5.c src/linenoise.c
-	gcc -c $(CFLAGS) $(LZFUNCS) src/$(LUAZEN)/*.c
-	gcc -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
-	ar rcu slua.a *.o
+	gcc -c $(CFLAGS) src/l5.c src/vl5core.c src/linenoise.c
+	gcc -c $(CFLAGS) src/$(LUAMONO)/*.c
+	gcc -c $(CFLAGS) src/$(LUALZMA)/*.c
+	gcc -c $(CFLAGS)  -D_7ZIP_ST src/$(LUALZMA)/lzma/*.c
+	ar rc slua.a *.o
 	gcc -o sglua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a  \
 		-Wl,-E -lpthread -lm -ldl
 	strip ./sglua
 	./sglua  test/smoketest_g.lua
 	rm -f *.o *.a	
 	
-test:  slua
-	./slua test/test_luazen.lua
+test:  ./slua
+	./slua test/test_lualzma.lua
+	./slua test/test_luamonocypher.lua
+
+bin:  ./slua
+	cp ./slua ./bin/slua
 	
-.PHONY: clean smoketest test default sglua 
+.PHONY: clean smoketest default sglua
 

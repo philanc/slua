@@ -1,4 +1,4 @@
-// Copyright (c) 2019  Phil Leblanc  -- see LICENSE file
+// Copyright (c) 2021  Phil Leblanc  -- see LICENSE file
 // ---------------------------------------------------------------------
 /*   
 
@@ -144,7 +144,7 @@ static int ll_environ(lua_State *L) {
 }
 
 static int ll_msleep(lua_State *L) {
-	// lua api: msleep(fd, ms)
+	// lua api: msleep(ms)
 	// suspend the execution for ms milliseconds
 	// return true, or nil, errno
 	int ms = luaL_checkinteger(L, 1);
@@ -836,7 +836,7 @@ static int ll_getaddrinfo(lua_State *L) {
 	return 1;
 }
 
-int ll_getnameinfo(lua_State *L) {
+static int ll_getnameinfo(lua_State *L) {
 	// converts a raw socket address (sockaddr) into a host and port
 	// lua api:  getnameinfo(sockaddr [, numflag]) => hostname, port
 	// return hostname and port as strings.
@@ -943,7 +943,6 @@ static const struct luaL_Reg l5lib[] = {
 int luaopen_l5 (lua_State *L) {
 	
 	// register main library functions
-	//~ luaL_register (L, "l5", l5lib);
 	luaL_newlib (L, l5lib);
 	lua_pushliteral (L, "VERSION");
 	lua_pushliteral (L, L5_VERSION); 

@@ -1,0 +1,20 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: test sglua
+      run: |
+        # !! no leading tabs here - spaces only !!
+        set -e
+        set -v
+        # build only sglua (musl libc not available) 
+        make sglua
+        ./sglua test/test_lualzma.lua
+        ./sglua test/test_luamonocypher.lua

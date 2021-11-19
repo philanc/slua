@@ -1,3 +1,4 @@
+![CI](https://github.com/philanc/slua/workflows/CI/badge.svg)
 
 # slua
 

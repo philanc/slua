@@ -19,7 +19,7 @@ jobs:
         ./sglua test/test_lualzma.lua
         ./sglua test/test_luamonocypher.lua
         # install musl, build static slua 
-        apt install musl musl-tools
+        sudo apt install musl musl-tools
         make clean 
         make slua
         ./slua test/test_lualzma.lua

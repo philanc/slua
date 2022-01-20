@@ -5,10 +5,10 @@
 
 /// slua: preloaded libraries
 	luaL_getsubtable(L, LUA_REGISTRYINDEX, "_PRELOAD");
-	/// l5
-	int luaopen_l5(lua_State *L); 
-	lua_pushcfunction(L, luaopen_l5);
-	lua_setfield(L, -2, "l5");
+	/// lualinux
+	int luaopen_lualinux(lua_State *L); 
+	lua_pushcfunction(L, luaopen_lualinux);
+	lua_setfield(L, -2, "lualinux");
 	/// vl5core
 	int luaopen_vl5core(lua_State *L); 
 	lua_pushcfunction(L, luaopen_vl5core);

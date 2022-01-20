@@ -2,13 +2,13 @@
 // ---------------------------------------------------------------------
 /*   
 
-L5  - Low-Level Linux Lua Lib
+lualinux  - Common Linux functions for Lua
 
 This is for Lua 5.3+ only, built with default 64-bit integers
 
 */
 
-#define L5_VERSION "l5-0.3"
+#define lualinux_VERSION "lualinux-0.3"
 
 // _GNU_SOURCE needed in glibc to declare accept4() in sys/socket.h
 #define _GNU_SOURCE  	
@@ -92,7 +92,7 @@ static int int_or_errno(lua_State *L, int n) {
 
 
 //------------------------------------------------------------
-// l5 functions
+// lualinux functions
 
 static int ll_getpid(lua_State *L) { RET_INT(getpid()); }
 
@@ -108,6 +108,10 @@ static int ll_errno(lua_State *L) {
 	int r = luaL_optinteger(L, 1, -1);
 	if (r != -1) errno = r; 
 	RET_INT(errno);
+}
+
+static int ll_strerror(lua_State *L) {
+	RET_STRZ(strerror(luaL_checkinteger(L, 1)));
 }
 
 static int ll_getcwd(lua_State *L) { 
@@ -488,6 +492,14 @@ static int ll_chmod(lua_State *L) {
 	return int_or_errno(L, chmod(pname, mode));
 }
 
+static int ll_link(lua_State *L) {
+	// lua api:  link(target, linkpath) => true | nil, errno
+	//
+	const char *target = luaL_checkstring(L, 1);
+	const char *linkpath = luaL_checkstring(L, 2);
+	return int_or_errno(L, link(target, linkpath));
+}
+
 static int ll_symlink(lua_State *L) {
 	// lua api:  symlink(target, linkpath) => true | nil, errno
 	//
@@ -497,12 +509,18 @@ static int ll_symlink(lua_State *L) {
 }
 
 static int ll_mkdir(lua_State *L) {
+	// lua api: mkdir(dirname [, mode])
+	// default mode for the new directory is 0700, (ie rwx------)
+	// Note: mode is modified by the current process umask:
+	//    actual mode = mode & ~umask & 0777
+	// (see the mkdir(2) man page)
 	const char *pname = luaL_checkstring(L, 1);
-	int mode = luaL_optinteger(L, 2, 0);
+	int mode = luaL_optinteger(L, 2, 0700); 
 	return int_or_errno(L, mkdir(pname, mode));
 }
 
 static int ll_rmdir(lua_State *L) { 
+	// lua api: rmdir(dirname)
 	const char *pname = luaL_checkstring(L, 1);
 	return int_or_errno(L, rmdir(pname));
 }
@@ -513,7 +531,7 @@ static int ll_mount(lua_State *L) {
 	// src, dest, fstype and data are strings, flags is int.
 	// flags is optional. default value is 0 (rw).
 	// data is optional. defualt value is an empty string.
-	// return true or nil, errno
+	// return 0 or nil, errno
 	const char *src = luaL_checkstring(L, 1);
 	const char *dest = luaL_checkstring(L, 2);
 	const char *fstype = luaL_checkstring(L, 3);
@@ -523,7 +541,7 @@ static int ll_mount(lua_State *L) {
 }
 
 static int ll_umount(lua_State *L) {
-	// lua api: umount(dest) => true | nil, errno
+	// lua api: umount(dest) => 0 | nil, errno
 	// dest is a string
 	const char *dest = luaL_checkstring(L, 1);
 	return int_or_errno(L, umount(dest));
@@ -868,8 +886,8 @@ static int ll_getnameinfo(lua_State *L) {
 // lua library declaration
 //
 
-// l5 function table
-static const struct luaL_Reg l5lib[] = {
+// lualinux function table
+static const struct luaL_Reg lualinuxlib[] = {
 	//
 	//
 	{"getpid", ll_getpid},
@@ -877,6 +895,7 @@ static const struct luaL_Reg l5lib[] = {
 	{"geteuid", ll_geteuid},
 	{"getegid", ll_getegid},
 	{"errno", ll_errno},
+	{"strerror", ll_strerror},
 	{"chdir", ll_chdir},
 	{"getcwd", ll_getcwd},
 	{"setenv", ll_setenv},
@@ -910,6 +929,7 @@ static const struct luaL_Reg l5lib[] = {
 	{"utime", ll_utime},
 	{"chown", ll_chown},
 	{"chmod", ll_chmod},
+	{"link", ll_link},
 	{"symlink", ll_symlink},
 	{"mkdir", ll_mkdir},
 	{"rmdir", ll_rmdir},
@@ -940,12 +960,12 @@ static const struct luaL_Reg l5lib[] = {
 	{NULL, NULL},
 };
 
-int luaopen_l5 (lua_State *L) {
+int luaopen_lualinux (lua_State *L) {
 	
 	// register main library functions
-	luaL_newlib (L, l5lib);
+	luaL_newlib (L, lualinuxlib);
 	lua_pushliteral (L, "VERSION");
-	lua_pushliteral (L, L5_VERSION); 
+	lua_pushliteral (L, lualinux_VERSION); 
 	lua_settable (L, -3);
 	return 1;
 }

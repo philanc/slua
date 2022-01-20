@@ -29,6 +29,7 @@ STRIP= strip
 # Directories where the sources can be found
 LUA= lua-5.4.3
 LUALZMA= lualzma-0.16
+LUALINUX=lualinux-0.3
 LUAMONO=luamonocypher-0.3
 SRLUA=srlua-102
 
@@ -44,8 +45,9 @@ smoketest:  ./slua
 
 slua: 
 	$(CC) -c $(CFLAGS)  src/$(LUA)/src/*.c
-	$(CC) -c $(CFLAGS) src/l5.c src/vl5core.c src/linenoise.c 
+	$(CC) -c $(CFLAGS) src/vl5core.c src/linenoise.c 
 	$(CC) -c $(CFLAGS) src/$(LUAMONO)/*.c
+	$(CC) -c $(CFLAGS) src/$(LUALINUX)/*.c
 	$(CC) -c $(CFLAGS) src/$(LUALZMA)/*.c
 	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUALZMA)/lzma/*.c
 	$(AR) rc slua.a *.o
@@ -76,8 +78,9 @@ clean:
 sglua:
 	rm -f sglua *.o *.a *.so
 	gcc -c $(CFLAGS) src/$(LUA)/src/*.c
-	gcc -c $(CFLAGS) src/l5.c src/vl5core.c src/linenoise.c
+	gcc -c $(CFLAGS) src/vl5core.c src/linenoise.c
 	gcc -c $(CFLAGS) src/$(LUAMONO)/*.c
+	gcc -c $(CFLAGS) src/$(LUALINUX)/*.c
 	gcc -c $(CFLAGS) src/$(LUALZMA)/*.c
 	gcc -c $(CFLAGS)  -D_7ZIP_ST src/$(LUALZMA)/lzma/*.c
 	ar rc slua.a *.o

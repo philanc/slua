@@ -12,7 +12,7 @@ Additional libraries are *pre-loaded*. They must be require()'d before use.
 
 - [lualzma](https://github.com/philanc/lualzma), a small library with LZMA compression functions.
 - [luamonocypher](https://github.com/philanc/luamonocypher), a binding to the Monocypher crypto library.
-- [lualinux](https://github.com/philanc/lualinux), a minimal binding to common Linux/Posix functions. -- see a list of lualinux available functions](https://github.com/philanc/lualinux#available-functions))
+- [lualinux](https://github.com/philanc/lualinux), a minimal binding to common Linux/Posix functions. -- see a list of [lualinux available functions](https://github.com/philanc/lualinux#available-functions))
 - [linenoise](src/linenoise.md) - slua is built on Linux with linenoise to replace readline. A limited Lua binding to linenoise is also provided to allow usage of linenoise in applications.
 
 

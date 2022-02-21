@@ -1,8 +1,8 @@
-// Copyright (c) 2020  Phil Leblanc  -- see LICENSE file
+// Copyright (c) 2021  Phil Leblanc  -- see LICENSE file
 // ---------------------------------------------------------------------
 /*   
 
-VL5  - Very Low-Level Linux Lua Library (syscall interface)
+LuaLinuxSC  -  a minimal Lua binding to the Linux syscall interface.
 
 This is for Lua 5.3+ only, built with default 64-bit integers
 
@@ -18,7 +18,7 @@ sizeof(char *) == sizeof(long) == 4 ;  sizeof(lua_Integer) == 8
 */
 
 
-#define VL5_VERSION "vl5-0.3"
+#define VERSION "lsc-0.3"
 
 
 #include "lua.h"
@@ -134,7 +134,7 @@ static int ll_getuint(lua_State *L) {
 		case 2: i = *((uint16_t *) p); break;
 		case 4: i = *((uint32_t *) p); break;
 		case 8: i = *((uint64_t *) p); break;
-		default: LERR("vl5.getint: invalid parameter"); break;
+		default: LERR("lsc.getint: invalid parameter"); break;
 	}
 	RET_INT(i);
 }
@@ -151,7 +151,7 @@ static int ll_putuint(lua_State *L) {
 		case 2: *((uint16_t *) p) = i & 0xffff; break;
 		case 4: *((uint32_t *) p) = i & 0xffffffff; break;
 		case 8: *((uint64_t *) p) = i; break;
-		default: LERR("vl5.putint: invalid parameter"); break;
+		default: LERR("lsc.putint: invalid parameter"); break;
 	}
 	RET_INT( (lua_Integer) (long)p );
 }
@@ -182,7 +182,7 @@ static int ll_environ(lua_State *L) {
 //
 
 // l5 function table
-static const struct luaL_Reg vl5lib[] = {
+static const struct luaL_Reg lsclib[] = {
 	//
 	{"syscall", ll_syscall},
 	{"newbuffer", ll_newbuffer},
@@ -199,13 +199,13 @@ static const struct luaL_Reg vl5lib[] = {
 	{NULL, NULL},
 };
 
-int luaopen_vl5core (lua_State *L) {
+int luaopen_lsccore (lua_State *L) {
 	
 	// register main library functions
 	//~ luaL_register (L, "l5", l5lib);
-	luaL_newlib (L, vl5lib);
+	luaL_newlib (L, lsclib);
 	lua_pushliteral (L, "VERSION");
-	lua_pushliteral (L, VL5_VERSION); 
+	lua_pushliteral (L, VERSION); 
 	lua_settable (L, -3);
 	return 1;
 }

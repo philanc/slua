@@ -9,10 +9,10 @@
 	int luaopen_lualinux(lua_State *L); 
 	lua_pushcfunction(L, luaopen_lualinux);
 	lua_setfield(L, -2, "lualinux");
-	/// vl5core
-	int luaopen_vl5core(lua_State *L); 
-	lua_pushcfunction(L, luaopen_vl5core);
-	lua_setfield(L, -2, "vl5core");
+	/// lsccore
+	int luaopen_lsccore(lua_State *L); 
+	lua_pushcfunction(L, luaopen_lsccore);
+	lua_setfield(L, -2, "lsccore");
 	/// luamonocypher
 	int luaopen_luamonocypher(lua_State *L); 
 	lua_pushcfunction(L, luaopen_luamonocypher);

@@ -45,7 +45,7 @@ smoketest:  ./slua
 
 slua: 
 	$(CC) -c $(CFLAGS)  src/$(LUA)/src/*.c
-	$(CC) -c $(CFLAGS) src/vl5core.c src/linenoise.c 
+	$(CC) -c $(CFLAGS) src/lsccore.c src/linenoise.c 
 	$(CC) -c $(CFLAGS) src/$(LUAMONO)/*.c
 	$(CC) -c $(CFLAGS) src/$(LUALINUX)/*.c
 	$(CC) -c $(CFLAGS) src/$(LUALZMA)/*.c
@@ -78,7 +78,7 @@ clean:
 sglua:
 	rm -f sglua *.o *.a *.so
 	gcc -c $(CFLAGS) src/$(LUA)/src/*.c
-	gcc -c $(CFLAGS) src/vl5core.c src/linenoise.c
+	gcc -c $(CFLAGS) src/lsccore.c src/linenoise.c
 	gcc -c $(CFLAGS) src/$(LUAMONO)/*.c
 	gcc -c $(CFLAGS) src/$(LUALINUX)/*.c
 	gcc -c $(CFLAGS) src/$(LUALZMA)/*.c

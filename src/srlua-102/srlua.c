@@ -67,8 +67,13 @@ static void load(lua_State *L, const char *name)
 {
  Glue t;
  State S;
+	/// 220317  ignore argv[0] - force exe name
+	/// it allows the executable to be located anywhere 
+	/// (in the PATH) and called by name  (Linux only!)
+	name = "/proc/self/exe";
  FILE *f=fopen(name,"rb");
  int c;
+	
  if (f==NULL) cannot(L,"open",name);
  if (fseek(f,-sizeof(t),SEEK_END)!=0) cannot(L,"seek",name);
  if (fread(&t,sizeof(t),1,f)!=1) cannot(L,"read",name);

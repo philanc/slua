@@ -26,6 +26,8 @@ It has been slightly modified:
 
 * The additional slua libraries are also built in `srlua`.
 
+* `srlua` uses `/proc/self/exe` instead of `argv[0]` to find the executable program and read the embedded Lua code. It allows the program to be placed somewhere in $PATH and called by just its name from anywhere. 
+
 
 ### Static build
 

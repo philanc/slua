@@ -24,9 +24,9 @@
 #include "lauxlib.h"
 
 // single thread (no multi-thread support)
-#define _7ZIP_ST
+//~ #define _7ZIP_ST   --- defined in the makefile
 
-#include "lzma/LzmaLib.h"
+#include "LzmaLib.h"
 
 
 //----------------------------------------------------------------------
@@ -208,29 +208,4 @@ int ll_unlzma(lua_State *L) {
 	lua_pushlstring (L, dest, dln); 
 	return 1;
 } //unlzma()
-
-
-
-//----------------------------------------------------------------------
-// lua library declaration
-//
-static const struct luaL_Reg lllib[] = {
-	//
-	{"lzma", ll_lzma},
-	{"unlzma", ll_unlzma},
-	//
-	{NULL, NULL},
-};
-
-//----------------------------------------------------------------------
-// library registration
-
-
-int luaopen_lualzma (lua_State *L) {
-	luaL_register (L, "lualzma", lllib);
-	lua_pushliteral (L, "VERSION");
-	lua_pushliteral (L, VERSION); 
-	lua_settable (L, -3);
-	return 1;
-}
 

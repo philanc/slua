@@ -56,7 +56,7 @@ luamonocypher - a Lua wrapping for the Monocypher library
 // xchacha / poly1305 authenticated encryption
 
 
-static int ll_encrypt(lua_State *L) {
+int ll_encrypt(lua_State *L) {
 	// Authenticated encryption (XChacha20 + Poly1305)
 	// Lua API: encrypt(k, n, m [, ninc]) return c
 	// k: key string (32 bytes)
@@ -94,9 +94,9 @@ static int ll_encrypt(lua_State *L) {
 	crypto_lock(buf+mln, buf, k, actn, m, mln);
 	lua_pushlstring (L, buf, bufln); 
 	return 1;
-} // lock()
+} // encrypt()
 
-static int ll_decrypt(lua_State *L) {
+int ll_decrypt(lua_State *L) {
 	// Authenticated decryption (XChacha20 + Poly1305)
 	// Lua API: decrypt(k, n, c [, ninc]) return m
 	//  k: key string (32 bytes)
@@ -137,60 +137,9 @@ static int ll_decrypt(lua_State *L) {
 
 
 //----------------------------------------------------------------------
-// blake2b hash and argon2i KDF
-
-static int ll_blake2b(lua_State *L) {
-	// compute the blake2b hash of a string
-	// lua api:  blake2b(m, diglen, key) return digest
-	// m: the string to be hashed
-	// diglen: the optional length of the digest to be computed 
-	//    (between 1 and 64) - default value is 64
-	// key: an optional secret key, allowing blake2b to work as a MAC 
-	//    (if provided, key length must be between 1 and 64)
-	//    default is no key	
-	// digest: the blake2b hash (a <diglen>-byte string)
-	size_t mln; 
-	size_t keyln = 0; 
-	char digest[64];
-	const char *m = luaL_checklstring (L, 1, &mln);
-	int digln = luaL_optinteger(L, 2, 64);
-	const char *key = luaL_optlstring(L, 3, NULL, &keyln);
-	if ((keyln < 0)||(keyln > 64)) LERR("bad key size");
-	if ((digln < 1)||(digln > 64)) LERR("bad digest size");
-	crypto_blake2b_general(digest, digln, key, keyln, m, mln);
-	lua_pushlstring (L, digest, digln); 
-	return 1;
-}// ll_blake2b
-
-static int ll_argon2i(lua_State *L) {
-	// Lua API: argon2i(pw, salt, nkb, niters) => k
-	// pw: the password string
-	// salt: some entropy as a string (typically 16 bytes)
-	// nkb:  number of kilobytes used in RAM (as large as possible)
-	// niters: number of iterations (as large as possible, >= 10)
-	//  return k, a key string (32 bytes)
-	size_t pwln, saltln, kln, mln;
-	const char *pw = luaL_checklstring(L,1,&pwln);
-	const char *salt = luaL_checklstring(L,2,&saltln);	
-	int nkb = luaL_checkinteger(L,3);	
-	int niters = luaL_checkinteger(L,4);	
-	unsigned char k[32];
-	size_t worksize = nkb * 1024;
-	unsigned char *work= lua_newuserdata(L, worksize); 
-	crypto_argon2i_general(	
-		k, 32, work, nkb, niters,
-		pw, pwln, salt, saltln, 
-		"", 0, "", 0 	// optional key and additional data
-	);
-	lua_pushlstring (L, k, 32); 
-	return 1;
-} // ll_argon2i()
-
-
-//----------------------------------------------------------------------
 // key exchange (ec25519)
 
-static int ll_x25519_public_key(lua_State *L) {
+int ll_x25519_public_key(lua_State *L) {
 	// return the public key associated to a secret key
 	// lua api:  x25519_public_key(sk) return pk
 	// sk: a secret key (can be any 32-byte random value)
@@ -204,7 +153,7 @@ static int ll_x25519_public_key(lua_State *L) {
 	return 1;
 }//ll_x25519_public_key()
 
-static int ll_x25519(lua_State *L) {
+int ll_x25519(lua_State *L) {
 	// raw scalar multiplication over curve25519
 	// Note: this function should usually not be used directly.
 	// For DH key exchange, the key_exchange() function below 
@@ -228,7 +177,7 @@ static int ll_x25519(lua_State *L) {
 	return 1;   
 }// ll_x25519()
 
- static int ll_key_exchange(lua_State *L) {
+int ll_key_exchange(lua_State *L) {
 	// DH key exchange: compute a session key
 	// lua api:  key_exchange(sk, pk) => k
 	// !! beware, reversed order compared to nacl box_beforenm() !!
@@ -249,65 +198,12 @@ static int ll_x25519(lua_State *L) {
 //----------------------------------------------------------------------
 // signature
 
-static int ll_sign_public_key(lua_State *L) {
-	// return the public key associated to an ed25519 secret key
-	// lua api:  sign_public_key(sk) return pk
-	// sk: a secret key (can be any 32-byte random string)
-	// pk: the matching public key
-	size_t skln;
-	unsigned char pk[32];
-	const char *sk = luaL_checklstring(L,1,&skln); // secret key
-	if (skln != 32) LERR("bad sk size");
-	crypto_sign_public_key(pk, sk);
-	lua_pushlstring (L, pk, 32); 
-	return 1;
-}//ll_sign_public_key()
-
-static int ll_sign(lua_State *L) {
-	// sign a text with a secret key
-	// Lua API: sign(sk, pk, m) return sig
-	//  sk: key string (32 bytes)
-	//  pk: associated public key string (32 bytes)
-	//	m: message to sign (string)
-	//  return signature (a 64-byte string)
-	size_t mln, skln, pkln;
-	const char *sk = luaL_checklstring(L,1,&skln);
-	const char *pk = luaL_checklstring(L,2,&pkln);
-	const char *m = luaL_checklstring(L,3,&mln);	
-	if (skln != 32) LERR("bad key size");
-	if (pkln != 32) LERR("bad pub key size");
-	unsigned char sig[64];
-	crypto_sign(sig, sk, pk, m, mln);
-	lua_pushlstring (L, sig, 64); 
-	return 1;
-} // ll_sign()
-
-static int ll_check(lua_State *L) {
-	// check a text signature with a public key
-	// Lua API: check(sig, pk, m) return boolean
-	//  sig: signature string (64 bytes)
-	//  pk: public key string (32 bytes)
-	//	m: message to verify (string)
-	//  return true if the signature match, or false
-	int r;
-	size_t mln, pkln, sigln;
-	const char *sig = luaL_checklstring(L,1,&sigln);
-	const char *pk = luaL_checklstring(L,2,&pkln);
-	const char *m = luaL_checklstring(L,3,&mln);	
-	if (sigln != 64) LERR("bad signature size");
-	if (pkln != 32) LERR("bad key size");
-	r = crypto_check(sig, pk, m, mln);
-	// r == 0 if the signature matches
-	lua_pushboolean (L, (r == 0)); 
-	return 1;
-} // ll_check()
-
 
 //---------------------------------------------------------------------- 
 //--- sha512 and ed25519 signature (compatible with original NaCl)
 
 
-static int ll_sha512(lua_State *L) {
+int ll_sha512(lua_State *L) {
 	// compute the SHA2-512 hash of a string
 	// lua api:  sha512(m) return digest as a binary string
 	// m: the string to be hashed
@@ -321,7 +217,7 @@ static int ll_sha512(lua_State *L) {
 
 
 
-static int ll_ed25519_public_key(lua_State *L) {
+int ll_ed25519_public_key(lua_State *L) {
 	// return the public key associated to an ed25519 secret key
 	// lua api:  sign_public_key(sk) return pk
 	// sk: a secret key (can be any 32-byte random string)
@@ -335,7 +231,7 @@ static int ll_ed25519_public_key(lua_State *L) {
 	return 1;
 }//ll_sign_public_key()
 
-static int ll_ed25519_sign(lua_State *L) {
+int ll_ed25519_sign(lua_State *L) {
 	// sign a text with a secret key
 	// Lua API: sign(sk, pk, m) return sig
 	//  sk: key string (32 bytes)
@@ -354,7 +250,7 @@ static int ll_ed25519_sign(lua_State *L) {
 	return 1;
 } // ll_ed25519_sign()
 
-static int ll_ed25519_check(lua_State *L) {
+int ll_ed25519_check(lua_State *L) {
 	// check a text signature with a public key
 	// Lua API: check(sig, pk, m) return boolean
 	//  sig: signature string (64 bytes)
@@ -383,7 +279,7 @@ static int ll_ed25519_check(lua_State *L) {
 
 extern int randombytes(unsigned char *x,unsigned long long xlen); 
 
-static int ll_randombytes(lua_State *L) {
+int ll_randombytes(lua_State *L) {
 	// Lua API:   randombytes(n)  returns a string with n random bytes 
 	// n must be 256 or less.
 	// randombytes return nil, error msg  if the RNG fails or if n > 256
@@ -524,47 +420,3 @@ int ll_b64decode(lua_State *L) {
 }
 
 
-
-
-//----------------------------------------------------------------------
-// lua library declaration
-//
-static const struct luaL_Reg mclib[] = {
-	//
-	{"encrypt", ll_encrypt},
-	{"decrypt", ll_decrypt},
-	//
-	{"x25519_public_key", ll_x25519_public_key},
-	{"public_key", ll_x25519_public_key},  // alias
-	{"key_exchange", ll_key_exchange},
-	{"x25519", ll_x25519},
-	//
-	{"blake2b", ll_blake2b},
-	{"argon2i", ll_argon2i},	
-	//
-	{"sign_public_key", ll_sign_public_key},	
-	{"sign", ll_sign},	
-	{"check", ll_check},	
-	//
-	{"sha512", ll_sha512},	
-	{"ed25519_public_key", ll_ed25519_public_key},	
-	{"ed25519_sign", ll_ed25519_sign},	
-	{"ed25519_check", ll_ed25519_check},	
-	//
-	{"randombytes", ll_randombytes},
-	{"b64encode", ll_b64encode},
-	{"b64decode", ll_b64decode},
-	//
-	{NULL, NULL},
-};
-
-//----------------------------------------------------------------------
-// library registration
-
-int luaopen_luamonocypher (lua_State *L) {
-	luaL_register (L, "luamonocypher", mclib);
-	lua_pushliteral (L, "VERSION");
-	lua_pushliteral (L, VERSION); 
-	lua_settable (L, -3);
-	return 1;
-}

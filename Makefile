@@ -28,13 +28,14 @@ STRIP= strip
 
 # Directories where the sources can be found
 LUA= lua-5.4.3
-LUALZMA= lualzma-0.16
+LUAZEN= luazen-2.0
 LUALINUX=lualinux-0.3
-LUAMONO=luamonocypher-0.3
 SRLUA=srlua-102
 
 CFLAGS= -Os -Isrc/$(LUA)/src  -DLUA_USE_LINUX
 LDFLAGS= 
+
+B3DEFS= -DBLAKE3_NO_SSE2 -DBLAKE3_NO_SSE41 -DBLAKE3_NO_AVX2 -DBLAKE3_NO_AVX512
 
 # ----------------------------------------------------------------------
 
@@ -46,10 +47,11 @@ smoketest:  ./slua
 slua: 
 	$(CC) -c $(CFLAGS)  src/$(LUA)/src/*.c
 	$(CC) -c $(CFLAGS) src/lsccore.c src/linenoise.c 
-	$(CC) -c $(CFLAGS) src/$(LUAMONO)/*.c
 	$(CC) -c $(CFLAGS) src/$(LUALINUX)/*.c
-	$(CC) -c $(CFLAGS) src/$(LUALZMA)/*.c
-	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUALZMA)/lzma/*.c
+	$(CC) -c $(CFLAGS) src/$(LUAZEN)/*.c
+	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
+	$(CC) -c $(CFLAGS)  $(B3DEFS) src/$(LUAZEN)/blake3/*.c
+	$(CC) -c $(CFLAGS)  src/$(LUAZEN)/mono/*.c
 	$(AR) rc slua.a *.o
 	$(CC) -static -o slua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a
 	$(STRIP) slua
@@ -78,11 +80,12 @@ clean:
 sglua:
 	rm -f sglua *.o *.a *.so
 	gcc -c $(CFLAGS) src/$(LUA)/src/*.c
-	gcc -c $(CFLAGS) src/lsccore.c src/linenoise.c
-	gcc -c $(CFLAGS) src/$(LUAMONO)/*.c
-	gcc -c $(CFLAGS) src/$(LUALINUX)/*.c
-	gcc -c $(CFLAGS) src/$(LUALZMA)/*.c
-	gcc -c $(CFLAGS)  -D_7ZIP_ST src/$(LUALZMA)/lzma/*.c
+	$(CC) -c $(CFLAGS) src/lsccore.c src/linenoise.c 
+	$(CC) -c $(CFLAGS) src/$(LUALINUX)/*.c
+	$(CC) -c $(CFLAGS) src/$(LUAZEN)/*.c
+	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
+	$(CC) -c $(CFLAGS)  $(B3DEFS) src/$(LUAZEN)/blake3/*.c
+	$(CC) -c $(CFLAGS)  src/$(LUAZEN)/mono/*.c
 	ar rc slua.a *.o
 	gcc -o sglua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a  \
 		-Wl,-E -lpthread -lm -ldl
@@ -91,8 +94,7 @@ sglua:
 	rm -f *.o *.a	
 	
 test:  ./slua
-	./slua test/test_lualzma.lua
-	./slua test/test_luamonocypher.lua
+	./slua test/test_luazen.lua
 
 bin:  ./slua
 	cp ./slua ./bin/slua

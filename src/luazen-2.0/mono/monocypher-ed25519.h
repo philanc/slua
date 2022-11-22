@@ -1,4 +1,4 @@
-// Monocypher version 3.1.2
+// Monocypher version 3.1.3
 //
 // This file is dual-licensed.  Choose whichever licence you want from
 // the two licences listed below.
@@ -56,7 +56,9 @@
 
 #include "monocypher.h"
 
-#ifdef __cplusplus
+#ifdef MONOCYPHER_CPP_NAMESPACE
+namespace MONOCYPHER_CPP_NAMESPACE {
+#elif defined(__cplusplus)
 extern "C" {
 #endif
 

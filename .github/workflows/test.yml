@@ -16,11 +16,9 @@ jobs:
         set -v
         # build only sglua (musl libc not available) 
         make sglua
-        ./sglua test/test_lualzma.lua
-        ./sglua test/test_luamonocypher.lua
+        ./sglua test/test_luazen.lua
         # install musl, build static slua 
         sudo apt install musl musl-tools
         make clean 
         make slua
-        ./slua test/test_lualzma.lua
-        ./slua test/test_luamonocypher.lua
+        ./slua test/test_luazen.lua

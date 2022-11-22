@@ -1,7 +1,10 @@
 
 -- quick and dirty test of the major luamonocypher functions
 
-mc = require"luamonocypher"
+package.path = "./?.lua"
+package.cpath = "./?.so"
+
+local lz = require"luazen"
 
 ------------------------------------------------------------------------
 -- some local definitions
@@ -58,20 +61,91 @@ local function hextos(hs, unsafe)
 		))
 end -- hextos
 
+local xts, stx = hextos, stohex
+
+
 local function px(s, msg) 
 	print("--", msg or "")
 	print(stohex(s, 16, " ")) 
 end
 
 ------------------------------------------------------------------------
--- Monocypher test
+-- luazen test
 
-print("\ntesting " .. mc.VERSION)
+print("------------------------------------------------------------")
+print(_VERSION, lz.VERSION )
+print("------------------------------------------------------------")
+
+------------------------------------------------------------------------
+print("testing md5...")
+assert(stx(lz.md5('')) == 'd41d8cd98f00b204e9800998ecf8427e')
+assert(stx(lz.md5('abc')) == '900150983cd24fb0d6963f7d28e17f72')
+
+------------------------------------------------------------------------
+print("testing base64...")
+
+local be = lz.b64encode
+local bd = lz.b64decode
+--
+assert(be"" == "")
+assert(be"a" == "YQ==")
+assert(be"aa" == "YWE=")
+assert(be"aaa" == "YWFh")
+assert(be"aaaa" == "YWFhYQ==")
+assert(be(("a"):rep(61)) ==
+	"YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+	.. "YWFhYWFh\nYWFhYWFhYQ==") -- produce 72-byte lines
+assert(be(("a"):rep(61), 64) ==
+	"YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+	.. "\nYWFhYWFhYWFhYWFhYQ==") -- produce 64-byte lines
+assert(be(("a"):rep(61), 0) ==
+	"YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+	.. "YWFhYWFhYWFhYWFhYQ==") -- produce one line (no \n inserted)
+assert("" == bd"")
+assert("a" == bd"YQ==")
+assert("aa" == bd"YWE=")
+assert("aaa" == bd"YWFh")
+assert("aaaa" == bd"YWFhYQ==")
+assert(bd"YWFhYWFhYQ" == "aaaaaaa") -- not well-formed (no padding)
+assert(bd"YWF\nhY  W\t\r\nFhYQ" == "aaaaaaa") -- no padding, whitespaces
+assert(bd(be(xts"0001020300" )) == xts"0001020300")
+
+
+------------------------------------------------------------------------
+print("testing lzma...")
+local x	
+
+-- test round-trip compress/uncompress
+x = ""; assert(lz.unlzma(lz.lzma(x)) == x)
+x = "a"; assert(lz.unlzma(lz.lzma(x)) == x)
+x = "Hello world"; assert(lz.unlzma(lz.lzma(x)) == x)
+x = ("\0"):rep(301); assert(lz.unlzma(lz.lzma(x)) == x)
+
+assert(#lz.lzma(("a"):rep(301)) < 30)
+
+
+------------------------------------------------------------------------
+print("testing blake3...")
+
+dig = lz.blake3("Hello, World!", nil, 65)  -- get a 65-byte hash
+assert(dig == hextos[[
+	288a86a79f20a3d6dccdca7713beaed1
+	78798296bdfa7913fa2a62d9727bf8f8
+	d7f01a496647e626c0d07fa6a060cbe3
+	8bf116e3a05f489a9720924b875f1677
+	04
+]])
+dig = lz.blake3("Hello, World!!!") -- get a default, 32-byte hash
+assert(dig == hextos[[
+	ab04a6c9b4bbdfcb66dccef112d9e6f3
+	99788de1bfe5005ef857756e7a4a5396
+]])
+
+------------------------------------------------------------------------
+print("testing authenticated encryption...")
 
 -- xchacha test vector from libsodium-1.0.16
 -- see test/aead_xchacha20poly1305.c and aead_xchacha20poly1305.exp
-
-print("testing authenticated encryption...")
 
 k = hextos[[ 
 	808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f 
@@ -88,7 +162,7 @@ e = hextos[[
 	5cc1
 ]]
 
-c = mc.encrypt(k,n,m)
+c = lz.encrypt(k,n,m)
 assert(c == e)
 
 -- xchacha test vector from 
@@ -108,7 +182,7 @@ e = hextos[[
 	3288b7772cb2919818d95777ab58fe5480d6e49958f5d2481431014a8f88dab8
 	f7e08d2a9aebbe691430011d
 	]]
-c = mc.encrypt(k, n, m)
+c = lz.encrypt(k, n, m)
 assert(c == e)
 
 k = hextos[[ 
@@ -124,60 +198,40 @@ e = hextos[[
 	b680dea393e24c2a3c8d1cc9db6df517423085833aa21f9ab5b42445b914f231
 	3bcd205d179430
 	]]
-c = mc.encrypt(k, n, m)
+c = lz.encrypt(k, n, m)
 assert(c == e)
 
 -- decrypt
-m2, msg = mc.decrypt(k, n, c)
+m2, msg = lz.decrypt(k, n, c)
 assert(m2)
 assert(m2 == m)
 
 
 -- test nonce with an arbitrary "increment"
-c = mc.encrypt(k, n, m, 123)
-m2 = mc.decrypt(k, n, c, 123)
+c = lz.encrypt(k, n, m, 123)
+m2 = lz.decrypt(k, n, c, 123)
 assert(m2 == m)
-
-------------------------------------------------------------------------
-print("testing blake2b...")
-
-t = "The quick brown fox jumps over the lazy dog"
-e = hextos[[
-	a8add4bdddfd93e4877d2746e62817b116364a1fa7bc148d95090bc7333b3673
-	f82401cf7aa2e4cb1ecd90296e3f14cb5413f8ed77be73045b13914cdcd6a918
-	]]
-
-dig = mc.blake2b(t)
-assert(e == dig)
-
-dig16 = mc.blake2b(t, 16)
-dig31 = mc.blake2b(t, 31)
-assert(#dig16 == 16)
-assert(#dig31 == 31)
-digk = mc.blake2b(t, 16, k)
-assert(digk ~= dig16)
-assert(#digk == 16)
 
 ------------------------------------------------------------------------
 print("testing x25519 key exchange...")
 
 local function keypair()
-	local sk = mc.randombytes(32)
-	local pk = mc.public_key(sk)
+	local sk = lz.randombytes(32)
+	local pk = lz.x25519_public_key(sk)
 	return pk, sk
 end
 
 apk, ask = keypair() -- alice keypair
 bpk, bsk = keypair() -- bob keypair
 
-k1 = mc.key_exchange(ask, bpk)
-k2 = mc.key_exchange(bsk, apk)
+k1 = lz.key_exchange(ask, bpk)
+k2 = lz.key_exchange(bsk, apk)
 assert(k1 == k2)
 
 -- test raw scalar multiplication
 -- compute directly alice public key with G, the generator of curve25519
 G = '\9\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0'
-apk2 = mc.x25519(ask, G)
+apk2 = lz.x25519(ask, G)
 assert(apk2 == apk)
 
 ------------------------------------------------------------------------
@@ -189,33 +243,10 @@ e = hextos[[
 	2e93a252a954f23912547d1e8a3b5ed6e1bfd7097821233fa0538f3db854fee6
 ]]
 
-h = mc.sha512(t)
+h = lz.sha512(t)
 assert(h == e)
 --~ px(h)
 
-------------------------------------------------------------------------
-print("testing signature...")
-
-local function sign_keypair()
-	local sk = mc.randombytes(32)
-	local pk = mc.sign_public_key(sk)
-	return pk, sk
-end
-
-pk, sk = sign_keypair() -- signature keypair
-
-sig = mc.sign(sk, pk, t)
-assert(#sig == 64)
---~ px(pk, 'pk')
---~ px(sig, 'sig')
-
--- check signature
-assert(mc.check(sig, pk, t))
-
--- modified text doesn't check
-assert(not mc.check(sig, pk, t .. "!"))
-
---- ed25519
 
 ------------------------------------------------------------------------
 print("testing ed25519/sha512 signature...")
@@ -224,13 +255,13 @@ sk = hextos[[
 	889f5e0ee37f968db2690b805790aac94faf885e8459d30e226672108b172aee
 	]]
 
-pk = mc.ed25519_public_key(sk)
+pk = lz.ed25519_public_key(sk)
 
 assert(pk == hextos[[
 	8b8a804d179e015320777bc6d8cf9eaefb6705cf511d4962d8c35cf39659a957
 	]])
 
-sig = mc.ed25519_sign(sk, pk, t)
+sig = lz.ed25519_sign(sk, pk, t)
 assert(#sig == 64)
 --~ px(sk, 'sk')
 --~ px(pk, 'pk')
@@ -241,28 +272,11 @@ assert(sig == hextos[[
 	]])
 
 -- check signature
-assert(mc.ed25519_check(sig, pk, t))
+assert(lz.ed25519_check(sig, pk, t))
 
 -- modified text doesn't check
-assert(not mc.ed25519_check(sig, pk, t .. "!"))
+assert(not lz.ed25519_check(sig, pk, t .. "!"))
 
 
 ------------------------------------------------------------------------
--- key derivation argon2i tests
-
-print("testing argon2i...")
-
-pw = "hello"
-salt = "salt salt salt"
-k = ""
-c0 = os.clock()
-k = mc.argon2i(pw, salt, 100000, 10)
-assert(#k == 32)
-assert(k == hextos[[
-	0dae6ce32c7f1be7ada558fbd55f2ebbe149b46c29725b73e5341f04b338bf08
-	]])
-  
-print("argon2i (100MBytes, 10 iter) Execution time (sec): ", os.clock()-c0)
-
-------------------------------------------------------------------------
-print("\ntest_luamonocypher", "ok\n")
+print("\ntest_luazen", "ok\n")

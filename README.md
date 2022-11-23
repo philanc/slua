@@ -63,19 +63,10 @@ Then run 'make' at the root of the project tree:
 ```
 
 The default target buils the `slua` executable, the associated `sluac` Lua compiler, and `srlua` and its companion `srglue` (See "extension mechanism" above). All these programs are statically linked.
- 
-### Dynamic linking version ('sglua')
-
-A makefile target is provided to build 'sglua', a dynamic version of slua, with the same additional libraries statically linked and preloaded.  'sglua' is built with Glibc. It has the same functions as slua (built-in linenoise line-editing, preloaded libraries). It is intended to be built with the regular glibc (so the only runtime dependencies are the default libc, libm, libpthread and libdl). 
-
-To build sglua:
-```
-  make sglua
-```
 
 ### Pre-built binary
 
-A binary version of slua is provided here for convenience. This is a standalone executable, statically compiled with musl-1.2.2 for x86_64.
+A binary version of slua is provided here for convenience. This is a standalone executable, statically compiled with musl-1.2.2 for Linux x86_64.
 
 ### Package versions
 
@@ -95,7 +86,7 @@ lua.c is not used. It is replaced with src/slua.c. The only differences between 
 
 Lua and all extension libraries are distributed under the terms of their respective licenses (MIT or equivalent - see in the ./src directory).
 
-I am of course grateful to the PUC-Rio team for the great [Lua](http://www.lua.org/).
+I am of course grateful to the PUC-Rio team for the great [Lua](http://www.lua.org/) language.
 
 The built-in libraries include some code from various authors:
 - linenoise by Salvatore Sanfilippo - https://github.com/antirez/linenoise

@@ -73,31 +73,14 @@ srlua: slua
 	./srtest arg1 arg2 arg3 
 
 clean:
-	rm -f slua sluac sglua *.o *.a *.so
+	rm -f slua sluac *.o *.a *.so
 	rm -f srlua srglue srtest
 
-# sglua is built with the default compiler and glibc
-sglua:
-	rm -f sglua *.o *.a *.so
-	gcc -c $(CFLAGS) src/$(LUA)/src/*.c
-	gcc -c $(CFLAGS) src/lsccore.c src/linenoise.c 
-	gcc -c $(CFLAGS) src/$(LUALINUX)/*.c
-	gcc -c $(CFLAGS) src/$(LUAZEN)/*.c
-	gcc -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
-	gcc -c $(CFLAGS)  $(B3DEFS) src/$(LUAZEN)/blake3/*.c
-	gcc -c $(CFLAGS)  src/$(LUAZEN)/mono/*.c
-	ar rc slua.a *.o
-	gcc -o sglua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a  \
-		-Wl,-E -lpthread -lm -ldl
-	strip ./sglua
-	./sglua  test/smoketest_g.lua
-	rm -f *.o *.a	
-	
 test:  ./slua
 	./slua test/test_luazen.lua
 
 bin:  ./slua
 	cp ./slua ./bin/slua
 	
-.PHONY: clean smoketest default sglua
+.PHONY: clean smoketest default
 

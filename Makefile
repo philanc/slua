@@ -80,12 +80,12 @@ clean:
 sglua:
 	rm -f sglua *.o *.a *.so
 	gcc -c $(CFLAGS) src/$(LUA)/src/*.c
-	$(CC) -c $(CFLAGS) src/lsccore.c src/linenoise.c 
-	$(CC) -c $(CFLAGS) src/$(LUALINUX)/*.c
-	$(CC) -c $(CFLAGS) src/$(LUAZEN)/*.c
-	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
-	$(CC) -c $(CFLAGS)  $(B3DEFS) src/$(LUAZEN)/blake3/*.c
-	$(CC) -c $(CFLAGS)  src/$(LUAZEN)/mono/*.c
+	gcc -c $(CFLAGS) src/lsccore.c src/linenoise.c 
+	gcc -c $(CFLAGS) src/$(LUALINUX)/*.c
+	gcc -c $(CFLAGS) src/$(LUAZEN)/*.c
+	gcc -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
+	gcc -c $(CFLAGS)  $(B3DEFS) src/$(LUAZEN)/blake3/*.c
+	gcc -c $(CFLAGS)  src/$(LUAZEN)/mono/*.c
 	ar rc slua.a *.o
 	gcc -o sglua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a  \
 		-Wl,-E -lpthread -lm -ldl

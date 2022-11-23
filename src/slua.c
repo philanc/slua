@@ -1,9 +1,13 @@
 ///---------------------------------------------------------------------
 /// 211105 
 /// slua.c = lua.c from lua-5.4.3  
+///   + added slua version to print_version()
 ///   + linenoise support (before "#if !defined(lua_readline) ")
 ///   + preload slua libraries (after "luaL_openlibs(L);" 
 ///---------------------------------------------------------------------
+
+
+#define SLUA_VERSION "slua-1.0"
 
 /*
 ** $Id: lua.c $
@@ -172,6 +176,8 @@ static int docall (lua_State *L, int narg, int nres) {
 
 static void print_version (void) {
   lua_writestring(LUA_COPYRIGHT, strlen(LUA_COPYRIGHT));
+/// added slua version 
+  lua_writestring(" - " SLUA_VERSION, strlen(SLUA_VERSION)+3);
   lua_writeline();
 }
 

@@ -72,7 +72,7 @@ A binary version of slua is provided here for convenience. This is a standalone 
 
 lua-5.4.3 - http://www.lua.org/ftp/lua-5.4.3.tar.gz
 
-luazen-2.0 - https://github.com/philanc/luazen
+luazen-2.1 - https://github.com/philanc/luazen
 
 lualinux-0.3 - https://github.com/philanc/lualinux
 
@@ -91,8 +91,7 @@ I am of course grateful to the PUC-Rio team for the great [Lua](http://www.lua.o
 The built-in libraries include some code from various authors:
 - linenoise by Salvatore Sanfilippo - https://github.com/antirez/linenoise
 - lzma compression by Igor Pavlov - https://www.7-zip.org/sdk.html
-- xchacha20/poly1305, x25519 DH key exchange and ed25519 signature from Loup Vaillant's Monocypher -  https://monocypher.org/
-- blake3 by by Jack O'Connor, Jean-Philippe Aumasson, Samuel Neves and Zooko Wilcox-O'Hearn - https://github.com/BLAKE3-team/BLAKE3
+- xchacha20/poly1305, blake2b, argon2i, x25519 DH key exchange and ed25519 signature from Loup Vaillant's Monocypher -  https://monocypher.org/
 - srlua by Luiz Henrique de Figueiredo (public domain)
 
 slua itslef and the library bindings are distributed under the MIT License (see file LICENSE)

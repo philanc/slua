@@ -135,6 +135,55 @@ int ll_decrypt(lua_State *L) {
 	return 1;
 } // ll_decrypt()
 
+//----------------------------------------------------------------------
+// blake2b hash and argon2i KDF
+
+int ll_blake2b(lua_State *L) {
+	// compute the blake2b hash of a string
+	// lua api:  blake2b(m, diglen, key) return digest
+	// m: the string to be hashed
+	// diglen: the optional length of the digest to be computed 
+	//    (between 1 and 64) - default value is 64
+	// key: an optional secret key, allowing blake2b to work as a MAC 
+	//    (if provided, key length must be between 1 and 64)
+	//    default is no key	
+	// digest: the blake2b hash (a <diglen>-byte string)
+	size_t mln; 
+	size_t keyln = 0; 
+	char digest[64];
+	const char *m = luaL_checklstring (L, 1, &mln);
+	int digln = luaL_optinteger(L, 2, 64);
+	const char *key = luaL_optlstring(L, 3, NULL, &keyln);
+	if ((keyln < 0)||(keyln > 64)) LERR("bad key size");
+	if ((digln < 1)||(digln > 64)) LERR("bad digest size");
+	crypto_blake2b_general(digest, digln, key, keyln, m, mln);
+	lua_pushlstring (L, digest, digln); 
+	return 1;
+}// ll_blake2b
+
+int ll_argon2i(lua_State *L) {
+	// Lua API: argon2i(pw, salt, nkb, niters) => k
+	// pw: the password string
+	// salt: some entropy as a string (typically 16 bytes)
+	// nkb:  number of kilobytes used in RAM (as large as possible)
+	// niters: number of iterations (as large as possible, >= 10)
+	//  return k, a key string (32 bytes)
+	size_t pwln, saltln, kln, mln;
+	const char *pw = luaL_checklstring(L,1,&pwln);
+	const char *salt = luaL_checklstring(L,2,&saltln);	
+	int nkb = luaL_checkinteger(L,3);	
+	int niters = luaL_checkinteger(L,4);	
+	unsigned char k[32];
+	size_t worksize = nkb * 1024;
+	unsigned char *work= lua_newuserdata(L, worksize); 
+	crypto_argon2i_general(	
+		k, 32, work, nkb, niters,
+		pw, pwln, salt, saltln, 
+		"", 0, "", 0 	// optional key and additional data
+	);
+	lua_pushlstring (L, k, 32); 
+	return 1;
+} // ll_argon2i()
 
 //----------------------------------------------------------------------
 // key exchange (ec25519)
@@ -269,154 +318,4 @@ int ll_ed25519_check(lua_State *L) {
 	lua_pushboolean (L, (r == 0)); 
 	return 1;
 } // ll_ed25519_check()
-
-
-//----------------------------------------------------------------------
-// Utilities
-
-
-// randombytes()
-
-extern int randombytes(unsigned char *x,unsigned long long xlen); 
-
-int ll_randombytes(lua_State *L) {
-	// Lua API:   randombytes(n)  returns a string with n random bytes 
-	// n must be 256 or less.
-	// randombytes return nil, error msg  if the RNG fails or if n > 256
-	//	
-    size_t bufln; 
-	unsigned char buf[256];
-	lua_Integer li = luaL_checkinteger(L, 1);  // 1st arg
-	if ((li > 256 ) || (li < 0)) {
-		lua_pushnil (L);
-		lua_pushliteral(L, "invalid byte number");
-		return 2;      		
-	}
-	int r = randombytes(buf, li);
-	if (r != 0) { 
-		lua_pushnil (L);
-		lua_pushliteral(L, "random generator error");
-		return 2;         
-	} 	
-    lua_pushlstring (L, buf, li); 
-	return 1;
-}//ll_randombytes()
-
-
-// base64
-// derived from public domain code by Luiz Henrique de Figueiredo, 2010
-
-#define uint unsigned int
-#define B64LINELENGTH 72
-
-static const char code[]=
-"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-static void b64encode(luaL_Buffer *b, uint c1, uint c2, uint c3, int n) {
-	unsigned long tuple=c3+256UL*(c2+256UL*c1);
-	int i;
-	char s[4];
-	for (i=0; i<4; i++) {
-	s[3-i] = code[tuple % 64];
-	tuple /= 64;
-	}
-	for (i=n+1; i<4; i++) s[i]='=';
-	luaL_addlstring(b,s,4);
-}
-
-int ll_b64encode(lua_State *L) {
-	// Lua api: b64encode(str [, linelen])
-	//     str is the tring to enccode
-	//     linelen is an optional output line length
-	//       (should be be multiple of 4)
-	//       default is 72, (must be <= 76 for Mime)
-	//       if 0, no '\n' is inserted
-	size_t l;
-	const unsigned char *s=(const unsigned char*)luaL_checklstring(L,1,&l);
-	int linelength = (
-		lua_isnoneornil(L, 2) ? B64LINELENGTH : luaL_checkinteger(L, 2)); 
-	luaL_Buffer b;
-	int n;
-	int cn = 0; 
-	luaL_buffinit(L,&b);
-	for (n=l/3; n--; s+=3) {
-		b64encode(&b,s[0],s[1],s[2],3);
-		cn += 4; 
-		if ( linelength && cn >= linelength) {
-			cn = 0;
-			luaL_addlstring(&b,"\n",1);
-		}
-	}
-	switch (l%3)
-	{
-	case 1: b64encode(&b,s[0],0,0,1);		break;
-	case 2: b64encode(&b,s[0],s[1],0,2);		break;
-	}
-	luaL_pushresult(&b);
-	return 1;
-}
-
-static void b64decode(luaL_Buffer *b, 
-		int c1, int c2, int c3, int c4, int n)  {
-	unsigned long tuple=c4+64L*(c3+64L*(c2+64L*c1));
-	char s[3];
-	switch (--n)
-	{
-	case 3: s[2]=tuple;
-	case 2: s[1]=tuple >> 8;
-	case 1: s[0]=tuple >> 16;
-	}
-	luaL_addlstring(b,s,n);
-}
-
-int ll_b64decode(lua_State *L) {
-	// Lua api: b64decode(str)
-	// str is the base64-encoded string to decode
-	// return the decoded string or nil if str contains 
-	// an invalid character (whitespaces and newlines are ignored)
-	//
-	size_t l;
-	const char *s=luaL_checklstring(L,1,&l);
-	luaL_Buffer b;
-	int n=0;
-	char t[4];
-	luaL_buffinit(L,&b);
-	for (;;) 	{
-		int c=*s++;
-		switch (c)  {
-		const char *p;
-		case '=':
-		// added 'case 0:' here to allow decoding of 
-		// non well-formed encoded strings 
-		// (ie. strings with no padding)
-		case 0:  
-			switch (n)  {
-			case 1: b64decode(&b,t[0],0,0,0,1);
-				break;
-			case 2: b64decode(&b,t[0],t[1],0,0,2);	
-				break;
-			case 3: b64decode(&b,t[0],t[1],t[2],0,3);
-				break;
-			}
-			luaL_pushresult(&b);
-			return 1;
-		// skip white space and newline
-		case '\n': 
-		case '\r': 
-		case '\t': 
-		case ' ': 
-			break;
-		default:
-			p=strchr(code,c); if (p==NULL) return 0;
-			t[n++]= p-code;
-			if (n==4) 	{
-				b64decode(&b,t[0],t[1],t[2],t[3],4);
-				n=0;
-			}
-			break;
-		} //switch(c)
-	} //for(;;)
-	return 0;
-}
-
 

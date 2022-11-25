@@ -28,14 +28,12 @@ STRIP= strip
 
 # Directories where the sources can be found
 LUA= lua-5.4.3
-LUAZEN= luazen-2.0
+LUAZEN= luazen-2.1
 LUALINUX=lualinux-0.3
 SRLUA=srlua-102
 
 CFLAGS= -Os -Isrc/$(LUA)/src  -DLUA_USE_LINUX
 LDFLAGS= 
-
-B3DEFS= -DBLAKE3_NO_SSE2 -DBLAKE3_NO_SSE41 -DBLAKE3_NO_AVX2 -DBLAKE3_NO_AVX512
 
 # ----------------------------------------------------------------------
 
@@ -50,7 +48,6 @@ slua:
 	$(CC) -c $(CFLAGS) src/$(LUALINUX)/*.c
 	$(CC) -c $(CFLAGS) src/$(LUAZEN)/*.c
 	$(CC) -c $(CFLAGS)  -D_7ZIP_ST src/$(LUAZEN)/lzma/*.c
-	$(CC) -c $(CFLAGS)  $(B3DEFS) src/$(LUAZEN)/blake3/*.c
 	$(CC) -c $(CFLAGS)  src/$(LUAZEN)/mono/*.c
 	$(AR) rc slua.a *.o
 	$(CC) -static -o slua $(CFLAGS) $(LDFLAGS) src/slua.c slua.a

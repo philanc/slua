@@ -7,7 +7,7 @@
 ///---------------------------------------------------------------------
 
 
-#define SLUA_VERSION "slua-1.0"
+#define SLUA_VERSION "slua-1.1"
 
 /*
 ** $Id: lua.c $
@@ -646,6 +646,10 @@ static int pmain (lua_State *L) {
 /// slua: preloaded libraries
 
 #include "slualibs.h"
+  
+/// 230103 added SLUA_VERSION global
+  lua_pushliteral(L, SLUA_VERSION);
+  lua_setglobal(L, "SLUA_VERSION");
   
 /// slua: end of preloaded libraries
 /// ==================================================================

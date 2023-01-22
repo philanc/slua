@@ -6,6 +6,11 @@
 * This code is hereby placed in the public domain and also under the MIT license
 */
 
+//  slua:  
+//	added slua preloaded libraries
+//  	ignore argv[0] - use /proc/self/exe to find the exe pathname
+//	added SLUA_VERSION
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -98,7 +103,12 @@ static int pmain(lua_State *L)
 /// slua: preloaded libraries
 
 #include "slualibs.h"
-  
+#include "sluaversion.h"
+	
+/// 230122 added SLUA_VERSION global
+  lua_pushliteral(L, SLUA_VERSION);
+  lua_setglobal(L, "SLUA_VERSION");
+
 /// slua: end of preloaded libraries
 /// ==================================================================
 	

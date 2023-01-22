@@ -7,8 +7,8 @@ print("\n\n")
 print(sep)
 print("== srlua  test\n")
 
-print("This is",_VERSION,
-      "running a script embedded inside the executable "
+print("This is",_VERSION, SLUA_VERSION,
+      "\nrunning a script embedded inside the executable "
       .. arg[0])
 print("The script is 'test.lua' in the src/srlua directory")
 print("These are the arguments from varargs (if any):")

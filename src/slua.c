@@ -4,10 +4,12 @@
 ///   + added slua version to print_version()
 ///   + linenoise support (before "#if !defined(lua_readline) ")
 ///   + preload slua libraries (after "luaL_openlibs(L);" 
+/// 230122 
+///   + sluaversion.h, SLUA_VERSION
 ///---------------------------------------------------------------------
 
 
-#define SLUA_VERSION "slua-1.1"
+#include "sluaversion.h"
 
 /*
 ** $Id: lua.c $
